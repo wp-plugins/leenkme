@@ -12,6 +12,7 @@ The leenk.me plugin empowers you to automatically publish to your Twitter and Fa
 leenk.me automatically publishes a tweet to your Twitter account and a status update to your Facebook profile and/or page whenever you publish a new post in your WordPress website. It has the ability to support multiple WordPress authors and allows administrators to setup the plugin to publish to leenk.me for all authors, whenever anyone publishes a post.
 
 With leenk.me you can...
+
 * choose which categories are published automatically
 * exclude individual posts from being tweeted to Twitter or Published to Facebook
 * ReTweet and RePublish already published posts
