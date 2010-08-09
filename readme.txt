@@ -12,11 +12,11 @@ The leenk.me plugin empowers you to automatically publish to your Twitter and Fa
 leenk.me automatically publishes a tweet to your Twitter account and a status update to your Facebook profile and/or page whenever you publish a new post in your WordPress website. It has the ability to support multiple WordPress authors and allows administrators to setup the plugin to publish to leenk.me for all authors, whenever anyone publishes a post.
 
 With leenk.me you can...
-*	choose which categories are published automatically
-*	exclude individual posts from being tweeted to Twitter or Published to Facebook
-*	ReTweet and RePublish already published posts
-*	choose to publish all authors
-*	customize your Tweet format with the custom tags %TITLE% and %URL%
+* choose which categories are published automatically
+* exclude individual posts from being tweeted to Twitter or Published to Facebook
+* ReTweet and RePublish already published posts
+* choose to publish all authors
+* customize your Tweet format with the custom tags %TITLE% and %URL%
 
 Currently leenk.me supports two URL shortening services for its Twitter plugin. TinyURL is the default shortener, the leenk.me plugin will attempt to the post URL shortened by TinyURL. If it is unable to, it will use the regular site URL. The recommended shortener is a WordPress plugin called [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/). If Twitter Friendly Links is installed and activated on your WordPress website then leenk.me will use it as the default shortener. Twitter Friendly Links drives traffic directly to your website and does not rely on a second party!
 
@@ -43,4 +43,10 @@ http://leenk.me/contact
 
 == Screenshots ==
 
-1. None at this time
+1. leenk.me plugin settings page
+2. verify your leenk.me API key
+3. Enable Twitter and Facebook plugins
+4. Update your Twitter settings
+5. Update your Facebook settings
+6. ReTweet and RePublish row actions
+7. Post specific settings for Twitter and Facebook
