@@ -39,7 +39,11 @@ This section describes how to install the plugin and get it working.
 http://leenk.me/contact
 
 == Release History ==
-= 1.0.0 = leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
+= 1.0.1 =
+Fixed small removed default check from Facebook profile for new plugin activations.
+
+= 1.0.0 = 
+leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
 
 == Screenshots ==
 
