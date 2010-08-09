@@ -40,7 +40,7 @@ class leenkme_Facebook {
 	// Option loader function
 	function get_user_settings( $user_id = "" ) {
 		// Default values for the options
-		$facebook_profile	= true;
+		$facebook_profile	= false;
 		$facebook_page		= false;
 		$default_image		= "";
 		$publish_cats		= "";
