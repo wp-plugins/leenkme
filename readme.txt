@@ -39,7 +39,7 @@ This section describes how to install the plugin and get it working.
 
 http://leenk.me/contact
 
-== Release History ==
+== Changelog ==
 = 1.0.1 =
 Fixed small bug: removed default check from Facebook profile for new plugin activations.
 
