@@ -1,6 +1,6 @@
-=== leenk.me ===
+pret=== leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
+Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk, post to twitter, post to facebook
 Requires at least: 2.8
 Tested up to: 3.0.1
 Stable tag: 1.0.1
@@ -19,7 +19,7 @@ With leenk.me you can...
 * choose to publish all authors
 * customize your Tweet format with the custom tags %TITLE% and %URL%
 
-Currently leenk.me supports two URL shortening services for its Twitter plugin. TinyURL is the default shortener, the leenk.me plugin will attempt to the post URL shortened by TinyURL. If it is unable to, it will use the regular site URL. The recommended shortener is a WordPress plugin called [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/). If Twitter Friendly Links is installed and activated on your WordPress website then leenk.me will use it as the default shortener. Twitter Friendly Links drives traffic directly to your website and does not rely on a second party!
+Currently leenk.me supports two URL shortening services for its Twitter plugin. TinyURL is the default shortener, the leenk.me plugin will attempt to use the post's URL shortened by TinyURL. If it is unable to, it will use the regular site URL. The recommended shortener is a WordPress plugin called [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/). If Twitter Friendly Links is installed and activated on your WordPress website then leenk.me will use it as the default shortener. Twitter Friendly Links drives traffic directly to your website and does not rely on a second party!
 
 [Support](http://leenk.me/contact)
 
