@@ -1,6 +1,6 @@
 pret=== leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk, post to twitter, post to facebook
+Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
 Requires at least: 2.8
 Tested up to: 3.0.1
 Stable tag: 1.0.1
