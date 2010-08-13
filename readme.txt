@@ -3,9 +3,9 @@ Contributors: layotte
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk, leenk me
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 
-The leenk.me plugin empowers you to automatically publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress..
+The leenk.me plugin empowers you to automatically publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress.
 
 == Description ==
 
@@ -40,6 +40,9 @@ This section describes how to install the plugin and get it working.
 http://leenk.me/contact
 
 == Changelog ==
+= 1.0.2 =
+Fixed bug caused by not having thumbnails enabled in WP2.8.x and WP2.9.x.
+
 = 1.0.1 =
 Fixed small bug: removed default check from Facebook profile for new plugin activations.
 

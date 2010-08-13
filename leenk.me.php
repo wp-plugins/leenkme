@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter account and Facebook profile/page whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
 */
 
-define( 'leenk.me_version' , '1.0.1' );
+define( 'leenk.me_version' , '1.0.2' );
 
 class leenkme {
 	var $options_name			= "leenkme";

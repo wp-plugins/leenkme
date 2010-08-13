@@ -403,7 +403,7 @@ function leenkme_publish_to_facebook( $post, $republish = false ) {
 				}
 				
 				if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
-					if ( has_post_thumbnail( $post->ID ) ) {
+					if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
 						$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 						list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
 					} else if ( !empty( $options['default_image'] ) ) {
