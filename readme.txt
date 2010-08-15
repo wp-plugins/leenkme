@@ -11,20 +11,23 @@ Did your Twitter plugin stop working? If so, give leenk.me a try! The leenk.me p
 
 leenk.me automatically publishes a tweet to your Twitter account and a status update to your Facebook profile and/or page whenever you publish a new post in your WordPress website.
 
-With leenk.me you can...
+What can you do with leenk.me?
 
-* Choose which categories are published automatically
+* Publish automatically to your social networks when you publish a new post in WordPress.
+* Choose which categories are published automatically.
 * Exclude individual posts from being published to your various social networks.
 * Resend previously published posts to your social networks.
-* Additional authors can setup their own leenk.me accounts.
-* Publish to all authors leenk.me accounts whenever a post is published.
+* Additional authors can setup their own leenk.me accounts and add them to your website.
+* Publish to all author's leenk.me accounts whenever a post is published.
 * Customize your Tweet format with the custom tags %TITLE% and %URL%
-* Tweet URLs are automatically shortened with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
+* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
 
 What sets leenk.me apart from others?
 
+* Extremely easy to use and setup, essentially a "set it and forget it" service.
 * leenk.me uses the most secure APIs available to connect to your social networks.
-* leenk.me only stores the most essential data necessary to maintain your social network connectivity.
+* leenk.me doesn't need to save your passwords.
+* You authorize which applications are connected to your leenk.me account.
 
 [Support](http://leenk.me/contact)
 
