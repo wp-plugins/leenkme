@@ -5,7 +5,7 @@ Requires at least: 2.8
 Tested up to: 3.0.1
 Stable tag: 1.1.0
 
-Did your Twitter plugin stop working? If so, give leenk.me a try! The leenk.me plugin empowers you to automatically publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress. leenk.me uses the most secure APIs available to ensure you are able to post content to your social networks.
+The leenk.me plugin empowers you to publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress. leenk.me uses the most secure APIs available to ensure you are able to post content to your social networks.
 
 == Description ==
 
