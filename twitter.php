@@ -228,17 +228,19 @@ function leenkme_twitter_js() {
 
 function leenkme_ajax_tweet() {
 	check_ajax_referer( 'tweet' );
-	global $dl_pluginleenkme;
 	global $current_user;
 	get_currentuserinfo();
 	$user_id = $current_user->ID;
 	
+	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
-		
+	$api_key = $user_settings['leenkme_API'];
+	
 	$tweet = "Testing @leenk_me's Twitter Plugin for #WordPress - http://leenk.me/ " . rand(10,99);
 
-	$body = array( 'leenkme_API' => $user_settings['leenkme_API'], 'twitter_status' => $tweet );
-	$result = leenkme_connect( $body );
+	$connect_arr[$api_key]['twitter_status'] = $tweet;
+	
+	$result = leenkme_ajax_connect( $connect_arr );
 	
 	if ( isset( $result["response"]["code"] ) ) {
 		die( $result["body"]) ;
@@ -253,7 +255,7 @@ function leenkme_ajax_retweet() {
 	if ( isset( $_POST['id'] ) ) {
 		$post = get_post( $_POST['id'] );
 		
-		$result = leenkme_publish_to_twitter( $post, true );
+		$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post ) );
 		
 		if ( isset( $result["response"]["code"] ) ) {
 			die( $result["body"] );
@@ -278,119 +280,119 @@ function retweet_row_action( $actions, $post ) {
 }
 									
 // Add function to pubslih to twitter
-function leenkme_publish_to_twitter( $post, $retweet = false ) {
+function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 	global $wpdb;
 	$maxLen = 140;
 	
 	if ( get_post_meta( $post->ID, 'twitter_exclude', true ) ) {
-		return "You have set this post to not post to Twitter.<br />Edit the post and remove the Exclude check box.<br />";
-	}
-	
-	// I've made an assumption that most users will include the %URL% text
-	// So, instead of trying to get the link several times for multi-user setups
-	// I'm getting the URL once and using it later --- for the sake of efficiency
-	$plugins = get_option( 'active_plugins' );
-	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
-	//check to see if Twitter Friendly Links plugin is activated			
-	if ( in_array( $required_plugin , $plugins ) ) {
-		$url = permalink_to_twitter_link( get_permalink( $post->ID ) ); // if yes, we want to use that for our URL shortening service.
+		$exclude_twitter = true;
 	} else {
-		$url = leenkme_get_tinyurl( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
+		$exclude_twitter = false;
 	}
 	
-	if ( 'post' === $post->post_type ) {
-		$options = get_option( 'leenkme_twitter' );
-		
-		if ( $options['leenkme_tweetallusers'] ) {
-			$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
+	if ( !$exclude_twitter ) {
+		// I've made an assumption that most users will include the %URL% text
+		// So, instead of trying to get the link several times for multi-user setups
+		// I'm getting the URL once and using it later --- for the sake of efficiency
+		$plugins = get_option( 'active_plugins' );
+		$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
+		//check to see if Twitter Friendly Links plugin is activated			
+		if ( in_array( $required_plugin , $plugins ) ) {
+			$url = permalink_to_twitter_link( get_permalink( $post->ID ) ); // if yes, we want to use that for our URL shortening service.
 		} else {
-			$user_ids[] = $post->post_author;
+			$url = leenkme_get_tinyurl( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
 		}
 		
-		foreach ( $user_ids as $user_id ) {
-			$options = get_user_option( 'leenkme_twitter', $user_id );
+		if ( 'post' === $post->post_type ) {
+			$options = get_option( 'leenkme_twitter' );
 			
-			if( !empty( $options ) ) {					
-				$continue = FALSE;
-				if ( !empty( $options['tweetcats'] ) ) {
-					$cats = split( ",", $options['tweetcats'] );
-					foreach ( $cats as $cat ) {
-						if ( preg_match( '/^-\d+/', $cat ) ) {
-							$cat = preg_replace('/^-/', '', $cat);
-							if ( in_category( (int)$cat, $post ) ) {
-								return "Post is in an excluded category.<br />";
-							} else  {
-								$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
-							}
-						} else if ( preg_match('/\d+/', $cat ) ) {
-							if ( in_category( (int)$cat, $post ) ) {
-								$continue = TRUE; // if  in an included category, set continue = TRUE.
+			if ( $options['leenkme_tweetallusers'] ) {
+				$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
+			} else {
+				$user_ids[] = $post->post_author;
+			}
+			
+			foreach ( $user_ids as $user_id ) {
+				$options = get_user_option( 'leenkme_twitter', $user_id );
+				
+				if( !empty( $options ) ) {					
+					$continue = FALSE;
+					if ( !empty( $options['tweetcats'] ) ) {
+						$cats = split( ",", $options['tweetcats'] );
+						foreach ( $cats as $cat ) {
+							if ( preg_match( '/^-\d+/', $cat ) ) {
+								$cat = preg_replace('/^-/', '', $cat);
+								if ( in_category( (int)$cat, $post ) ) {
+									continue;
+								} else  {
+									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
+								}
+							} else if ( preg_match('/\d+/', $cat ) ) {
+								if ( in_category( (int)$cat, $post ) ) {
+									$continue = TRUE; // if  in an included category, set continue = TRUE.
+								}
 							}
 						}
+					} else { // If no includes or excludes are defined, then continue
+						$continue = TRUE;
 					}
-				} else { // If no includes or excludes are defined, then continue
-					$continue = TRUE;
-				}
-				
-				if ( !$continue ) return "Post is not in an included category.<br />";
-				
-				// Get META tweet format
-				$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
-				
-				// If META tweet format is not set, use the default tweetformat set in options page(s)
-				if ( !isset( $tweet ) || empty( $tweet ) ) {
-					$tweet = htmlspecialchars( stripcslashes( $options['leenkme_tweetformat'] ) );
-				}
-				
-				$tweetLen = strlen( $tweet );
-				
-				if ( preg_match( '/%URL%/i', $tweet ) ) {
-					$urlLen = strlen( $url );
-					$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
 					
-					if ( $totalLen <= $maxLen ) {
-						$tweet = str_ireplace( "%URL%", $url, $tweet );
-					} else {
-						$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
-					}
-				}
-				
-				$tweetLen = strlen( $tweet );
-				
-				if ( preg_match( '/%TITLE%/i', $tweet ) ) {
-					$title = $post->post_title;
-				
-					$titleLen = strlen( $title ); 
-					$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
+					if ( !$continue ) continue;
 					
-					if ( $totalLen <= $maxLen ) {
-						$tweet = str_ireplace( "%TITLE%", $title, $tweet );
-					} else {
-						$diff = $maxLen - $totalLen;  // reversed because I need a negative number
-						$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
-						$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
+					// Get META tweet format
+					$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
+					
+					// If META tweet format is not set, use the default tweetformat set in options page(s)
+					if ( !isset( $tweet ) || empty( $tweet ) ) {
+						$tweet = htmlspecialchars( stripcslashes( $options['leenkme_tweetformat'] ) );
 					}
-				}
-				
-				// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
-				global $dl_pluginleenkme;
-				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
-				if ( !empty( $user_settings['leenkme_API'] ) ) {
-					if ( strlen( $tweet ) <= $maxLen ) {
-						$body = array( 'leenkme_API' => $user_settings['leenkme_API'], 'twitter_status' => $tweet );
-						$result = leenkme_connect($body);
-					} else {
-						$result = "Tweet was larger than 140 characters.<br />Please update your Tweet Format<br />";
+					
+					$tweetLen = strlen( $tweet );
+					
+					if ( preg_match( '/%URL%/i', $tweet ) ) {
+						$urlLen = strlen( $url );
+						$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
+						
+						if ( $totalLen <= $maxLen ) {
+							$tweet = str_ireplace( "%URL%", $url, $tweet );
+						} else {
+							$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
+						}
+					}
+					
+					$tweetLen = strlen( $tweet );
+					
+					if ( preg_match( '/%TITLE%/i', $tweet ) ) {
+						$title = $post->post_title;
+					
+						$titleLen = strlen( $title ); 
+						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
+						
+						if ( $totalLen <= $maxLen ) {
+							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
+						} else {
+							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
+							$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
+						}
+					}
+					
+					// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
+					global $dl_pluginleenkme;
+					$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+					if ( !empty( $user_settings['leenkme_API'] ) ) {
+						$api_key = $user_settings['leenkme_API'];
+						
+						if ( strlen( $tweet ) <= $maxLen ) {
+							$connect_arr[$api_key]['twitter_status'] = $tweet;
+						}
 					}
 				}
 			}
 		}
-	}
-	$wpdb->flush();
-	
-	// Combine all the results into one string, return is currently only used for retweet functionality
-	if ( $retweet ) { // Added because of compat issue with WP3.0
-		return $result;
+		$wpdb->flush();
+		
+		return $connect_arr;
 	}
 }
 
@@ -416,9 +418,10 @@ if ( isset( $dl_pluginleenkmeTwitter ) ) {
 	add_action( 'save_post', array( $dl_pluginleenkmeTwitter, 'leenkme_twitter_meta_tags' ) );
 	
 	// Whenever you publish a post, post to twitter
-	add_action( 'new_to_publish', 'leenkme_publish_to_twitter', 20 );
-	add_action( 'draft_to_publish', 'leenkme_publish_to_twitter', 20 );
-	add_action( 'future_to_publish', 'leenkme_publish_to_twitter', 20 );
+	add_filter('leenkme_connect', 'leenkme_publish_to_twitter', 10, 2);
+	//add_action( 'new_to_publish', 'leenkme_publish_to_twitter', 20 );
+	//add_action( 'draft_to_publish', 'leenkme_publish_to_twitter', 20 );
+	//add_action( 'future_to_publish', 'leenkme_publish_to_twitter', 20 );
 		  
 	// Add jQuery & AJAX for leenk.me Test
 	add_action( 'admin_head-leenk-me_page_leenkme_twitter', 'leenkme_js' );

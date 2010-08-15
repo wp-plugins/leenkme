@@ -267,27 +267,27 @@ function leenkme_ajax_fb() {
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+	$api_key = $user_settings['leenkme_API'];
 		
 	$message = "Testing leenk.me's Facebook Plugin for WordPress";
 	$url = "http://leenk.me/";
 	$picture = "http://leenk.me/leenkme.png";
 	$description = "leenk.me is a webapp that allows you to publish to popular social networking sites whenever you publish a new post from your WordPress website.";
 	
-	$body = array( 	'leenkme_API' => $user_settings['leenkme_API'], 
-					'facebook_message' => $message, 
-					'facebook_link' => $url,
-					'facebook_picture' => $picture,
-					'facebook_description' => $description );
+	$connect_arr[$api_key]['facebook_message'] = $message;
+	$connect_arr[$api_key]['facebook_link'] = $url;
+	$connect_arr[$api_key]['facebook_picture'] = $picture;
+	$connect_arr[$api_key]['facebook_description'] = $description;
 					
 	if ( isset( $_POST['facebook_profile'] ) && "true" === $_POST['facebook_profile'] ) {
-		$body['facebook_profile'] = true;
+		$connect_arr[$api_key]['facebook_profile'] = true;
 	}
 	
 	if ( isset( $_POST['facebook_page'] ) && "true" === $_POST['facebook_page'] ) {
-		$body['facebook_page'] = true;
+		$connect_arr[$api_key]['facebook_page'] = true;
 	}
 	
-	$result = leenkme_connect($body);
+	$result = leenkme_ajax_connect($connect_arr);
 	
 	if ( isset( $result["response"]["code"] ) ) {
 		die( $result["body"] );
@@ -302,7 +302,7 @@ function leenkme_ajax_republish() {
 	if ( isset( $_POST['id'] ) ) {
 		$post = get_post( $_POST['id'] );
 		
-		$result = leenkme_publish_to_facebook( $post, true );
+		$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post ) );
 		
 		if ( isset( $result["response"]["code"] ) ) {
 			die( $result["body"] );
@@ -327,11 +327,11 @@ function republish_row_action( $actions, $post ) {
 }
 									
 // Add function to pubslih to facebook
-function leenkme_publish_to_facebook( $post, $republish = false ) {
+function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	global $wpdb;
 	$maxMessageLen = 420;
 	$maxContentLen = 240;
-	
+
 	if ( get_post_meta( $post->ID, 'facebook_exclude_profile', true ) ) {
 		$exclude_profile = true;
 	} else {
@@ -343,111 +343,105 @@ function leenkme_publish_to_facebook( $post, $republish = false ) {
 	} else {
 		$exclude_page = false;	
 	}
-
-	$url = get_permalink( $post->ID );
 	
-	if ( 'post' === $post->post_type ) {
-		$options = get_option( 'leenkme_facebook' );
+	if ( !$exclude_profile && !$exclude_page ) {
+
+		$url = get_permalink( $post->ID );
 		
-		if ( $options['publish_all_users'] ) {
-			$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
-		} else {
-			$user_ids[] = $post->post_author;
-		}
-		
-		foreach ( $user_ids as $user_id ) {
-			$options = get_user_option( 'leenkme_facebook', $user_id );
+		if ( 'post' === $post->post_type ) {
+			$options = get_option( 'leenkme_facebook' );
 			
-			if ( !empty( $options ) ) {		
-				$continue = FALSE;
-				if ( !empty( $options['facebook_publish_cats'] ) ) {
-					$cats = split( ",", $options['facebook_publish_cats'] );
-					foreach ( $cats as $cat ) {
-						if ( preg_match( '/^-\d+/', $cat ) ) {
-							$cat = preg_replace( '/^-/', '', $cat );
-							if ( in_category( (int)$cat, $post ) ) {
-								return "Post is in an excluded category.<br />";
-							} else  {
-								$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
-							}
-						} else if ( preg_match( '/\d+/', $cat ) ) {
-							if ( in_category( (int)$cat, $post ) ) {
-								$continue = TRUE; // if  in an included category, set continue = TRUE.
+			if ( $options['publish_all_users'] ) {
+				$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
+			} else {
+				$user_ids[] = $post->post_author;
+			}
+			
+			foreach ( $user_ids as $user_id ) {
+				$options = get_user_option( 'leenkme_facebook', $user_id );
+				
+				if ( !empty( $options ) ) {		
+					$continue = FALSE;
+					if ( !empty( $options['facebook_publish_cats'] ) ) {
+						$cats = split( ",", $options['facebook_publish_cats'] );
+						foreach ( $cats as $cat ) {
+							if ( preg_match( '/^-\d+/', $cat ) ) {
+								$cat = preg_replace( '/^-/', '', $cat );
+								if ( in_category( (int)$cat, $post ) ) {
+									continue;
+								} else  {
+									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
+								}
+							} else if ( preg_match( '/\d+/', $cat ) ) {
+								if ( in_category( (int)$cat, $post ) ) {
+									$continue = TRUE; // if  in an included category, set continue = TRUE.
+								}
 							}
 						}
-					}
-				} else { // If no includes or excludes are defined, then continue
-					$continue = TRUE;
-				}
-				
-				if ( !$continue ) return "Post is not in an included category.<br />";
-				
-				$message = $post->post_title;
-				$messageLen = strlen( $message );
-				
-				if ( $messageLen > $maxMessageLen ) {
-					$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
-					$message = substr( $message, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
-				}
-				
-				if ( !empty( $post->post_excerpt ) ) {
-					$content = $post->post_excerpt;
-				} else {
-					$content = $post->post_content;
-				}
-				$contentLen = strlen( $content );
-				
-				if ( $contentLen > $maxContentLen ) {
-					$diff = $maxContentLen - $contentLen;
-					$content = substr( $content, 0, $diff - 4 ) . "...";
-				}
-				
-				if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
-					if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
-						$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
-						list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
-					} else if ( !empty( $options['default_image'] ) ) {
-						$picture = $options['default_image'];
-					}
-				}
-				
-				// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
-				global $dl_pluginleenkme;
-				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
-				if ( '' != $user_settings['leenkme_API'] ) {
-					$body = array( 	'leenkme_API'			=> $user_settings['leenkme_API'], 
-									'facebook_message' 		=> $message,
-									'facebook_link'			=> $url,
-									'facebook_name'			=> get_bloginfo('name'),		//Site Name
-									'facebook_caption'		=> get_bloginfo('description'), //Tag Line
-									'facebook_description'	=> $content );
-									
-					if ( isset( $picture ) && !empty( $picture ) ) {
-						$body['facebook_picture'] = $picture;
-					}
-									
-					if ( !$exclude_profile && $options['facebook_profile'] ) {
-						$body['facebook_profile'] = true;
+					} else { // If no includes or excludes are defined, then continue
+						$continue = TRUE;
 					}
 					
-					if ( !$exclude_page && $options['facebook_page'] ) {
-						$body['facebook_page'] = true;
+					if ( !$continue ) continue;
+					
+					$message = $post->post_title;
+					$messageLen = strlen( $message );
+					
+					if ( $messageLen > $maxMessageLen ) {
+						$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
+						$message = substr( $message, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
 					}
-
-					if ( !$exclude_profile || !$exclude_page ) {
-						$result = leenkme_connect( $body );
+					
+					if ( !empty( $post->post_excerpt ) ) {
+						$content = $post->post_excerpt;
 					} else {
-						return "You have excluded this post from publishing to your Facebook profile and page. If you would like to publish it, edit the post and remove the appropriate exclude check boxes.<br />";
+						$content = $post->post_content;
+					}
+					$contentLen = strlen( $content );
+					
+					if ( $contentLen > $maxContentLen ) {
+						$diff = $maxContentLen - $contentLen;
+						$content = substr( $content, 0, $diff - 4 ) . "...";
+					}
+					
+					if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
+						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
+							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
+							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
+						} else if ( !empty( $options['default_image'] ) ) {
+							$picture = $options['default_image'];
+						}
+					}
+					
+					// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
+					global $dl_pluginleenkme;
+					$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
+					if ( !empty( $user_settings['leenkme_API'] ) ) {
+						$api_key = $user_settings['leenkme_API'];
+						$connect_arr[$api_key]['facebook_message'] = $message;
+						$connect_arr[$api_key]['facebook_link'] = $url;
+						$connect_arr[$api_key]['facebook_name'] = get_bloginfo('name');				//Site Name
+						$connect_arr[$api_key]['facebook_caption'] = get_bloginfo('description');	//Tag Line
+						$connect_arr[$api_key]['facebook_description'] = $content;
+										
+						if ( isset( $picture ) && !empty( $picture ) ) {
+							$connect_arr[$api_key]['facebook_picture'] = $picture;
+						}
+										
+						if ( $options['facebook_profile'] ) {
+							$connect_arr[$api_key]['facebook_profile'] = true;
+						}
+						
+						if ( $options['facebook_page'] ) {
+							$connect_arr[$api_key]['facebook_page'] = true;
+						}
 					}
 				}
 			}
 		}
-	}
-	$wpdb->flush();
-	
-	// Combine all the results into one string, return is currently only used for republish functionality
-	if ( $republish ) { // Added because of compat issue with WP3.0
-		return $result;
+		$wpdb->flush();
+		
+		return $connect_arr;
 	}
 }
 
@@ -460,9 +454,10 @@ if ( isset( $dl_pluginleenkmeFacebook ) ) {
 	add_action( 'save_post', array( $dl_pluginleenkmeFacebook, 'leenkme_facebook_meta_tags' ) );
 	
 	// Whenever you publish a post, post to facebook
-	add_action( 'new_to_publish', 'leenkme_publish_to_facebook', 20 );
-	add_action( 'draft_to_publish', 'leenkme_publish_to_facebook', 20 );
-	add_action( 'future_to_publish', 'leenkme_publish_to_facebook', 20 );
+	add_filter('leenkme_connect', 'leenkme_publish_to_facebook', 20, 2);
+	//add_action( 'new_to_publish', 'leenkme_publish_to_facebook', 20 );
+	//add_action( 'draft_to_publish', 'leenkme_publish_to_facebook', 20 );
+	//add_action( 'future_to_publish', 'leenkme_publish_to_facebook', 20 );
 		  
 	// Add jQuery & AJAX for leenk.me Test
 	add_action( 'admin_head-leenk-me_page_leenkme_facebook', 'leenkme_js' );

@@ -3,23 +3,31 @@ Contributors: layotte
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk, leenk me
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 
-The leenk.me plugin empowers you to automatically publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress.
+Did your Twitter plugin stop working? If so, give leenk.me a try! The leenk.me plugin empowers you to automatically publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress. leenk.me uses the most secure APIs available to ensure you are able to post content to your social networks.
 
 == Description ==
 
-leenk.me automatically publishes a tweet to your Twitter account and a status update to your Facebook profile and/or page whenever you publish a new post in your WordPress website. It has the ability to support multiple WordPress authors and allows administrators to setup the plugin to publish to leenk.me for all authors, whenever anyone publishes a post.
+leenk.me automatically publishes a tweet to your Twitter account and a status update to your Facebook profile and/or page whenever you publish a new post in your WordPress website.
 
-With leenk.me you can...
+What can you do with leenk.me?
 
-* choose which categories are published automatically
-* exclude individual posts from being tweeted to Twitter or Published to Facebook
-* ReTweet and RePublish already published posts
-* choose to publish all authors
-* customize your Tweet format with the custom tags %TITLE% and %URL%
+* Publish automatically to your social networks when you publish a new post in WordPress.
+* Choose which categories are published automatically.
+* Exclude individual posts from being published to your various social networks.
+* Resend previously published posts to your social networks.
+* Additional authors can setup their own leenk.me accounts and add them to your website.
+* Publish to all author's leenk.me accounts whenever a post is published.
+* Customize your Tweet format with the custom tags %TITLE% and %URL%
+* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
 
-Currently leenk.me supports two URL shortening services for its Twitter plugin. TinyURL is the default shortener, the leenk.me plugin will attempt to use the post's URL shortened by TinyURL. If it is unable to, it will use the regular site URL. The recommended shortener is a WordPress plugin called [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/). If Twitter Friendly Links is installed and activated on your WordPress website then leenk.me will use it as the default shortener. Twitter Friendly Links drives traffic directly to your website and does not rely on a second party!
+What sets leenk.me apart from others?
+
+* Extremely easy to use and setup, essentially a "set it and forget it" service.
+* leenk.me uses the most secure APIs available to connect to your social networks.
+* leenk.me doesn't need to save your passwords.
+* You authorize which applications are connected to your leenk.me account.
 
 [Support](http://leenk.me/contact)
 
@@ -27,7 +35,7 @@ Currently leenk.me supports two URL shortening services for its Twitter plugin. 
 
 This section describes how to install the plugin and get it working.
 
-1. Upload `leenk.me` directory to the `/wp-content/plugins/` directory.
+1. Upload `leenkme` directory to the `/wp-content/plugins/` directory.
 1. Activate the plugin through the 'Plugins' menu in WordPress.
 1. Create a leenk.me account [here](http://leenk.me) to get a leenk.me API and to set up your social networking options.
 1. Update the leenk.me plugin options with your leenk.me API Key and set any plugin options. 
@@ -40,14 +48,23 @@ This section describes how to install the plugin and get it working.
 http://leenk.me/contact
 
 == Changelog ==
+= 1.0.3 =
+
+* Efficiency updates, now the leenk.me plugin only contacts leenk.me 1 time per user (instead of 1 time per social network).
+* Updated leenk.me API from 1.0 to 1.1, to assist with efficiency and better error reporting.
+* Fixed duplicate leenk.me screen in WP2.8.x (though I recommend upgrading to the latest version).
+* Updated AJAX popup box, made it wider and higher.
+
 = 1.0.2 =
-Fixed bug caused by not having thumbnails enabled in WP2.8.x and WP2.9.x.
+
+* Fixed bug caused by not having thumbnails enabled in WP2.8.x and WP2.9.x.
 
 = 1.0.1 =
-Fixed small bug: removed default check from Facebook profile for new plugin activations.
+
+* Fixed small bug: removed default check from Facebook profile for new plugin activations.
 
 = 1.0.0 = 
-leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
+* leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
 
 == Screenshots ==
 

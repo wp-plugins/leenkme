@@ -2,14 +2,14 @@
 /*
 Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
-Description: Automatically publish to your Twitter account and Facebook profile/page whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
+Description: Automatically publish to your Twitter account and Facebook profile/page whenever you publish a new post on your WordPress website with the leenk.me social network service. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.0.2
+Version: 1.1.0
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
 */
 
-define( 'leenk.me_version' , '1.0.2' );
+define( 'leenk.me_version' , '1.1.0' );
 
 class leenkme {
 	var $options_name			= "leenkme";
@@ -23,7 +23,7 @@ class leenkme {
 		global $wp_version;
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url = 'http://leenk.me/api/1.0/';
+		$this->api_url = 'http://leenk.me/api/1.1/';
 	}
 	
 	function get_leenkme_settings() {
@@ -154,7 +154,9 @@ function leenkme_ap() {
 	
 	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/images/leenkme-logo-16x16.png' );
 	
-	add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
+	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9') {
+		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
+	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
 		global $dl_pluginleenkmeTwitter;
@@ -238,10 +240,10 @@ function leenkme_js() {
 						"background-color: #E8E8E8; " +
 						"border: 1px solid #555; " +
 						"padding: 15px; " +
-						"width: 350px; " +
+						"width: 500px; " +
 						"min-height: 80px; " +
-						"margin-left: -175px; " + 
-						"margin-top: -40px;" +
+						"margin-left: -250px; " + 
+						"margin-top: -150px;" +
 						"text-align: center;" +
 						"vertical-align: middle;";
 			$('body').append("<div id='results' style='" + style + "'></div>");
@@ -285,10 +287,10 @@ function leenkme_ajax_verify() {
 	check_ajax_referer( 'verify' );
 	
 	if ( isset( $_POST['leenkme_API'] ) ) {
-		$api = $_POST['leenkme_API'];
+		$api_key = $_POST['leenkme_API'];
+		$connect_arr[$api_key]['verify'] = true;
 		
-		$body = array( 'leenkme_API' => $api, 'verify' => true );
-		$result = leenkme_connect( $body );
+		$result = leenkme_ajax_connect( $connect_arr );
 		
 		if ( isset( $result["response"]["code"] ) ) {
 			die( $result["body"] );
@@ -300,22 +302,55 @@ function leenkme_ajax_verify() {
 	}
 }
 
-function leenkme_connect( $body ) {
+function leenkme_connect( $post ) {
 	global $dl_pluginleenkme;
-	$body['host'] = $_SERVER['SERVER_NAME'];
-	$headers = array( 'Authorization' => 'None' );
-	$request = new WP_Http;
-	$result = $request->request( $dl_pluginleenkme->api_url, 
-									array( 	'method' => 'POST', 
-											'body' => $body, 
-											'headers' => $headers ) );
 	
-	if ( is_wp_error( $result ) ) {
-		return $result->get_error_message();
-	} else if ( isset( $result ) ) {
-		return $result;
-	} else {
-		return "Undefined Error Occurred, Please contact leenk.me support.";
+	$connect_arr = apply_filters( 'leenkme_connect', array(), $post );
+
+	if ( !empty( $connect_arr ) ) {
+		foreach ( $connect_arr as $api_key => $body ) {
+			$body['host'] = $_SERVER['SERVER_NAME'];
+			$body['leenkme_API'] = $api_key;
+			$headers = array( 'Authorization' => 'None' );
+			$request = new WP_Http;
+			$result = $request->request( $dl_pluginleenkme->api_url, 
+											array( 	'method' => 'POST', 
+													'body' => $body, 
+													'headers' => $headers ) );
+			
+			if ( is_wp_error( $result ) ) {
+				return $result->get_error_message();
+			} else if ( isset( $result ) ) {
+				return $result;
+			} else {
+				return "Undefined error occurred, Please contact leenk.me support.";
+			}
+		}
+	}
+}
+
+function leenkme_ajax_connect( $connect_arr ) {
+	global $dl_pluginleenkme;
+	
+	if ( !empty( $connect_arr ) ) {
+		foreach ( $connect_arr as $api_key => $body ) {
+			$body['host'] = $_SERVER['SERVER_NAME'];
+			$body['leenkme_API'] = $api_key;
+			$headers = array( 'Authorization' => 'None' );
+			$request = new WP_Http;
+			$result = $request->request( $dl_pluginleenkme->api_url, 
+											array( 	'method' => 'POST', 
+													'body' => $body, 
+													'headers' => $headers ) );
+			
+			if ( is_wp_error( $result ) ) {
+				return $result->get_error_message();
+			} else if ( isset( $result ) ) {
+				return $result;
+			} else {
+				return "Undefined error occurred, Please contact leenk.me support.";
+			}
+		}
 	}
 }
 
@@ -341,6 +376,12 @@ if ( isset( $dl_pluginleenkme ) ) {
 	// Add the admin menu
 	add_action( 'admin_menu', 'leenkme_ap');
 	wp_enqueue_style( 'leenkme', $dl_pluginleenkme->base_url . 'leenkme.css' );
+	
+	// Whenever you publish a post, connect to leenk.me
+	add_action( 'new_to_publish', 'leenkme_connect', 20 );
+	add_action( 'draft_to_publish', 'leenkme_connect', 20 );
+	add_action( 'future_to_publish', 'leenkme_connect', 20 );
+	
 	add_action( 'admin_head-toplevel_page_leenkme', 'leenkme_js' );
 	add_action( 'admin_head-edit.php', 'leenkme_js' );
 	add_action( 'admin_head-post.php', 'leenkme_js' );
