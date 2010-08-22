@@ -109,7 +109,7 @@ class leenkme_Twitter {
 				<p style="font-size: 11px; margin-bottom: 0px;">Tweet posts from several specific category IDs, e.g. 3,4,5<br />Tweet all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
 				</div>
 				<?php if ( current_user_can( 'activate_plugins' ) ) { //then we're displaying the main Admin options ?>
-				<p>Tweet All Authors? <input value="1" type="checkbox" name="leenkme_tweetallusers" <?php if ( $leenkme_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
+				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php if ( $leenkme_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
 				<div class="tweet-allusers" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
 				</div>
@@ -164,7 +164,7 @@ class leenkme_Twitter {
 			
 			<tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></th>
 			<td>
-				<input style="margin-top: 5px;" value="1" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
+				<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
 			</td></tr>
 			<tr><th scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;">Format Options:</th>
 			<td style="vertical-align:top; width:80px;">
@@ -234,18 +234,20 @@ function leenkme_ajax_tweet() {
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
-	$api_key = $user_settings['leenkme_API'];
+	if ( $api_key = $user_settings['leenkme_API'] ) {
+		$tweet = "Testing @leenk_me's Twitter Plugin for #WordPress - http://leenk.me/ " . rand(10,99);
 	
-	$tweet = "Testing @leenk_me's Twitter Plugin for #WordPress - http://leenk.me/ " . rand(10,99);
-
-	$connect_arr[$api_key]['twitter_status'] = $tweet;
-	
-	$result = leenkme_ajax_connect( $connect_arr );
-	
-	if ( isset( $result["response"]["code"] ) ) {
-		die( $result["body"]) ;
+		$connect_arr[$api_key]['twitter_status'] = $tweet;
+		
+		$result = leenkme_ajax_connect( $connect_arr );
+		
+		if ( isset( $result["response"]["code"] ) ) {
+			die( $result["body"] ) ;
+		} else {
+			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me for help." );
+		}
 	} else {
-		die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
 	}
 }
 
@@ -314,6 +316,14 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 			
 			foreach ( $user_ids as $user_id ) {
 				$options = get_user_option( 'leenkme_twitter', $user_id );
+
+				global $dl_pluginleenkme;
+				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+				if ( empty( $user_settings['leenkme_API'] ) ) {
+					continue; //Skip user if they do not have an API key set
+				} else {
+					$api_key = $user_settings['leenkme_API'];
+				}
 				
 				if( !empty( $options ) ) {					
 					$continue = FALSE;
@@ -323,7 +333,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 							if ( preg_match( '/^-\d+/', $cat ) ) {
 								$cat = preg_replace('/^-/', '', $cat);
 								if ( in_category( (int)$cat, $post ) ) {
-									continue;
+									continue; // Skip to next in foreach
 								} else  {
 									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
 								}
@@ -337,7 +347,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						$continue = TRUE;
 					}
 					
-					if ( !$continue ) continue;
+					if ( !$continue ) continue; // Skip to next in foreach
 					
 					// Get META tweet format
 					$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
@@ -376,16 +386,9 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
 						}
 					}
-					
-					// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
-					global $dl_pluginleenkme;
-					$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
-					if ( !empty( $user_settings['leenkme_API'] ) ) {
-						$api_key = $user_settings['leenkme_API'];
-						
-						if ( strlen( $tweet ) <= $maxLen ) {
-							$connect_arr[$api_key]['twitter_status'] = $tweet;
-						}
+
+					if ( strlen( $tweet ) <= $maxLen ) {
+						$connect_arr[$api_key]['twitter_status'] = $tweet;
 					}
 				}
 			}
@@ -419,9 +422,6 @@ if ( isset( $dl_pluginleenkmeTwitter ) ) {
 	
 	// Whenever you publish a post, post to twitter
 	add_filter('leenkme_connect', 'leenkme_publish_to_twitter', 10, 2);
-	//add_action( 'new_to_publish', 'leenkme_publish_to_twitter', 20 );
-	//add_action( 'draft_to_publish', 'leenkme_publish_to_twitter', 20 );
-	//add_action( 'future_to_publish', 'leenkme_publish_to_twitter', 20 );
 		  
 	// Add jQuery & AJAX for leenk.me Test
 	add_action( 'admin_head-leenk-me_page_leenkme_twitter', 'leenkme_js' );

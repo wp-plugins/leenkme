@@ -118,10 +118,12 @@ class leenkme_Facebook {
                 <h2>Facebook Settings</h2>
                 <div id="facebook_publish_options">
                     <p>Publish to Personal Profile? <input type="checkbox" id="facebook_profile" name="facebook_profile" <?php if ( $user_settings[$this->facebook_profile] ) echo "checked='checked'"; ?> /></p>
-                    <p>Publish Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php if ( $user_settings[$this->facebook_page] ) echo "checked='checked'"; ?> /></p>
+                    <p>Publish to Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php if ( $user_settings[$this->facebook_page] ) echo "checked='checked'"; ?> /></p>
                 </div>
                 <div id="facebook_format_options">
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->default_image] ), 'leenkme_Facebook' ) ?>" /></p>
+                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->default_image] ), 'leenkme_Facebook' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
+                    <p style="font-size: 11px; margin-bottom: 0px;"><strong>NOTE</strong> Do not use an image URL hosted by Facebook. Facebook does not like this and will reject your message.</p>
+                    </div>
 				</div>
                 <div id="facebook_options">
                     <p>Publish Categories: <input name="publish_cats" type="text" style="width: 250px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->publish_cats] ), 'leenkme_Facebook' ) ?>" /></p>
@@ -129,7 +131,7 @@ class leenkme_Facebook {
                     <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
                     <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
-                    <p>Publish All Authors? <input value="1" type="checkbox" name="publish_all_users" <?php if ( $leenkme_settings[$this->publish_all_users] ) echo "checked"; ?> /></p>
+                    <p>Publish All Authors? <input value="1" type="checkbox" name="publish_all_users" <?php if ( $leenkme_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to publish to each available author account.</p>
                     </div>
@@ -193,13 +195,13 @@ class leenkme_Facebook {
 			<?php if ( $user_settings['facebook_profile'] ) { ?>
 			<tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></th>
 			<td>
-				<input style="margin-top: 5px;" value="1" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo "checked"; ?> />
+				<input style="margin-top: 5px;" value="1" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
 			</td></tr>
             <?php } ?>
 			<?php if ( $user_settings['facebook_page'] ) { ?>
             <tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></th>
 			<td>
-				<input style="margin-top: 5px;" value="1" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo "checked"; ?> />
+				<input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
 			</td></tr>
 			<?php } ?>
 			<?php // Only show RePublish button if the post is "published"
@@ -267,32 +269,34 @@ function leenkme_ajax_fb() {
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
-	$api_key = $user_settings['leenkme_API'];
+	if ( $api_key = $user_settings['leenkme_API'] ) {
+		$message = "Testing leenk.me's Facebook Plugin for WordPress";
+		$url = "http://leenk.me/";
+		$picture = "http://leenk.me/leenkme.png";
+		$description = "leenk.me is a webapp that allows you to publish to popular social networking sites whenever you publish a new post from your WordPress website.";
 		
-	$message = "Testing leenk.me's Facebook Plugin for WordPress";
-	$url = "http://leenk.me/";
-	$picture = "http://leenk.me/leenkme.png";
-	$description = "leenk.me is a webapp that allows you to publish to popular social networking sites whenever you publish a new post from your WordPress website.";
-	
-	$connect_arr[$api_key]['facebook_message'] = $message;
-	$connect_arr[$api_key]['facebook_link'] = $url;
-	$connect_arr[$api_key]['facebook_picture'] = $picture;
-	$connect_arr[$api_key]['facebook_description'] = $description;
-					
-	if ( isset( $_POST['facebook_profile'] ) && "true" === $_POST['facebook_profile'] ) {
-		$connect_arr[$api_key]['facebook_profile'] = true;
-	}
-	
-	if ( isset( $_POST['facebook_page'] ) && "true" === $_POST['facebook_page'] ) {
-		$connect_arr[$api_key]['facebook_page'] = true;
-	}
-	
-	$result = leenkme_ajax_connect($connect_arr);
-	
-	if ( isset( $result["response"]["code"] ) ) {
-		die( $result["body"] );
+		$connect_arr[$api_key]['facebook_message'] = $message;
+		$connect_arr[$api_key]['facebook_link'] = $url;
+		$connect_arr[$api_key]['facebook_picture'] = $picture;
+		$connect_arr[$api_key]['facebook_description'] = $description;
+						
+		if ( isset( $_POST['facebook_profile'] ) && "true" === $_POST['facebook_profile'] ) {
+			$connect_arr[$api_key]['facebook_profile'] = true;
+		}
+		
+		if ( isset( $_POST['facebook_page'] ) && "true" === $_POST['facebook_page'] ) {
+			$connect_arr[$api_key]['facebook_page'] = true;
+		}
+		
+		$result = leenkme_ajax_connect($connect_arr);
+		
+		if ( isset( $result["response"]["code"] ) ) {
+			die( $result["body"] );
+		} else {
+			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me for help." );
+		}
 	} else {
-		die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
 	}
 }
 
@@ -347,6 +351,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	if ( !$exclude_profile && !$exclude_page ) {
 
 		$url = get_permalink( $post->ID );
+		$site_name = get_bloginfo('name');
+		$site_caption = get_bloginfo('description');
 		
 		if ( 'post' === $post->post_type ) {
 			$options = get_option( 'leenkme_facebook' );
@@ -360,6 +366,28 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 			foreach ( $user_ids as $user_id ) {
 				$options = get_user_option( 'leenkme_facebook', $user_id );
 				
+				global $dl_pluginleenkme;
+				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
+				if ( empty( $user_settings['leenkme_API'] ) ) {
+					continue;	//Skip user if they do not have an API key set
+				}
+				
+				$api_key = $user_settings['leenkme_API'];
+
+				if ( !$options['facebook_profile'] && !$options['facebook_page'] ) {
+					continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
+				}
+
+				// Added facebook profile to connection array if enabled
+				if ( $options['facebook_profile'] ) {
+					$connect_arr[$api_key]['facebook_profile'] = true;
+				}
+
+				// Added facebook page to connection array if enabled
+				if ( $options['facebook_page'] ) {
+					$connect_arr[$api_key]['facebook_page'] = true;
+				}
+				
 				if ( !empty( $options ) ) {		
 					$continue = FALSE;
 					if ( !empty( $options['facebook_publish_cats'] ) ) {
@@ -368,9 +396,9 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 							if ( preg_match( '/^-\d+/', $cat ) ) {
 								$cat = preg_replace( '/^-/', '', $cat );
 								if ( in_category( (int)$cat, $post ) ) {
-									continue;
+									continue;	// Skip to next in foreach
 								} else  {
-									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
+									$continue = TRUE; // if not, than we can continue
 								}
 							} else if ( preg_match( '/\d+/', $cat ) ) {
 								if ( in_category( (int)$cat, $post ) ) {
@@ -382,7 +410,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						$continue = TRUE;
 					}
 					
-					if ( !$continue ) continue;
+					if ( !$continue ) continue;	// Skip to next in foreach
 					
 					$message = $post->post_title;
 					$messageLen = strlen( $message );
@@ -393,9 +421,9 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					}
 					
 					if ( !empty( $post->post_excerpt ) ) {
-						$content = $post->post_excerpt;
+						$content = $post->post_excerpt; //use the post_excerpt if available for the facebook description
 					} else {
-						$content = $post->post_content;
+						$content = $post->post_content; //otherwise we'll pare down the content
 					}
 					$contentLen = strlen( $content );
 					
@@ -411,31 +439,17 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						} else if ( !empty( $options['default_image'] ) ) {
 							$picture = $options['default_image'];
 						}
+					}	
+													
+					if ( isset( $picture ) && !empty( $picture ) ) {
+						$connect_arr[$api_key]['facebook_picture'] = $picture;
 					}
 					
-					// If a user removes his UN or PW and saves, it will be blank - we may as well skip blank entries.
-					global $dl_pluginleenkme;
-					$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
-					if ( !empty( $user_settings['leenkme_API'] ) ) {
-						$api_key = $user_settings['leenkme_API'];
-						$connect_arr[$api_key]['facebook_message'] = $message;
-						$connect_arr[$api_key]['facebook_link'] = $url;
-						$connect_arr[$api_key]['facebook_name'] = get_bloginfo('name');				//Site Name
-						$connect_arr[$api_key]['facebook_caption'] = get_bloginfo('description');	//Tag Line
-						$connect_arr[$api_key]['facebook_description'] = $content;
-										
-						if ( isset( $picture ) && !empty( $picture ) ) {
-							$connect_arr[$api_key]['facebook_picture'] = $picture;
-						}
-										
-						if ( $options['facebook_profile'] ) {
-							$connect_arr[$api_key]['facebook_profile'] = true;
-						}
-						
-						if ( $options['facebook_page'] ) {
-							$connect_arr[$api_key]['facebook_page'] = true;
-						}
-					}
+					$connect_arr[$api_key]['facebook_message'] = $message;
+					$connect_arr[$api_key]['facebook_link'] = $url;
+					$connect_arr[$api_key]['facebook_name'] = $site_name;
+					$connect_arr[$api_key]['facebook_caption'] = $site_caption;
+					$connect_arr[$api_key]['facebook_description'] = $content;
 				}
 			}
 		}
@@ -455,9 +469,6 @@ if ( isset( $dl_pluginleenkmeFacebook ) ) {
 	
 	// Whenever you publish a post, post to facebook
 	add_filter('leenkme_connect', 'leenkme_publish_to_facebook', 20, 2);
-	//add_action( 'new_to_publish', 'leenkme_publish_to_facebook', 20 );
-	//add_action( 'draft_to_publish', 'leenkme_publish_to_facebook', 20 );
-	//add_action( 'future_to_publish', 'leenkme_publish_to_facebook', 20 );
 		  
 	// Add jQuery & AJAX for leenk.me Test
 	add_action( 'admin_head-leenk-me_page_leenkme_facebook', 'leenkme_js' );

@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk, leenk me
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 
 The leenk.me plugin empowers you to publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress. leenk.me uses the most secure APIs available to ensure you are able to post content to your social networks.
 
@@ -26,7 +26,7 @@ What sets leenk.me apart from others?
 
 * Extremely easy to use and setup, essentially a "set it and forget it" service.
 * leenk.me uses the most secure APIs available to connect to your social networks.
-* leenk.me doesn't need to save your passwords.
+* leenk.me doesn't need to save your social network passwords.
 * You authorize which applications are connected to your leenk.me account.
 
 [Support](http://leenk.me/contact)
@@ -48,7 +48,13 @@ This section describes how to install the plugin and get it working.
 http://leenk.me/contact
 
 == Changelog ==
-= 1.0.3 =
+= 1.1.1 =
+* Removed unnecessary CSS and images.
+* Changed leenk.me main settings page to reduce CSS bloat.
+* Re-organized the Twitter and Facebook code to be a little more efficient for multi-user setups.
+* Increased error checking.
+
+= 1.1.0 =
 
 * Efficiency updates, now the leenk.me plugin only contacts leenk.me 1 time per user (instead of 1 time per social network).
 * Updated leenk.me API from 1.0 to 1.1, to assist with efficiency and better error reporting.

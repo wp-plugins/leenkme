@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter account and Facebook profile/page whenever you publish a new post on your WordPress website with the leenk.me social network service. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.1.0
+Version: 1.1.1
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
 */
 
-define( 'leenk.me_version' , '1.1.0' );
+define( 'leenk.me_version' , '1.1.1' );
 
 class leenkme {
 	var $options_name			= "leenkme";
@@ -70,9 +70,36 @@ class leenkme {
 		if ( isset( $_POST['update_leenkme_settings'] ) ) {
 			if ( isset( $_POST['leenkme_API'] ) ) {
 				$user_settings[$this->leenkme_API] = $_POST['leenkme_API'];
-			}
+			}			
 			update_user_option( $user_id, $this->options_name, $user_settings );
 			
+			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
+				if ( isset( $_POST['twitter'] ) ) {
+					$leenkme_settings[$this->twitter] = true;
+				} else {
+					$leenkme_settings[$this->twitter] = false;
+				}
+				
+				if ( isset( $_POST['facebook'] ) ) {
+					$leenkme_settings[$this->facebook] = true;
+				} else {
+					$leenkme_settings[$this->facebook] = false;
+				}
+				
+				update_option( $this->options_name, $leenkme_settings );
+				
+				// It's not pretty, but the easiest way to get the menu to refresh after save...
+				?>
+					<script type="text/javascript">
+					<!--
+					window.location = "<?php echo $_SERVER['PHP_SELF'] .'?page=leenkme&settings_saved'; ?>"
+					//-->
+					</script>
+				<?php
+			}
+		}
+		
+		if ( isset( $_POST['update_leenkme_settings'] ) || isset( $_GET['settings_saved'] ) ) {
 			// update settings notification ?>
 			<div class="updated"><p><strong><?php _e( "leenk.me Settings Updated.", "leenkme" );?></strong></p></div>
 			<?php
@@ -93,24 +120,12 @@ class leenkme {
                 <?php } ?>
 				<?php if ( current_user_can( 'activate_plugins' ) ) {?>
                 <table id="leenkme_activate_plugins">
-                	<?php if ( $leenkme_settings[$this->twitter] ) { ?>
                     <tr><td id="leenkme_plugin_name">Twitter: </td>
-                    <td id="leenkme_plugin_button"><input type="button" class="button e_d_button" id="disable_button" name="twitter" value="<?php _e('Click to Disable', 'leenkme') ?>" /></td></tr>
-                	<?php } else { ?>
-                     <tr><td id="leenkme_plugin_name">Twitter: </td>
-                    <td id="leenkme_plugin_button"><input type="button" class="button e_d_button" id="enable_button" name="twitter" value="<?php _e('Click to Enable', 'leenkme') ?>" /></td></tr>
-                	<?php } ?>
-                    
-                	<?php if ( $leenkme_settings[$this->facebook] ) { ?>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php if ( $leenkme_settings[$this->twitter] ) echo 'checked="checked"'; ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">Facebook: </td>
-                    <td id="leenkme_plugin_button"><input type="button" class="button e_d_button" id="disable_button" name="facebook" value="<?php _e('Click to Disable', 'leenkme') ?>" /></td></tr>
-                	<?php } else { ?>
-                	<tr><td id="leenkme_plugin_name">Facebook: </td>
-                    <td id="leenkme_plugin_button"><input type="button" class="button e_d_button" id="enable_button" name="facebook" id="enable_button" value="<?php _e('Click to Enable', 'leenkme') ?>" /></td></tr>
-                	<?php } ?>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php if ( $leenkme_settings[$this->facebook] ) echo 'checked="checked"'; ?> /></td></tr>
                 </table>
 				<?php } ?>
-				<?php wp_nonce_field( 'plugins', 'leenkme_plugins_wpnonce' ); ?>
 				<p class="submit">
 					<input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
 				</p>
@@ -122,12 +137,6 @@ class leenkme {
 	function plugin_enabled( $plugin ) {
 		$leenkme_settings = $this->get_leenkme_settings();
 		return $leenkme_settings[$plugin];
-	}
-	
-	function set_plugin( $plugin, $status ) {
-		$leenkme_settings = $this->get_leenkme_settings();
-		$leenkme_settings[$plugin] = $status;
-		update_option( $this->options_name, $leenkme_settings );
 	}
 }
 
@@ -152,7 +161,7 @@ function leenkme_ap() {
 		return;
 	}
 	
-	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/images/leenkme-logo-16x16.png' );
+	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/leenkme-logo-16x16.png' );
 	
 	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9') {
 		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
@@ -195,32 +204,6 @@ function leenkme_js() {
 			
 			ajax_response(data);
 		});
-		
-		$('input.e_d_button').click(function() {
-			if ($(this).attr("id") == "enable_button") {
-				$(this).attr("id", "disable_button");
-				$(this).val("Click to Disable");
-				
-				var data = {
-					action: 	'plugins',
-					plugin: 	$(this).attr('name'),
-					_wpnonce: 	$('input#leenkme_plugins_wpnonce').val()
-				};
-				
-				toggle_plugin(data);
-			} else if ($(this).attr("id") == "disable_button") {
-				$(this).attr("id", "enable_button");
-				$(this).val("Click to Enable");
-				
-				var data = {
-					action: 	'plugins',
-					plugin: 	$(this).attr('name'),
-					_wpnonce: 	$('input#leenkme_plugins_wpnonce').val()
-				};
-				
-				toggle_plugin(data);
-			}
-		});
 <?php 
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
 		leenkme_twitter_js();
@@ -257,11 +240,6 @@ function leenkme_js() {
 										'<input type="button" class="button" name="results_ok_button" id="results_ok_button" value="OK" />');
 				$('#results_ok_button').click(remove_results);
 			});
-		}
-		
-		function toggle_plugin(data) {
-			// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-			jQuery.post( ajaxurl, data );
 		}
 		
 		function remove_results() {
@@ -354,19 +332,6 @@ function leenkme_ajax_connect( $connect_arr ) {
 	}
 }
 
-function leenkme_ajax_plugins() {
-	check_ajax_referer('plugins');
-	global $dl_pluginleenkme;
-	
-	if ( isset( $_POST['plugin'] ) ) {
-		if ( $dl_pluginleenkme->plugin_enabled( $_POST['plugin'] ) ) {
-			$dl_pluginleenkme->set_plugin( $_POST['plugin'], false );
-		} else {
-			$dl_pluginleenkme->set_plugin( $_POST['plugin'], true );
-		}
-	}
-}
-
 // Actions and filters	
 if ( isset( $dl_pluginleenkme ) ) {
 	/*--------------------------------------------------------------------
@@ -375,7 +340,6 @@ if ( isset( $dl_pluginleenkme ) ) {
 
 	// Add the admin menu
 	add_action( 'admin_menu', 'leenkme_ap');
-	wp_enqueue_style( 'leenkme', $dl_pluginleenkme->base_url . 'leenkme.css' );
 	
 	// Whenever you publish a post, connect to leenk.me
 	add_action( 'new_to_publish', 'leenkme_connect', 20 );
