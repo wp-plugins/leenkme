@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk, leenk me
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 
 The leenk.me plugin empowers you to publish to your Twitter and Facebook accounts whenever you publish a new post in WordPress. leenk.me uses the most secure APIs available to ensure you are able to post content to your social networks.
 
@@ -48,6 +48,9 @@ This section describes how to install the plugin and get it working.
 http://leenk.me/contact
 
 == Changelog ==
+= 1.1.2 =
+* Fixed bug causing Facebook posts to not have a "description" if there was no excerpt defined in WordPress.
+
 = 1.1.1 =
 * Removed unnecessary CSS and images.
 * Changed leenk.me main settings page to reduce CSS bloat.

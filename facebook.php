@@ -293,7 +293,7 @@ function leenkme_ajax_fb() {
 		if ( isset( $result["response"]["code"] ) ) {
 			die( $result["body"] );
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me for help." );
+			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
 		}
 	} else {
 		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
@@ -349,10 +349,6 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	}
 	
 	if ( !$exclude_profile && !$exclude_page ) {
-
-		$url = get_permalink( $post->ID );
-		$site_name = get_bloginfo('name');
-		$site_caption = get_bloginfo('description');
 		
 		if ( 'post' === $post->post_type ) {
 			$options = get_option( 'leenkme_facebook' );
@@ -361,6 +357,30 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 				$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
 			} else {
 				$user_ids[] = $post->post_author;
+			}
+			
+			$url = get_permalink( $post->ID );
+			$site_name = strip_tags( get_bloginfo( 'name' ) );
+			$site_caption = strip_tags( get_bloginfo( 'description' ) );
+			
+			if ( !empty( $post->post_excerpt ) ) {
+				$content = strip_tags( $post->post_excerpt ); //use the post_excerpt if available for the facebook description
+			} else {
+				$content = strip_tags( $post->post_content ); //otherwise we'll pare down the content
+			}
+			$contentLen = strlen( $content );
+			
+			if ( $contentLen > $maxContentLen ) {
+				$diff = $maxContentLen - $contentLen;
+				$content = substr( $content, 0, $diff - 4 ) . "...";
+			}
+					
+			$message = strip_tags( $post->post_title );
+			$messageLen = strlen( $message );
+			
+			if ( $messageLen > $maxMessageLen ) {
+				$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
+				$message = substr( $message, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
 			}
 			
 			foreach ( $user_ids as $user_id ) {
@@ -411,26 +431,6 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					}
 					
 					if ( !$continue ) continue;	// Skip to next in foreach
-					
-					$message = $post->post_title;
-					$messageLen = strlen( $message );
-					
-					if ( $messageLen > $maxMessageLen ) {
-						$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
-						$message = substr( $message, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
-					}
-					
-					if ( !empty( $post->post_excerpt ) ) {
-						$content = $post->post_excerpt; //use the post_excerpt if available for the facebook description
-					} else {
-						$content = $post->post_content; //otherwise we'll pare down the content
-					}
-					$contentLen = strlen( $content );
-					
-					if ( $contentLen > $maxContentLen ) {
-						$diff = $maxContentLen - $contentLen;
-						$content = substr( $content, 0, $diff - 4 ) . "...";
-					}
 					
 					if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
