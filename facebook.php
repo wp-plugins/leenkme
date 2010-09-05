@@ -38,7 +38,7 @@ class leenkme_Facebook {
 	}
   
 	// Option loader function
-	function get_user_settings( $user_id = "" ) {
+	function get_user_settings( $user_id ) {
 		// Default values for the options
 		$facebook_profile	= false;
 		$facebook_page		= false;
@@ -59,6 +59,9 @@ class leenkme_Facebook {
 				$options[$key] = $option;
 			}
 		}
+		
+		// Need this for initial INIT, for people who don't save the default settings...
+		update_user_option( $user_id, $this->options_name, $user_settings );
 		
 		return $options;
 	}
@@ -131,7 +134,7 @@ class leenkme_Facebook {
                     <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
                     <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
-                    <p>Publish All Authors? <input value="1" type="checkbox" name="publish_all_users" <?php if ( $leenkme_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php if ( $leenkme_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to publish to each available author account.</p>
                     </div>
@@ -148,6 +151,9 @@ class leenkme_Facebook {
 	}
 	
 	function leenkme_facebook_meta_tags( $post_id ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+
 		if ( isset($_POST["facebook_image"] ) && !empty( $_POST["facebook_image"] ) ) {
 			update_post_meta( $post_id, 'facebook_image', $_POST["facebook_image"] );
 		} else {
@@ -185,21 +191,16 @@ class leenkme_Facebook {
 	
 		<input value="facebook_edit" type="hidden" name="facebook_edit" />
 		<table>
-			<tr>
-			<th style="text-align:right;" colspan="2">
-			</th>
-			</tr>
-			
-			<tr><th scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></th>
+			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
 			<td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px"/></td></tr>
 			<?php if ( $user_settings['facebook_profile'] ) { ?>
-			<tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></th>
+			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
 			<td>
-				<input style="margin-top: 5px;" value="1" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
+				<input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
 			</td></tr>
             <?php } ?>
 			<?php if ( $user_settings['facebook_page'] ) { ?>
-            <tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></th>
+            <tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></td>
 			<td>
 				<input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
 			</td></tr>
@@ -290,8 +291,14 @@ function leenkme_ajax_fb() {
 		
 		$result = leenkme_ajax_connect($connect_arr);
 		
-		if ( isset( $result["response"]["code"] ) ) {
-			die( $result["body"] );
+		if ( isset( $result ) ) {			
+			if ( is_wp_error( $result ) ) {
+				die( $result->get_error_message() );	
+			} else if ( isset( $result["response"]["code"] ) ) {
+				die( $result["body"] );
+			} else {
+				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			}
 		} else {
 			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
 		}
@@ -304,16 +311,25 @@ function leenkme_ajax_republish() {
 	check_ajax_referer( 'republish' );
 	
 	if ( isset( $_POST['id'] ) ) {
-		$post = get_post( $_POST['id'] );
-		
-		$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post ) );
-		
-		if ( isset( $result["response"]["code"] ) ) {
-			die( $result["body"] );
-		} else if ( isset( $result ) ) {
-			die( $result );
+		if ( get_post_meta( $_POST['id'], 'facebook_exclude_profile', true ) 
+				&& get_post_meta( $_POST['id'], 'facebook_exclude_page', true ) ) {
+			die( "You have excluded this post from publishing to your Facebook profile and page. If you would like to publish it, edit the post and remove the appropriate exclude check boxes." );
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			$post = get_post( $_POST['id'] );
+			
+			$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post ) );
+			
+			if ( isset( $result ) ) {			
+				if ( is_wp_error( $result ) ) {
+					die( $result->get_error_message() );	
+				} else if ( isset( $result["response"]["code"] ) ) {
+					die( $result["body"] );
+				} else {
+					die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+				}
+			} else {
+				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			}
 		}
 	} else {
 		die( "ERROR: Unable to determine Post ID." );
@@ -343,13 +359,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	}
 	
 	if ( get_post_meta( $post->ID, 'facebook_exclude_page', true ) ) {
-		$exclude_page = true;
+		$exclude_profile = true;
 	} else {
-		$exclude_page = false;	
+		$exclude_page = false;
 	}
 	
 	if ( !$exclude_profile && !$exclude_page ) {
-		
 		if ( 'post' === $post->post_type ) {
 			$options = get_option( 'leenkme_facebook' );
 			
@@ -454,9 +469,9 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 			}
 		}
 		$wpdb->flush();
-		
-		return $connect_arr;
 	}
+		
+	return $connect_arr;
 }
 
 // Actions and filters	

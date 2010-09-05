@@ -36,7 +36,7 @@ class leenkme_Twitter {
 	}
   
 	// Option loader function
-	function get_user_settings( $user_id = "" ) {
+	function get_user_settings( $user_id ) {
 		// Default values for the options
 		$tweetFormat 		= "Blogged %TITLE%: %URL%";
 		$tweetCats		 	= "";
@@ -53,6 +53,9 @@ class leenkme_Twitter {
 				$options[$key] = $option;
 			}
 		}
+		
+		// Need this for initial INIT, for people who don't save the default settings...
+		update_user_option( $user_id, $this->options_name, $user_settings );
 		
 		return $options;
 	}
@@ -127,14 +130,17 @@ class leenkme_Twitter {
 	}
 	
 	function leenkme_twitter_meta_tags( $post_id ) {
-		if ( isset( $_POST["leenkme_tweet"] ) && !empty( $_POST["leenkme_tweet"] ) ) {
-			update_post_meta( $post_id, 'leenkme_tweet', $_POST["leenkme_tweet"] );
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+			
+		if ( isset( $_POST['leenkme_tweet'] ) && !empty( $_POST['leenkme_tweet'] ) ) {
+			update_post_meta( $post_id, 'leenkme_tweet', $_POST['leenkme_tweet'] );
 		} else {
 			delete_post_meta( $post_id, 'leenkme_tweet' );
 		}
 
-		if ( isset( $_POST["twitter_exclude"] ) ) {
-			update_post_meta( $post_id, 'twitter_exclude', $_POST["twitter_exclude"] );
+		if ( isset( $_POST['twitter_exclude'] ) ) {
+			update_post_meta( $post_id, 'twitter_exclude', $_POST['twitter_exclude'] );
 		} else {
 			delete_post_meta( $post_id, 'twitter_exclude' );
 		}
@@ -153,20 +159,15 @@ class leenkme_Twitter {
 	
 		<input value="twitter_edit" type="hidden" name="twitter_edit" />
 		<table>
-			<tr>
-			<th style="text-align:right;" colspan="2">
-			</th>
-			</tr>
-			
-			<tr><th scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></th>
+			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></td>
 			<td><input value="<?php echo $tweet ?>" type="text" name="leenkme_tweet" maxlength="140" size="80px"/></td></tr>
 			
 			
-			<tr><th scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></th>
+			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
 			<td>
 				<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
 			</td></tr>
-			<tr><th scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;">Format Options:</th>
+			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;">Format Options:</td>
 			<td style="vertical-align:top; width:80px;">
 				<ul>
 					<li>%TITLE% - Displays Title of your post in your Twitter feed.*</li>
@@ -241,10 +242,16 @@ function leenkme_ajax_tweet() {
 		
 		$result = leenkme_ajax_connect( $connect_arr );
 		
-		if ( isset( $result["response"]["code"] ) ) {
-			die( $result["body"] ) ;
+		if ( isset( $result ) ) {			
+			if ( is_wp_error( $result ) ) {
+				die( $result->get_error_message() );	
+			} else if ( isset( $result["response"]["code"] ) ) {
+				die( $result["body"] );
+			} else {
+				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			}
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me for help." );
+			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
 		}
 	} else {
 		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
@@ -255,16 +262,24 @@ function leenkme_ajax_retweet() {
 	check_ajax_referer( 'retweet' );
 	
 	if ( isset( $_POST['id'] ) ) {
-		$post = get_post( $_POST['id'] );
-		
-		$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post ) );
-		
-		if ( isset( $result["response"]["code"] ) ) {
-			die( $result["body"] );
-		} else if ( isset( $result ) ) {
-			die( $result );
+		if ( get_post_meta( $_POST['id'], 'twitter_exclude', true ) ) {
+			die( "You have excluded this post from publishing to your Twitter account. If you would like to publish it, edit the post and remove the exclude check box in the post settings." );
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			$post = get_post( $_POST['id'] );
+			
+			$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post ) );
+			
+			if ( isset( $result ) ) {			
+				if ( is_wp_error( $result ) ) {
+					die( $result->get_error_message() );	
+				} else if ( isset( $result["response"]["code"] ) ) {
+					die( $result["body"] );
+				} else {
+					die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+				}
+			} else {
+				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			}
 		}
 	} else {
 		die( "ERROR: Unable to determine Post ID." );
@@ -394,9 +409,9 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 			}
 		}
 		$wpdb->flush();
-		
-		return $connect_arr;
 	}
+		
+	return $connect_arr;
 }
 
 // Example followed from http://planetozh.com/blog/2009/08/how-to-make-http-requests-with-wordpress/

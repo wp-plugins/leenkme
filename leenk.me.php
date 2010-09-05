@@ -2,20 +2,21 @@
 /*
 Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
-Description: Automatically publish to your Twitter account and Facebook profile/page whenever you publish a new post on your WordPress website with the leenk.me social network service. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
+Description: Automatically publish to your Twitter, Facebook profile/page, and Google Buzz whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.1.2
+Version: 1.1.3
 Author URI: http://leenk.me/about/
-Tags: twitter, facebook, oauth, profile, pages, social networking, social media, posts, twitter post, tinyurl, twitter friendly links, multiple authors, exclude post, category, categories, retweet, republish, javascript, ajax, connect, status update, leenk.me, leenk me, leenk
+Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post
 */
 
-define( 'leenk.me_version' , '1.1.2' );
+define( 'leenk.me_version' , '1.1.3' );
 
 class leenkme {
 	var $options_name			= "leenkme";
 	var $leenkme_API			= "leenkme_API";
 	var $twitter				= "twitter";
 	var $facebook				= "facebook";
+	var $googlebuzz				= "googlebuzz";
 	var $base_url 				= "";
 	var $api_url				= "";
 	
@@ -29,9 +30,11 @@ class leenkme {
 	function get_leenkme_settings() {
 		$twitter = false;
 		$facebook = false;
+		$googlebuzz = false;
 		
-		$options = array( 	$this->twitter => $twitter,
-							$this->facebook => $facebook	);
+		$options = array( 	$this->twitter 		=> $twitter,
+							$this->facebook 	=> $facebook,
+							$this->googlebuzz 	=> $googlebuzz	);
 	
 		$leenkme_settings = get_option( $this->options_name );
 		if ( !empty( $leenkme_settings ) ) {
@@ -86,6 +89,12 @@ class leenkme {
 					$leenkme_settings[$this->facebook] = false;
 				}
 				
+				if ( isset( $_POST['googlebuzz'] ) ) {
+					$leenkme_settings[$this->googlebuzz] = true;
+				} else {
+					$leenkme_settings[$this->googlebuzz] = false;
+				}
+				
 				update_option( $this->options_name, $leenkme_settings );
 				
 				// It's not pretty, but the easiest way to get the menu to refresh after save...
@@ -124,6 +133,8 @@ class leenkme {
                     <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php if ( $leenkme_settings[$this->twitter] ) echo 'checked="checked"'; ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">Facebook: </td>
                     <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php if ( $leenkme_settings[$this->facebook] ) echo 'checked="checked"'; ?> /></td></tr>
+                    <tr><td id="leenkme_plugin_name">Google Buzz: </td>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php if ( $leenkme_settings[$this->googlebuzz] ) echo 'checked="checked"'; ?> /></td></tr>
                 </table>
 				<?php } ?>
 				<p class="submit">
@@ -151,6 +162,10 @@ if ( class_exists( "leenkme" ) ) {
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		require_once( 'facebook.php' );
 	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
+		require_once( 'googlebuzz.php' );
+	}
 }
 
 // Initialize the admin panel if the plugin has been activated
@@ -175,6 +190,11 @@ function leenkme_ap() {
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		global $dl_pluginleenkmeFacebook;
 		add_submenu_page( 'leenkme', __( 'Facebook Settings', 'leenkme' ), __( 'Facebook', 'leenkme' ), 'edit_posts', 'leenkme_facebook', array( &$dl_pluginleenkmeFacebook, 'print_facebook_settings_page' ) );
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
+		global $dl_pluginleenkmeGoogleBuzz;
+		add_submenu_page( 'leenkme', __( 'Google Buzz Settings', 'leenkme' ), __( 'Google Buzz', 'leenkme' ), 'edit_posts', 'leenkme_googlebuzz', array( &$dl_pluginleenkmeGoogleBuzz, 'print_googlebuzz_settings_page' ) );
 	}
 }
 
@@ -211,6 +231,10 @@ function leenkme_js() {
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		leenkme_facebook_js();
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
+		leenkme_googlebuzz_js();
 	}
 ?>
 
@@ -296,9 +320,7 @@ function leenkme_connect( $post ) {
 													'body' => $body, 
 													'headers' => $headers ) );
 			
-			if ( is_wp_error( $result ) ) {
-				return $result->get_error_message();
-			} else if ( isset( $result ) ) {
+			if ( isset( $result ) ) {
 				return $result;
 			} else {
 				return "Undefined error occurred, Please contact leenk.me support.";
@@ -321,9 +343,7 @@ function leenkme_ajax_connect( $connect_arr ) {
 													'body' => $body, 
 													'headers' => $headers ) );
 			
-			if ( is_wp_error( $result ) ) {
-				return $result->get_error_message();
-			} else if ( isset( $result ) ) {
+			if ( isset( $result ) ) {
 				return $result;
 			} else {
 				return "Undefined error occurred, Please contact leenk.me support.";
