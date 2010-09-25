@@ -140,8 +140,7 @@ class leenkme_GoogleBuzz {
 		$user_id = $current_user->ID;
 		
 		$exclude = get_post_meta( $post->ID, 'googlebuzz_exclude', true );
-		$buzz = get_post_meta( $post->ID, 'googlebuzz_custombuzz', true );
-		$user_settings = get_user_option( $this->options_name, $user_id ); ?>
+		$buzz = get_post_meta( $post->ID, 'googlebuzz_custombuzz', true ); ?>
 
 		<div id="postlm" class="postbox">
 		<h3><?php _e( 'leenk.me Google Buzz', 'leenkme' ) ?></h3>
@@ -328,7 +327,8 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 			$title = strip_tags( $post->post_title );
 			
 			foreach ( $user_ids as $user_id ) {
-				$options = get_user_option( 'leenkme_googlebuzz', $user_id );
+				global $dl_pluginleenkmeGoogleBuzz;
+				$options = $dl_pluginleenkmeGoogleBuzz->get_user_settings( $user_id );
 				
 				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);

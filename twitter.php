@@ -330,7 +330,8 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 			}
 			
 			foreach ( $user_ids as $user_id ) {
-				$options = get_user_option( 'leenkme_twitter', $user_id );
+				global $dl_pluginleenkmeTwitter;
+				$options = $dl_pluginleenkmeTwitter->get_user_settings( $user_id );
 
 				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );

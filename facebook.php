@@ -40,7 +40,7 @@ class leenkme_Facebook {
 	// Option loader function
 	function get_user_settings( $user_id ) {
 		// Default values for the options
-		$facebook_profile	= false;
+		$facebook_profile	= true;
 		$facebook_page		= false;
 		$default_image		= "";
 		$publish_cats		= "";
@@ -182,7 +182,7 @@ class leenkme_Facebook {
 		$facebook_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_image', true ) ) );
 		$exclude_profile = get_post_meta( $post->ID, 'facebook_exclude_profile', true ); 
 		$exclude_page = get_post_meta( $post->ID, 'facebook_exclude_page', true ); 
-		$user_settings = get_user_option( $this->options_name, $user_id ); ?>
+		$user_settings = $this->get_user_settings( $user_id ); ?>
 
 		<div id="postlm" class="postbox">
 		<h3><?php _e( 'leenk.me Facebook', 'leenkme' ) ?></h3>
@@ -399,7 +399,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 			}
 			
 			foreach ( $user_ids as $user_id ) {
-				$options = get_user_option( 'leenkme_facebook', $user_id );
+				global $dl_pluginleenkmeFacebook;
+				$options = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
 				
 				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
