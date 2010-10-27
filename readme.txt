@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 
 leenk.me empowers you to publish to your Twitter, Facebook, & Google Buzz account whenever you publish a new post in WordPress.
 
@@ -23,6 +23,7 @@ What can you do with leenk.me?
 * Customize your Tweet format with the custom tags %TITLE% and %URL%
 * Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
 * Customize your Buzz message for individual posts.
+* Customize your Facebook post for individual posts.
 
 What sets leenk.me apart from others?
 
@@ -74,6 +75,12 @@ http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpr
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.1.5 =
+* Added more features to Facebook plugin, now you can truly customize your Facebook posts.
+* Added support links to each social network module.
+* Updated API to fix slashes being included in Facebook posts.
+* Updated Facebook screenshots.
+
 = 1.1.4 =
 
 * Fixed problem caused by users not saving Twitter/Facebook/Google Buzz settings before trying to use the plugin

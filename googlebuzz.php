@@ -93,8 +93,9 @@ class leenkme_GoogleBuzz {
 		?>
 		<div class=wrap>
             <form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
-                <h2>Google Buzz Settings</h2>
+                <h2>Google Buzz Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="googlebuzz_options">
+                <h3>Publish Settings</h3>
                     <p>Buzz Categories: <input name="buzz_cats" type="text" style="width: 250px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->buzz_cats] ), 'leenkme_GoogleBuzz' ) ?>" /></p>
                     <div class="buzz-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Buzz to your profile from several specific category IDs, e.g. 3,4,5<br />Buzz all posts to your profile except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>

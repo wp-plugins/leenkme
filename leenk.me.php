@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook profile/page, and Google Buzz whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.1.4
+Version: 1.1.5
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post
 */
 
-define( 'leenk.me_version' , '1.1.4' );
+define( 'leenk.me_version' , '1.1.5' );
 
 class leenkme {
 	var $options_name			= "leenkme";
@@ -352,6 +352,17 @@ function leenkme_ajax_connect( $connect_arr ) {
 	}
 }
 
+function leenkme_help_list( $contextual_help, $screen ) {
+	if ( 'leenkme' == $screen->parent_base ) {
+		$contextual_help[$screen->id] = '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
+'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | ' .
+'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | ' .
+'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">Google Buzz</a>';
+	}
+
+	return $contextual_help;
+}
+
 // Actions and filters	
 if ( isset( $dl_pluginleenkme ) ) {
 	/*--------------------------------------------------------------------
@@ -371,6 +382,8 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'admin_head-post.php', 'leenkme_js' );
 	add_action( 'wp_ajax_verify', 'leenkme_ajax_verify', 10, 1 );
 	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
+	
+	add_filter( 'contextual_help_list', 'leenkme_help_list', 10, 2);
 } 
 
 // From PHP_Compat-1.6.0a2 Compat/Function/str_ireplace.php for PHP4 Compatibility

@@ -98,7 +98,8 @@ class leenkme_Twitter {
 		?>
 		<div class=wrap>
 			<form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
-				<h2>Twitter Settings</h2>
+				<h2>Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
+                <h3>Message Settings</h3>
 				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( apply_filters( 'format_to_edit', htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ) ), 'leenkme_Twitter') ?>" /></p>
 				<div class="tweet-format" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
@@ -107,6 +108,8 @@ class leenkme_Twitter {
 					<li>%URL% - Displays TinyURL of your post in your Twitter feed.*</li>
 				</ul>
 				</div>
+                <div id="twitter_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
+                <h3>Publish Settings</h3>
 				<p>Tweet Categories: <input name="tweetcats" type="text" style="width: 25%;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->tweetCats] ), 'leenkme_Twitter' ) ?>" /></p>
 				<div class="tweet-cats" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Tweet posts from several specific category IDs, e.g. 3,4,5<br />Tweet all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
@@ -115,6 +118,7 @@ class leenkme_Twitter {
 				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php if ( $leenkme_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
 				<div class="tweet-allusers" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
+                </div>
 				</div>
 				<?php } ?>
 				<p><input type="button" class="button" name="verify_twitter_connect" id="tweet" value="<?php _e( 'Send a Test Tweet', 'leenkme_Twitter' ) ?>" />
@@ -159,22 +163,20 @@ class leenkme_Twitter {
 	
 		<input value="twitter_edit" type="hidden" name="twitter_edit" />
 		<table>
+			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
+			<td style="vertical-align:top; width:80px;">
+				<p>%TITLE%,  %URL%</p>
+            </td></tr>
 			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></td>
 			<td><input value="<?php echo $tweet ?>" type="text" name="leenkme_tweet" maxlength="140" size="80px"/></td></tr>
-			
-			
+			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
+			  <td style="vertical-align:top; width:80px;">
+				<p><span style="font-weight:bold;">NOTE</span> Twitter limits the tweet to 140 characters.</p>
+            </td></tr>
 			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
 			<td>
 				<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
 			</td></tr>
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;">Format Options:</td>
-			<td style="vertical-align:top; width:80px;">
-				<ul>
-					<li>%TITLE% - Displays Title of your post in your Twitter feed.*</li>
-					<li>%URL% - Displays TinyURL of your post in your Twitter feed.*</li>
-				</ul>
-				<p><span style="font-weight:bold;">NOTE</span> Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it's either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis).</p>
-            </td></tr>
 			<?php // Only show ReTweet button if the post is "published"
             if ( "publish" === $post->post_status ) { ?>
             <tr><td colspan="2">
