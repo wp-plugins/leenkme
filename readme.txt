@@ -1,9 +1,9 @@
 === leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post
+Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.1.5
+Stable tag: 1.1.6
 
 leenk.me empowers you to publish to your Twitter, Facebook, & Google Buzz account whenever you publish a new post in WordPress.
 
@@ -75,6 +75,9 @@ http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpr
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.1.6 =
+* Added SSL to leenk.me API for increased security
+
 = 1.1.5 =
 * Added more features to Facebook plugin, now you can truly customize your Facebook posts.
 * Added support links to each social network module.
