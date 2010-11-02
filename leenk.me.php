@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook profile/page, and Google Buzz whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.1.6
+Version: 1.1.7
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
 */
 
-define( 'leenk.me_version' , '1.1.6' );
+define( 'leenk.me_version' , '1.1.7' );
 
 class leenkme {
 	var $options_name			= "leenkme";
@@ -318,7 +318,8 @@ function leenkme_connect( $post ) {
 			$result = $request->request( $dl_pluginleenkme->api_url, 
 											array( 	'method' => 'POST', 
 													'body' => $body, 
-													'headers' => $headers ) );
+													'headers' => $headers,
+													'sslverify' => false ) );
 			
 			if ( isset( $result ) ) {
 				return $result;
@@ -341,7 +342,8 @@ function leenkme_ajax_connect( $connect_arr ) {
 			$result = $request->request( $dl_pluginleenkme->api_url, 
 											array( 	'method' => 'POST', 
 													'body' => $body, 
-													'headers' => $headers ) );
+													'headers' => $headers,
+													'sslverify' => false ) );
 			
 			if ( isset( $result ) ) {
 				return $result;
