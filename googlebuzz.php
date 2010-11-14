@@ -1,14 +1,10 @@
 <?php		
 // Define class
-class leenkme_GoogleBuzz {
-	/*--------------------------------------------------------------------
-		General Functions
-	  --------------------------------------------------------------------*/
-	  
+class leenkme_GoogleBuzz {	 
 	// Class members		
-	var $options_name			= "leenkme_googlebuzz";
-	var $buzz_cats				= "buzz_cats";
-	var $buzz_all_users			= "buzz_all_users";
+	var $options_name			= 'leenkme_googlebuzz';
+	var $buzz_cats				= 'buzz_cats';
+	var $buzz_all_users			= 'buzz_all_users';
 
 	// Constructor
 	function leenkme_GoogleBuzz() {
@@ -19,8 +15,8 @@ class leenkme_GoogleBuzz {
 		Administrative Functions
 	  --------------------------------------------------------------------*/
 	
-	function get_leenkme_settings() {
-		$buzz_all_users = "";
+	function get_leenkme_googlebuzz_settings() {
+		$buzz_all_users = '';
 		
 		$options = array( $this->buzz_all_users => $buzz_all_users );
 	
@@ -37,7 +33,7 @@ class leenkme_GoogleBuzz {
 	// Option loader function
 	function get_user_settings( $user_id ) {
 		// Default values for the options
-		$buzz_cats		= "";
+		$buzz_cats		= '';
 		
 		$options = array(
 							 $this->buzz_cats 		=> $buzz_cats
@@ -59,14 +55,13 @@ class leenkme_GoogleBuzz {
 	
 	// Print the admin page for the plugin
 	function print_googlebuzz_settings_page() {
-		global $dl_pluginleenkme;
 		global $current_user;
 		get_currentuserinfo();
 		$user_id = $current_user->ID;
 		
 		// Get the user options
 		$user_settings = $this->get_user_settings( $user_id );
-		$leenkme_settings = $this->get_leenkme_settings();
+		$googlebuzz_settings = $this->get_leenkme_googlebuzz_settings();
 		
 		if ( isset( $_POST['update_googlebuzz_settings'] ) ) {
 			if ( isset( $_POST['buzz_cats'] ) ) {
@@ -77,22 +72,22 @@ class leenkme_GoogleBuzz {
 			
 			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['buzz_all_users'] ) ) {
-					$leenkme_settings[$this->buzz_all_users] = true;
+					$googlebuzz_settings[$this->buzz_all_users] = true;
 				} else {
-					$leenkme_settings[$this->buzz_all_users] = false;
+					$googlebuzz_settings[$this->buzz_all_users] = false;
 				}
 				
-				update_option( $this->options_name, $leenkme_settings );
+				update_option( $this->options_name, $googlebuzz_settings );
 			}
 			
 			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e("Settings Updated.", "leenkme_GoogleBuzz");?></strong></p></div>
+			<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_GoogleBuzz' );?></strong></p></div>
 			<?php
 		}
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-            <form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+            <form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                 <h2>Google Buzz Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="googlebuzz_options">
                 <h3>Publish Settings</h3>
@@ -101,7 +96,7 @@ class leenkme_GoogleBuzz {
                     <p style="font-size: 11px; margin-bottom: 0px;">Buzz to your profile from several specific category IDs, e.g. 3,4,5<br />Buzz all posts to your profile except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
                     <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
-                    <p>Buzz All Authors? <input type="checkbox" name="buzz_all_users" <?php if ( $leenkme_settings[$this->buzz_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Buzz All Authors? <input type="checkbox" name="buzz_all_users" <?php if ( $googlebuzz_settings[$this->buzz_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="buzz-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to buzz to each available author account.</p>
                     </div>
@@ -135,48 +130,48 @@ class leenkme_GoogleBuzz {
 	}
 	
 	function leenkme_add_googlebuzz_meta_tag_options() {
-		global $post;
-		global $current_user;
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
+		global $post, $dl_pluginleenkme;
 		
-		$exclude = get_post_meta( $post->ID, 'googlebuzz_exclude', true );
-		$buzz = get_post_meta( $post->ID, 'googlebuzz_custombuzz', true ); ?>
-
-		<div id="postlm" class="postbox">
-		<h3><?php _e( 'leenk.me Google Buzz', 'leenkme' ) ?></h3>
-		<div class="inside">
-		<div id="postlm">
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {			
+			$exclude = get_post_meta( $post->ID, 'googlebuzz_exclude', true );
+			$buzz = get_post_meta( $post->ID, 'googlebuzz_custombuzz', true ); ?>
 	
-		<input value="googlebuzz_edit" type="hidden" name="googlebuzz_edit" />
-		<table>			
-			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Buzz:', 'leenkme' ) ?></td>
-			<td>
-            	<textarea onkeydown="this.value=this.value.substr(0,239);" style="margin-top: 5px;" name="googlebuzz_custombuzz" cols="66" rows="5"><?php echo $buzz; ?></textarea>
-			</td></tr>
-            
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
-			<td style="vertical-align:top; width:80px;">
-				<p><span style="font-weight:bold;">NOTE</span> an artificial 240 character limit has been set for the Custom Buzz message.</p>
-            </td></tr>
-			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Buzz:', 'leenkme' ) ?></td>
-			<td>
-				<input style="margin-top: 5px;" type="checkbox" name="googlebuzz_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
-			</td></tr>
-			<?php // Only show ReBuzz button if the post is "buzzed"
-            if ( 'publish' === $post->post_status ) { ?>
-            <tr><td colspan="2">
-            <input style="float: right;" type="button" class="button" name="rebuzz_googlebuzz" id="rebuzz_button" value="<?php _e( 'ReBuzz', 'leenkme_GoogleBuzz' ) ?>" />
-            <?php wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' ); ?>
-            </td></tr>
-            <?php } ?>
-		</table>
-		</div></div></div>
-		<?php 
+			<div id="postlm" class="postbox">
+			<h3><?php _e( 'leenk.me Google Buzz', 'leenkme' ) ?></h3>
+			<div class="inside">
+			<div id="postlm">
+		
+			<input value="googlebuzz_edit" type="hidden" name="googlebuzz_edit" />
+			<table>			
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Buzz:', 'leenkme' ) ?></td>
+				<td>
+					<textarea onkeydown="this.value=this.value.substr(0,239);" style="margin-top: 5px;" name="googlebuzz_custombuzz" cols="66" rows="5"><?php echo $buzz; ?></textarea>
+				</td></tr>
+				
+				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
+				<td style="vertical-align:top; width:80px;">
+					<p><span style="font-weight:bold;">NOTE</span> an artificial 240 character limit has been set for the Custom Buzz message.</p>
+				</td></tr>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Buzz:', 'leenkme' ) ?></td>
+				<td>
+					<input style="margin-top: 5px;" type="checkbox" name="googlebuzz_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
+				</td></tr>
+				<?php // Only show ReBuzz button if the post is "buzzed"
+				if ( 'publish' === $post->post_status ) { ?>
+				<tr><td colspan="2">
+				<input style="float: right;" type="button" class="button" name="rebuzz_googlebuzz" id="rebuzz_button" value="<?php _e( 'ReBuzz', 'leenkme_GoogleBuzz' ) ?>" />
+				<?php wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' ); ?>
+				</td></tr>
+				<?php } ?>
+			</table>
+			</div></div></div>
+			<?php 
+		}
 	}
 }
 
-if ( class_exists( "leenkme_GoogleBuzz" ) ) {
+if ( class_exists( 'leenkme_GoogleBuzz' ) ) {
 	$dl_pluginleenkmeGoogleBuzz = new leenkme_GoogleBuzz();
 }
 
@@ -225,8 +220,8 @@ function leenkme_ajax_gb() {
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
 	if ( $api_key = $user_settings['leenkme_API'] ) {
 		$message = "Testing leenk.me's Google Buzz Plugin for WordPress";
-		$url = "http://leenk.me/";
-		$title = "leenk.me";
+		$url = 'http://leenk.me/';
+		$title = 'leenk.me';
 		
 		$connect_arr[$api_key]['googlebuzz_message'] = $message;
 		$connect_arr[$api_key]['googlebuzz_link'] = $url;
@@ -237,16 +232,16 @@ function leenkme_ajax_gb() {
 		if ( isset( $result ) ) {			
 			if ( is_wp_error( $result ) ) {
 				die( $result->get_error_message() );	
-			} else if ( isset( $result["response"]["code"] ) ) {
-				die( $result["body"] );
+			} else if ( isset( $result['response']['code'] ) ) {
+				die( $result['body'] );
 			} else {
-				die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 		}
 	} else {
-		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
+		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
 	}
 }
 
@@ -255,7 +250,7 @@ function leenkme_ajax_rebuzz() {
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'googlebuzz_exclude', true ) ) {
-			die( "You have excluded this post from publishing to your Google Buzz profile. If you would like to publish it, edit the post and remove the exclude check box in the post settings." );
+			die( 'You have excluded this post from publishing to your Google Buzz profile. If you would like to publish it, edit the post and remove the exclude check box in the post settings.' );
 		} else {
 			$post = get_post( $_POST['id'] );
 			
@@ -264,25 +259,29 @@ function leenkme_ajax_rebuzz() {
 			if ( isset( $result ) ) {	
 				if ( is_wp_error( $result ) ) {
 					die( $result->get_error_message() );	
-				} else if ( isset( $result["response"]["code"] ) ) {
-					die( $result["body"] );
+				} else if ( isset( $result['response']['code'] ) ) {
+					die( $result['body'] );
 				} else {
-					die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
 				}
 			} else {
-				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		}
 	} else {
-		die( "ERROR: Unable to determine Post ID." );
+		die( 'ERROR: Unable to determine Post ID.' );
 	}
 }
 
 function rebuzz_row_action( $actions, $post ) {
-	// Only show ReBuzz button if the post is "buzzed"
-	if ( "publish" === $post->post_status ) {
-		$actions['rebuzz'] = "<a class='rebuzz_row_action' id='" . $post->ID . "' title='" . esc_attr( __( 'ReBuzz this Post' ) ) . "' href='#'>" . __( 'ReBuzz' ) . "</a>" .
-		wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' );
+	global $dl_pluginleenkme;
+	$leenkme_options = $dl_pluginleenkme->get_leenkme_settings();
+	if ( in_array( $post->post_type, $leenkme_options['post_types'] ) ) {
+		// Only show ReBuzz button if the post is "buzzed"
+		if ( 'publish' === $post->post_status ) {
+			$actions['rebuzz'] = '<a class="rebuzz_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReBuzz this Post' ) ) . '" href="#">' . __( 'ReBuzz' ) . '</a>';
+			wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' );
+		}
 	}
 
 	return $actions;
@@ -290,7 +289,7 @@ function rebuzz_row_action( $actions, $post ) {
 									
 // Add function to pubslih to googlebuzz
 function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
-	global $wpdb;
+	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeGoogleBuzz;
 	$maxMessageLen = 240;
 	
 	if ( get_post_meta( $post->ID, 'googlebuzz_exclude', true ) ) {
@@ -299,8 +298,9 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 		$exclude_googlebuzz = false;
 	}
 	
-	if ( !$exclude_googlebuzz ) {	
-		if ( 'post' === $post->post_type ) {
+	if ( !$exclude_googlebuzz ) {
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_googlebuzz' );
 			
 			if ( $options['buzz_all_users'] ) {
@@ -313,41 +313,42 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 			
 			if ( !$message = get_post_meta( $post->ID, 'googlebuzz_custombuzz', true ) ) {
 				if ( !empty( $post->post_excerpt ) ) {
-					$message = strip_tags( $post->post_excerpt ); //use the post_excerpt if available for the message
+					//use the post_excerpt if available for the message
+					$message = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
 				} else {
-					$message = strip_tags( $post->post_content ); //otherwise we'll use the post_content for the message
+					//otherwise we'll use the post_content for the message
+					$message = strip_tags( strip_shortcodes( $post->post_content ) ); 
 				}
 			}
 			$messageLen = strlen( $message );
 			
 			if ( $messageLen > $maxMessageLen ) {
 				$diff = $maxMessageLen - $messageLen;
-				$message = substr( $message, 0, $diff - 4 ) . "...";
+				$message = substr( $message, 0, $diff - 4 ) . '...';
 			}
 					
 			$title = strip_tags( $post->post_title );
 			
 			foreach ( $user_ids as $user_id ) {
-				global $dl_pluginleenkmeGoogleBuzz;
-				$options = $dl_pluginleenkmeGoogleBuzz->get_user_settings( $user_id );
-				
-				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
 				if ( empty( $user_settings['leenkme_API'] ) ) {
 					continue;	//Skip user if they do not have an API key set
 				}
 				
 				$api_key = $user_settings['leenkme_API'];
-				
+
+				$options = $dl_pluginleenkmeGoogleBuzz->get_user_settings( $user_id );
 				if ( !empty( $options ) ) {
-					$continue = FALSE;
 					if ( !empty( $options['buzz_cats'] ) ) {
+						$continue = FALSE;
 						$cats = split( ",", $options['buzz_cats'] );
+						
 						foreach ( $cats as $cat ) {
 							if ( preg_match( '/^-\d+/', $cat ) ) {
 								$cat = preg_replace( '/^-/', '', $cat );
 								if ( in_category( (int)$cat, $post ) ) {
-									continue;	// Skip to next in foreach
+									$continue = FALSE;
+									break;	// In an excluded category, break out of foreach
 								} else  {
 									$continue = TRUE; // if not, than we can continue
 								}
@@ -357,11 +358,9 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 								}
 							}
 						}
-					} else { // If no includes or excludes are defined, then continue
-						$continue = TRUE;
+						
+						if ( !$continue ) continue;	// Skip to next in foreach
 					}
-					
-					if ( !$continue ) continue;	// Skip to next in foreach
 					
 					$connect_arr[$api_key]['googlebuzz_message'] = $message;
 					$connect_arr[$api_key]['googlebuzz_link'] = $url;
@@ -377,10 +376,8 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeGoogleBuzz ) ) {
-	/*--------------------------------------------------------------------
-	    Actions
-	  --------------------------------------------------------------------*/
 	add_action( 'edit_form_advanced', array( $dl_pluginleenkmeGoogleBuzz, 'leenkme_add_googlebuzz_meta_tag_options' ), 1 );
+	add_action( 'edit_page_form', array( $dl_pluginleenkmeGoogleBuzz, 'leenkme_add_googlebuzz_meta_tag_options' ), 1 );
 	add_action( 'save_post', array( $dl_pluginleenkmeGoogleBuzz, 'leenkme_googlebuzz_meta_tags' ) );
 	
 	// Whenever you buzz a post, post to googlebuzz
@@ -394,5 +391,5 @@ if ( isset( $dl_pluginleenkmeGoogleBuzz ) ) {
 	
 	// edit-post.php post row update
 	add_filter( 'post_row_actions', 'rebuzz_row_action', 10, 2 );
+	add_filter( 'page_row_actions', 'rebuzz_row_action', 10, 2 );
 }
-?>

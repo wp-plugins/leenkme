@@ -1,9 +1,9 @@
 === leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
+Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
 Requires at least: 2.8
 Tested up to: 3.0.1
-Stable tag: 1.1.7
+Stable tag: 1.1.8
 
 leenk.me empowers you to publish to your Twitter, Facebook, & Google Buzz account whenever you publish a new post in WordPress.
 
@@ -14,6 +14,7 @@ leenk.me automatically publishes a tweet to your Twitter account, a status updat
 What can you do with leenk.me?
 
 * Publish automatically to your social networks when you publish a new post in WordPress.
+* Works with Posts, Pages, and Custom Post Types. (Requires WP 2.9+ for Posts and 3.0+ for Custom Post Types)
 * Choose which categories are published automatically.
 * Exclude individual posts from being published to your social networks.
 * Automatically post to your social networks when a scheduled post is published.
@@ -75,6 +76,11 @@ http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpr
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.1.8 =
+* Fixed bug causing shorttags showing up in Facebook and Google Buzz posts.
+* Fixed category inclusion/exclusions bug.
+* Added Page and Custom Post Type support.
+
 = 1.1.7 =
 * Receiving reports of users with old version of cURL installed, they are not able to verify the SSL (because it is too new). Set the API call to not try to verify the SSL, the SSL still works and encrypts the content though.
 

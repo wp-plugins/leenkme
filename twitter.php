@@ -1,15 +1,11 @@
 <?php		
 // Define class
 class leenkme_Twitter {
-	/*--------------------------------------------------------------------
-		General Functions
-	  --------------------------------------------------------------------*/
-	  
 	// Class members		
-	var $options_name			= "leenkme_twitter";
-	var $tweetFormat			= "leenkme_tweetformat";
-	var $tweetCats				= "tweetcats";
-	var $tweetAllUsers			= "leenkme_tweetallusers";
+	var $options_name			= 'leenkme_twitter';
+	var $tweetFormat			= 'leenkme_tweetformat';
+	var $tweetCats				= 'tweetcats';
+	var $tweetAllUsers			= 'leenkme_tweetallusers';
 
 	// Constructor
 	function leenkme_Twitter() {
@@ -20,14 +16,14 @@ class leenkme_Twitter {
 		Administrative Functions
 	  --------------------------------------------------------------------*/
 	
-	function get_leenkme_settings() {
-		$tweetAllUsers = "";
+	function get_leenkme_twitter_settings() {
+		$tweetAllUsers = '';
 		
 		$options = array( $this->tweetAllUsers => $tweetAllUsers );
 	
-		$leenkme_settings = get_option( $this->options_name );
-		if ( !empty( $leenkme_settings ) ) {
-			foreach ( $leenkme_settings as $key => $option ) {
+		$leenkme_twitter_settings = get_option( $this->options_name );
+		if ( !empty( $leenkme_twitter_settings ) ) {
+			foreach ( $leenkme_twitter_settings as $key => $option ) {
 				$options[$key] = $option;
 			}
 		}
@@ -38,8 +34,8 @@ class leenkme_Twitter {
 	// Option loader function
 	function get_user_settings( $user_id ) {
 		// Default values for the options
-		$tweetFormat 		= "Blogged %TITLE%: %URL%";
-		$tweetCats		 	= "";
+		$tweetFormat 		= 'Blogged %TITLE%: %URL%';
+		$tweetCats		 	= '';
 		
 		$options = array(
 							 $this->tweetFormat 		=> $tweetFormat,
@@ -68,7 +64,7 @@ class leenkme_Twitter {
 		
 		// Get the user options
 		$user_settings = $this->get_user_settings( $user_id );
-		$leenkme_settings = $this->get_leenkme_settings();
+		$twitter_settings = $this->get_twitter_settings();
 		
 		if ( isset( $_POST['update_twitter_settings'] ) ) {			
 			if ( isset( $_POST['leenkme_tweetformat'] ) ) {
@@ -83,21 +79,21 @@ class leenkme_Twitter {
 			
 			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['leenkme_tweetallusers'] ) ) {
-					$leenkme_settings[$this->tweetAllUsers] = true;
+					$twitter_settings[$this->tweetAllUsers] = true;
 				} else {
-					$leenkme_settings[$this->tweetAllUsers] = false;
+					$twitter_settings[$this->tweetAllUsers] = false;
 				}
-				update_option( $this->options_name, $leenkme_settings );
+				update_option( $this->options_name, $twitter_settings );
 			}
 			
 			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e( "Settings Updated.", "leenkme_Twitter" );?></strong></p></div>
+			<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_Twitter' );?></strong></p></div>
 			<?php
 		}
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-			<form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+			<form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 				<h2>Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <h3>Message Settings</h3>
 				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( apply_filters( 'format_to_edit', htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ) ), 'leenkme_Twitter') ?>" /></p>
@@ -115,7 +111,7 @@ class leenkme_Twitter {
 				<p style="font-size: 11px; margin-bottom: 0px;">Tweet posts from several specific category IDs, e.g. 3,4,5<br />Tweet all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
 				</div>
 				<?php if ( current_user_can( 'activate_plugins' ) ) { //then we're displaying the main Admin options ?>
-				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php if ( $leenkme_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
+				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php if ( $twitter_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
 				<div class="tweet-allusers" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
                 </div>
@@ -151,46 +147,50 @@ class leenkme_Twitter {
 	}
 	
 	function leenkme_add_twitter_meta_tag_options() {
-		global $post;
+		global $post, $dl_pluginleenkme;
 		
-		$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
-		$exclude = get_post_meta( $post->ID, 'twitter_exclude', true ); ?>
-
-		<div id="postlm" class="postbox">
-		<h3><?php _e( 'leenk.me Twitter', 'leenkme' ) ?></h3>
-		<div class="inside">
-		<div id="postlm">
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+		
+			$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
+			$exclude = get_post_meta( $post->ID, 'twitter_exclude', true ); ?>
 	
-		<input value="twitter_edit" type="hidden" name="twitter_edit" />
-		<table>
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
-			<td style="vertical-align:top; width:80px;">
-				<p>%TITLE%,  %URL%</p>
-            </td></tr>
-			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></td>
-			<td><input value="<?php echo $tweet ?>" type="text" name="leenkme_tweet" maxlength="140" size="80px"/></td></tr>
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
-			  <td style="vertical-align:top; width:80px;">
-				<p><span style="font-weight:bold;">NOTE</span> Twitter limits the tweet to 140 characters.</p>
-            </td></tr>
-			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
-			<td>
-				<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
-			</td></tr>
-			<?php // Only show ReTweet button if the post is "published"
-            if ( "publish" === $post->post_status ) { ?>
-            <tr><td colspan="2">
-            <input style="float: right;" type="button" class="button" name="retweet_twitter" id="retweet_button" value="<?php _e( 'ReTweet', 'leenkme_Twitter' ) ?>" />
-            <?php wp_nonce_field( 'retweet', 'retweet_wpnonce' ); ?>
-            </td></tr>
-            <?php } ?>
-		</table>
-		</div></div></div>
-		<?php 
+			<div id="postlm" class="postbox">
+			<h3><?php _e( 'leenk.me Twitter', 'leenkme' ) ?></h3>
+			<div class="inside">
+			<div id="postlm">
+		
+			<input value="twitter_edit" type="hidden" name="twitter_edit" />
+			<table>
+				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
+				<td style="vertical-align:top; width:80px;">
+					<p>%TITLE%,  %URL%</p>
+				</td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></td>
+				<td><input value="<?php echo $tweet ?>" type="text" name="leenkme_tweet" maxlength="140" size="80px"/></td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
+				  <td style="vertical-align:top; width:80px;">
+					<p><span style="font-weight:bold;">NOTE</span> Twitter limits the tweet to 140 characters.</p>
+				</td></tr>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
+				<td>
+					<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
+				</td></tr>
+				<?php // Only show ReTweet button if the post is "published"
+				if ( "publish" === $post->post_status ) { ?>
+				<tr><td colspan="2">
+				<input style="float: right;" type="button" class="button" name="retweet_twitter" id="retweet_button" value="<?php _e( 'ReTweet', 'leenkme_Twitter' ) ?>" />
+				<?php wp_nonce_field( 'retweet', 'retweet_wpnonce' ); ?>
+				</td></tr>
+				<?php } ?>
+			</table>
+			</div></div></div>
+			<?php 
+		}
 	}
 }
 
-if ( class_exists( "leenkme_Twitter" ) ) {
+if ( class_exists( 'leenkme_Twitter' ) ) {
 	$dl_pluginleenkmeTwitter = new leenkme_Twitter();
 }
 
@@ -247,16 +247,16 @@ function leenkme_ajax_tweet() {
 		if ( isset( $result ) ) {			
 			if ( is_wp_error( $result ) ) {
 				die( $result->get_error_message() );	
-			} else if ( isset( $result["response"]["code"] ) ) {
-				die( $result["body"] );
+			} else if ( isset( $result['response']['code'] ) ) {
+				die( $result['body'] );
 			} else {
-				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 		}
 	} else {
-		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
+		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
 	}
 }
 
@@ -265,7 +265,7 @@ function leenkme_ajax_retweet() {
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'twitter_exclude', true ) ) {
-			die( "You have excluded this post from publishing to your Twitter account. If you would like to publish it, edit the post and remove the exclude check box in the post settings." );
+			die( 'You have excluded this post from publishing to your Twitter account. If you would like to publish it, edit the post and remove the exclude check box in the post settings.' );
 		} else {
 			$post = get_post( $_POST['id'] );
 			
@@ -274,25 +274,29 @@ function leenkme_ajax_retweet() {
 			if ( isset( $result ) ) {			
 				if ( is_wp_error( $result ) ) {
 					die( $result->get_error_message() );	
-				} else if ( isset( $result["response"]["code"] ) ) {
-					die( $result["body"] );
+				} else if ( isset( $result['response']['code'] ) ) {
+					die( $result['body'] );
 				} else {
-					die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
 				}
 			} else {
-				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		}
 	} else {
-		die( "ERROR: Unable to determine Post ID." );
+		die( 'ERROR: Unable to determine Post ID.' );
 	}
 }
 
 function retweet_row_action( $actions, $post ) {
-	// Only show ReTweet button if the post is "published"
-	if ( $post->post_status == "publish" ) {
-		$actions['retweet'] = "<a class='retweet_row_action' id='" . $post->ID . "' title='" . esc_attr( __( 'ReTweet this Post' ) ) . "' href='#'>" . __( 'ReTweet' ) . "</a>" .
-		wp_nonce_field( 'retweet', 'retweet_wpnonce' );
+	global $dl_pluginleenkme;
+	$leenkme_options = $dl_pluginleenkme->get_leenkme_settings();
+	if ( in_array( $post->post_type, $leenkme_options['post_types'] ) ) {
+		// Only show ReTweet button if the post is "published"
+		if ( 'publish' === $post->post_status ) {
+			$actions['retweet'] = '<a class="retweet_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReTweet this Post' ) ) . '" href="#">' . __( 'ReTweet' ) . '</a>';
+			wp_nonce_field( 'retweet', 'retweet_wpnonce' );
+		}
 	}
 
 	return $actions;
@@ -300,7 +304,7 @@ function retweet_row_action( $actions, $post ) {
 									
 // Add function to pubslih to twitter
 function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
-	global $wpdb;
+	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
 	$maxLen = 140;
 	
 	if ( get_post_meta( $post->ID, 'twitter_exclude', true ) ) {
@@ -322,50 +326,48 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 			$url = leenkme_get_tinyurl( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
 		}
 		
-		if ( 'post' === $post->post_type ) {
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_twitter' );
 			
 			if ( $options['leenkme_tweetallusers'] ) {
-				$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM ' . $wpdb->users ) );
 			} else {
 				$user_ids[] = $post->post_author;
 			}
 			
 			foreach ( $user_ids as $user_id ) {
-				global $dl_pluginleenkmeTwitter;
-				$options = $dl_pluginleenkmeTwitter->get_user_settings( $user_id );
-
-				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
 				if ( empty( $user_settings['leenkme_API'] ) ) {
-					continue; //Skip user if they do not have an API key set
-				} else {
-					$api_key = $user_settings['leenkme_API'];
+					continue; 	//Skip user if they do not have an API key set
 				}
 				
-				if( !empty( $options ) ) {					
-					$continue = FALSE;
-					if ( !empty( $options['tweetcats'] ) ) {
+				$api_key = $user_settings['leenkme_API'];
+				
+				$options = $dl_pluginleenkmeTwitter->get_user_settings( $user_id );
+				if ( !empty( $options ) ) {	
+					if ( !empty( $options['tweetcats'] ) ) {				
+						$continue = FALSE;
 						$cats = split( ",", $options['tweetcats'] );
+						
 						foreach ( $cats as $cat ) {
 							if ( preg_match( '/^-\d+/', $cat ) ) {
-								$cat = preg_replace('/^-/', '', $cat);
+								$cat = preg_replace( '/^-/', '', $cat );
 								if ( in_category( (int)$cat, $post ) ) {
-									continue; // Skip to next in foreach
+									$continue = FALSE;
+									break;	// In an excluded category, break out of foreach
 								} else  {
 									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
 								}
-							} else if ( preg_match('/\d+/', $cat ) ) {
+							} else if ( preg_match( '/\d+/', $cat ) ) {
 								if ( in_category( (int)$cat, $post ) ) {
 									$continue = TRUE; // if  in an included category, set continue = TRUE.
 								}
 							}
 						}
-					} else { // If no includes or excludes are defined, then continue
-						$continue = TRUE;
+						
+						if ( !$continue ) continue; // Skip to next in foreach
 					}
-					
-					if ( !$continue ) continue; // Skip to next in foreach
 					
 					// Get META tweet format
 					$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
@@ -432,10 +434,8 @@ function leenkme_get_tinyurl( $url ) {
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeTwitter ) ) {
-	/*--------------------------------------------------------------------
-	    Actions
-	  --------------------------------------------------------------------*/
 	add_action( 'edit_form_advanced', array( $dl_pluginleenkmeTwitter, 'leenkme_add_twitter_meta_tag_options' ), 1 );
+	add_action( 'edit_page_form', array( $dl_pluginleenkmeTwitter, 'leenkme_add_twitter_meta_tag_options' ), 1 );
 	add_action( 'save_post', array( $dl_pluginleenkmeTwitter, 'leenkme_twitter_meta_tags' ) );
 	
 	// Whenever you publish a post, post to twitter
@@ -449,5 +449,5 @@ if ( isset( $dl_pluginleenkmeTwitter ) ) {
 	
 	// edit-post.php post row update
 	add_filter( 'post_row_actions', 'retweet_row_action', 10, 2 );
+	add_filter( 'page_row_actions', 'retweet_row_action', 10, 2 );
 }
-?>

@@ -1,20 +1,16 @@
 <?php		
 // Define class
 class leenkme_Facebook {
-	/*--------------------------------------------------------------------
-		General Functions
-	  --------------------------------------------------------------------*/
-	  
 	// Class members		
-	var $options_name				= "leenkme_facebook";
-	var $facebook_profile			= "facebook_profile";
-	var $facebook_page				= "facebook_page";
-	var $facebook_message			= "facebook_message";
-	var $facebook_linkname			= "facebook_linkname";
-	var $facebook_caption			= "facebook_caption";
-	var $default_image				= "default_image";
-	var $publish_cats				= "publish_cats";
-	var $publish_all_users			= "publish_all_users";
+	var $options_name				= 'leenkme_facebook';
+	var $facebook_profile			= 'facebook_profile';
+	var $facebook_page				= 'facebook_page';
+	var $facebook_message			= 'facebook_message';
+	var $facebook_linkname			= 'facebook_linkname';
+	var $facebook_caption			= 'facebook_caption';
+	var $default_image				= 'default_image';
+	var $publish_cats				= 'publish_cats';
+	var $publish_all_users			= 'publish_all_users';
 
 	// Constructor
 	function leenkme_Facebook() {
@@ -25,8 +21,8 @@ class leenkme_Facebook {
 		Administrative Functions
 	  --------------------------------------------------------------------*/
 	
-	function get_leenkme_settings() {
-		$publish_all_users = "";
+	function get_leenkme_facebook_settings() {
+		$publish_all_users = '';
 		
 		$options = array( $this->publish_all_users => $publish_all_users );
 	
@@ -48,8 +44,8 @@ class leenkme_Facebook {
 		$facebook_message		= '%TITLE%';
 		$facebook_linkname		= '%WPSITENAME%';
 		$facebook_caption 		= '%WPTAGLINE%';
-		$default_image			= "";
-		$publish_cats			= "";
+		$default_image			= '';
+		$publish_cats			= '';
 		
 		$options = array(
 							 $this->facebook_profile 		=> $facebook_profile,
@@ -77,14 +73,13 @@ class leenkme_Facebook {
 	
 	// Print the admin page for the plugin
 	function print_facebook_settings_page() {
-		global $dl_pluginleenkme;
 		global $current_user;
 		get_currentuserinfo();
 		$user_id = $current_user->ID;
 		
 		// Get the user options
 		$user_settings = $this->get_user_settings( $user_id );
-		$leenkme_settings = $this->get_leenkme_settings();
+		$facebook_settings = $this->get_leenkme_facebook_settings();
 		
 		if ( isset( $_POST['update_facebook_settings'] ) ) {
 			if ( isset( $_POST['facebook_profile'] ) ) {
@@ -123,22 +118,22 @@ class leenkme_Facebook {
 			
 			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['publish_all_users'] ) ) {
-					$leenkme_settings[$this->publish_all_users] = true;
+					$facebook_settings[$this->publish_all_users] = true;
 				} else {
-					$leenkme_settings[$this->publish_all_users] = false;
+					$facebook_settings[$this->publish_all_users] = false;
 				}
 				
-				update_option( $this->options_name, $leenkme_settings );
+				update_option( $this->options_name, $facebook_settings );
 			}
 			
 			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e("Settings Updated.", "leenkme_Facebook");?></strong></p></div>
+			<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_Facebook' );?></strong></p></div>
 			<?php
 		}
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-            <form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+            <form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
                 <h2>Facebook Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="facebook_options">
                 	<h3>Social Settings</h3>
@@ -168,7 +163,7 @@ class leenkme_Facebook {
                     <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
                     <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
-                    <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php if ( $leenkme_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php if ( $facebook_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to publish to each available author account.</p>
                     </div>
@@ -232,70 +227,73 @@ class leenkme_Facebook {
 	}
 	
 	function leenkme_add_facebook_meta_tag_options() {
-		global $post;
-		global $current_user;
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
+		global $post, $current_user, $dl_pluginleenkme;
 		
-		$exclude_profile = get_post_meta( $post->ID, 'facebook_exclude_profile', true ); 
-		$exclude_page = get_post_meta( $post->ID, 'facebook_exclude_page', true ); 
-		$facebook_message = get_post_meta( $post->ID, 'facebook_message', true);
-		$facebook_linkname = get_post_meta( $post->ID, 'facebook_linkname', true);
-		$facebook_caption = get_post_meta( $post->ID, 'facebook_caption', true);
-		$facebook_description = get_post_meta( $post->ID, 'facebook_description', true);
-		$facebook_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_image', true ) ) );
-		$user_settings = $this->get_user_settings( $user_id ); ?>
-
-		<div id="postlm" class="postbox">
-		<h3><?php _e( 'leenk.me Facebook', 'leenkme' ) ?></h3>
-		<div class="inside">
-		<div id="postlm">
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+			$exclude_profile = get_post_meta( $post->ID, 'facebook_exclude_profile', true ); 
+			$exclude_page = get_post_meta( $post->ID, 'facebook_exclude_page', true ); 
+			$facebook_message = get_post_meta( $post->ID, 'facebook_message', true);
+			$facebook_linkname = get_post_meta( $post->ID, 'facebook_linkname', true);
+			$facebook_caption = get_post_meta( $post->ID, 'facebook_caption', true);
+			$facebook_description = get_post_meta( $post->ID, 'facebook_description', true);
+			$facebook_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_image', true ) ) );
+			$user_settings = $this->get_user_settings( $user_id ); ?>
 	
-		<input value="facebook_edit" type="hidden" name="facebook_edit" />
-		<table>
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
-			  <td style="vertical-align:top; width:80px;">
-				<p>%TITLE%, %WPSITENAME%, %WPTAGLINE%</p>
-            </td></tr>
-        	<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Message:', 'leenkme' ) ?></td>
-			  <td><input value="<?php echo $facebook_message; ?>" type="text" name="facebook_message" size="80px"/></td></tr>
-        	<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Link Name:', 'leenkme' ) ?></td>
-			  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px"/></td></tr>
-        	<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Caption:', 'leenkme' ) ?></td>
-			  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px"/></td></tr>
-            <tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Description:', 'leenkme' ) ?></td>
-			  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5"><?php echo $facebook_description; ?></textarea>
-			</td></tr>
-			<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
-			  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px"/></td></tr>
-			<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
-			  <td style="vertical-align:top; width:80px;">
-				<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
-            </td></tr>
-			<?php if ( $user_settings['facebook_profile'] ) { ?>
-			<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
-			  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
-			</td></tr>
-            <?php } ?>
-			<?php if ( $user_settings['facebook_page'] ) { ?>
-            <tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></td>
-			  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
-			</td></tr>
-			<?php } ?>
-			<?php // Only show RePublish button if the post is "published"
-            if ( 'publish' === $post->post_status ) { ?>
-            <tr><td colspan="2">
-            <input style="float: right;" type="button" class="button" name="republish_facebook" id="republish_button" value="<?php _e( 'RePublish', 'leenkme_Facebook' ) ?>" />
-            <?php wp_nonce_field( 'republish', 'republish_wpnonce' ); ?>
-            </td></tr>
-            <?php } ?>
-		</table>
-		</div></div></div>
-		<?php 
+			<div id="postlm" class="postbox">
+			<h3><?php _e( 'leenk.me Facebook', 'leenkme' ) ?></h3>
+			<div class="inside">
+			<div id="postlm">
+		
+			<input value="facebook_edit" type="hidden" name="facebook_edit" />
+			<table>
+				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
+				  <td style="vertical-align:top; width:80px;">
+					<p>%TITLE%, %WPSITENAME%, %WPTAGLINE%</p>
+				</td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Message:', 'leenkme' ) ?></td>
+				  <td><input value="<?php echo $facebook_message; ?>" type="text" name="facebook_message" size="80px"/></td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Link Name:', 'leenkme' ) ?></td>
+				  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px"/></td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Caption:', 'leenkme' ) ?></td>
+				  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px"/></td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Description:', 'leenkme' ) ?></td>
+				  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5"><?php echo $facebook_description; ?></textarea>
+				</td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
+				  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px"/></td></tr>
+				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
+				  <td style="vertical-align:top; width:80px;">
+					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
+				</td></tr>
+				<?php if ( $user_settings['facebook_profile'] ) { ?>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
+				</td></tr>
+				<?php } ?>
+				<?php if ( $user_settings['facebook_page'] ) { ?>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></td>
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
+				</td></tr>
+				<?php } ?>
+				<?php // Only show RePublish button if the post is "published"
+				if ( 'publish' === $post->post_status ) { ?>
+				<tr><td colspan="2">
+				<input style="float: right;" type="button" class="button" name="republish_facebook" id="republish_button" value="<?php _e( 'RePublish', 'leenkme_Facebook' ) ?>" />
+				<?php wp_nonce_field( 'republish', 'republish_wpnonce' ); ?>
+				</td></tr>
+				<?php } ?>
+			</table>
+			</div></div></div>
+			<?php 
+		}
 	}
 }
 
-if ( class_exists( "leenkme_Facebook" ) ) {
+if ( class_exists( 'leenkme_Facebook' ) ) {
 	$dl_pluginleenkmeFacebook = new leenkme_Facebook();
 }
 
@@ -333,7 +331,7 @@ function leenkme_facebook_js() {
 				id:  				$(this).attr('id'),
 				_wpnonce: 			$('input#republish_wpnonce').val()
 			};
-			
+            
 			ajax_response(data);
 		});
 <?php
@@ -349,20 +347,20 @@ function leenkme_ajax_fb() {
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
 	if ( $api_key = $user_settings['leenkme_API'] ) {
 		$message = "Testing leenk.me's Facebook Plugin for WordPress";
-		$url = "http://leenk.me/";
-		$picture = "http://leenk.me/leenkme.png";
-		$description = "leenk.me is a webapp that allows you to publish to popular social networking sites whenever you publish a new post from your WordPress website.";
+		$url = 'http://leenk.me/';
+		$picture = 'http://leenk.me/leenkme.png';
+		$description = 'leenk.me is a webapp that allows you to publish to popular social networking sites whenever you publish a new post from your WordPress website.';
 		
 		$connect_arr[$api_key]['facebook_message'] = $message;
 		$connect_arr[$api_key]['facebook_link'] = $url;
 		$connect_arr[$api_key]['facebook_picture'] = $picture;
 		$connect_arr[$api_key]['facebook_description'] = $description;
 						
-		if ( isset( $_POST['facebook_profile'] ) && "true" === $_POST['facebook_profile'] ) {
+		if ( isset( $_POST['facebook_profile'] ) && 'true' === $_POST['facebook_profile'] ) {
 			$connect_arr[$api_key]['facebook_profile'] = true;
 		}
 		
-		if ( isset( $_POST['facebook_page'] ) && "true" === $_POST['facebook_page'] ) {
+		if ( isset( $_POST['facebook_page'] ) && 'true' === $_POST['facebook_page'] ) {
 			$connect_arr[$api_key]['facebook_page'] = true;
 		}
 		
@@ -371,16 +369,16 @@ function leenkme_ajax_fb() {
 		if ( isset( $result ) ) {			
 			if ( is_wp_error( $result ) ) {
 				die( $result->get_error_message() );	
-			} else if ( isset( $result["response"]["code"] ) ) {
-				die( $result["body"] );
+			} else if ( isset( $result['response']['code'] ) ) {
+				die( $result['body'] );
 			} else {
-				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 		}
 	} else {
-		die( "ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings." );
+		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
 	}
 }
 
@@ -390,7 +388,7 @@ function leenkme_ajax_republish() {
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'facebook_exclude_profile', true ) 
 				&& get_post_meta( $_POST['id'], 'facebook_exclude_page', true ) ) {
-			die( "You have excluded this post from publishing to your Facebook profile and page. If you would like to publish it, edit the post and remove the appropriate exclude check boxes." );
+			die( 'You have excluded this post from publishing to your Facebook profile and page. If you would like to publish it, edit the post and remove the appropriate exclude check boxes.' );
 		} else {
 			$post = get_post( $_POST['id'] );
 			
@@ -402,22 +400,26 @@ function leenkme_ajax_republish() {
 				} else if ( isset( $result["response"]["code"] ) ) {
 					die( $result["body"] );
 				} else {
-					die( "ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me." );
+					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
 				}
 			} else {
-				die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 			}
 		}
 	} else {
-		die( "ERROR: Unable to determine Post ID." );
+		die( 'ERROR: Unable to determine Post ID.' );
 	}
 }
 
 function republish_row_action( $actions, $post ) {
-	// Only show RePublish button if the post is "published"
-	if ( "publish" === $post->post_status ) {
-		$actions['republish'] = "<a class='republish_row_action' id='" . $post->ID . "' title='" . esc_attr( __( 'RePublish this Post' ) ) . "' href='#'>" . __( 'RePublish' ) . "</a>" .
-		wp_nonce_field( 'republish', 'republish_wpnonce' );
+	global $dl_pluginleenkme;
+	$leenkme_options = $dl_pluginleenkme->get_leenkme_settings();
+	if ( in_array( $post->post_type, $leenkme_options['post_types'] ) ) {
+		// Only show RePublish button if the post is "published"
+		if ( 'publish' === $post->post_status ) {
+			$actions['republish'] = '<a class="republish_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'RePublish this Post' ) ) . '" href="#">' . __( 'RePublish' ) . '</a>';
+			wp_nonce_field( 'republish', 'republish_wpnonce' );
+		}
 	}
 
 	return $actions;
@@ -425,7 +427,7 @@ function republish_row_action( $actions, $post ) {
 									
 // Add function to pubslih to facebook
 function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
-	global $wpdb;
+	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeFacebook;
 	
 	if ( get_post_meta( $post->ID, 'facebook_exclude_profile', true ) ) {
 		$exclude_profile = true;
@@ -440,11 +442,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	}
 	
 	if ( !$exclude_profile && !$exclude_page ) {
-		if ( 'post' === $post->post_type ) {
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_facebook' );
 			
 			if ( $options['publish_all_users'] ) {
-				$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->users" ) );
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
 			} else {
 				$user_ids[] = $post->post_author;
 			}
@@ -455,40 +458,25 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 			$wp_tagline = strip_tags( get_bloginfo( 'description' ) );
 			
 			foreach ( $user_ids as $user_id ) {
-				global $dl_pluginleenkmeFacebook;
-				$options = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
-				
-				global $dl_pluginleenkme;
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
 				if ( empty( $user_settings['leenkme_API'] ) ) {
 					continue;	//Skip user if they do not have an API key set
 				}
 				
 				$api_key = $user_settings['leenkme_API'];
-
-				if ( !$options['facebook_profile'] && !$options['facebook_page'] ) {
-					continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
-				}
-
-				// Added facebook profile to connection array if enabled
-				if ( $options['facebook_profile'] ) {
-					$connect_arr[$api_key]['facebook_profile'] = true;
-				}
-
-				// Added facebook page to connection array if enabled
-				if ( $options['facebook_page'] ) {
-					$connect_arr[$api_key]['facebook_page'] = true;
-				}
 				
-				if ( !empty( $options ) ) {		
-					$continue = FALSE;
-					if ( !empty( $options['facebook_publish_cats'] ) ) {
-						$cats = split( ",", $options['facebook_publish_cats'] );
+				$options = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
+				if ( !empty( $options ) ) {
+					if ( !empty( $options['publish_cats'] ) ) {	
+						$continue = FALSE;
+						$cats = split( ",", $options['publish_cats'] );
+						
 						foreach ( $cats as $cat ) {
 							if ( preg_match( '/^-\d+/', $cat ) ) {
 								$cat = preg_replace( '/^-/', '', $cat );
 								if ( in_category( (int)$cat, $post ) ) {
-									continue;	// Skip to next in foreach
+									$continue = FALSE;
+									break;	// In an excluded category, break out of foreach
 								} else  {
 									$continue = TRUE; // if not, than we can continue
 								}
@@ -498,11 +486,23 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 								}
 							}
 						}
-					} else { // If no includes or excludes are defined, then continue
-						$continue = TRUE;
-					}
 					
-					if ( !$continue ) continue;	// Skip to next in foreach
+						if ( !$continue ) continue;	// Skip to next in foreach
+					}
+						
+					if ( !$options['facebook_profile'] && !$options['facebook_page'] ) {
+						continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
+					}
+	
+					// Added facebook profile to connection array if enabled
+					if ( $options['facebook_profile'] ) {
+						$connect_arr[$api_key]['facebook_profile'] = true;
+					}
+	
+					// Added facebook page to connection array if enabled
+					if ( $options['facebook_page'] ) {
+						$connect_arr[$api_key]['facebook_page'] = true;
+					}
 
 					// Get META facebook message
 					$message = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_message', true ) ) );
@@ -512,9 +512,9 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						$message = htmlspecialchars( stripcslashes( $options['facebook_message'] ) );
 					}
 					
-					$message = str_ireplace( "%TITLE%", $post_title, $message );
-					$message = str_ireplace( "%WPSITENAME%", $wp_sitename, $message );
-					$message = str_ireplace( "%WPTAGLINE%", $wp_tagline, $message );
+					$message = str_ireplace( '%TITLE%', $post_title, $message );
+					$message = str_ireplace( '%WPSITENAME%', $wp_sitename, $message );
+					$message = str_ireplace( '%WPTAGLINE%', $wp_tagline, $message );
 		
 					// Get META facebook link name
 					$linkname = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_linkname', true ) ) );
@@ -524,9 +524,9 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						$linkname = htmlspecialchars( stripcslashes( $options['facebook_linkname'] ) );
 					}
 					
-					$linkname = str_ireplace( "%TITLE%", $post_title, $linkname );
-					$linkname = str_ireplace( "%WPSITENAME%", $wp_sitename, $linkname );
-					$linkname = str_ireplace( "%WPTAGLINE%", $wp_tagline, $linkname );
+					$linkname = str_ireplace( '%TITLE%', $post_title, $linkname );
+					$linkname = str_ireplace( '%WPSITENAME%', $wp_sitename, $linkname );
+					$linkname = str_ireplace( '%WPTAGLINE%', $wp_tagline, $linkname );
 		
 					// Get META facebook caption
 					$caption = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_caption', true ) ) );
@@ -536,21 +536,23 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						$caption = htmlspecialchars( stripcslashes( $options['facebook_caption'] ) );
 					}
 					
-					$caption = str_ireplace( "%TITLE%", $post_title, $caption );
-					$caption = str_ireplace( "%WPSITENAME%", $wp_sitename, $caption );
-					$caption = str_ireplace( "%WPTAGLINE%", $wp_tagline, $caption );
+					$caption = str_ireplace( '%TITLE%', $post_title, $caption );
+					$caption = str_ireplace( '%WPSITENAME%', $wp_sitename, $caption );
+					$caption = str_ireplace( '%WPTAGLINE%', $wp_tagline, $caption );
 					
 					if ( !$description = get_post_meta( $post->ID, 'facebook_description', true ) ) {
 						if ( !empty( $post->post_excerpt ) ) {
-							$description = strip_tags( $post->post_excerpt ); //use the post_excerpt if available for the facebook description
+							//use the post_excerpt if available for the facebook description
+							$description = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
 						} else {
-							$description = strip_tags( $post->post_content ); //otherwise we'll pare down the description
+							//otherwise we'll pare down the description
+							$description = strip_tags( strip_shortcodes( $post->post_content ) ); 
 						}
 					}
 					
-					$description = str_ireplace( "%TITLE%", $post_title, $description );
-					$description = str_ireplace( "%WPSITENAME%", $wp_sitename, $description );
-					$description = str_ireplace( "%WPTAGLINE%", $wp_tagline, $description );
+					$description = str_ireplace( '%TITLE%', $post_title, $description );
+					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
+					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
 					
 					if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
@@ -581,10 +583,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeFacebook ) ) {
-	/*--------------------------------------------------------------------
-	    Actions
-	  --------------------------------------------------------------------*/
 	add_action( 'edit_form_advanced', array( $dl_pluginleenkmeFacebook, 'leenkme_add_facebook_meta_tag_options' ), 1 );
+	add_action( 'edit_page_form', array( $dl_pluginleenkmeFacebook, 'leenkme_add_facebook_meta_tag_options' ), 1 );
 	add_action( 'save_post', array( $dl_pluginleenkmeFacebook, 'leenkme_facebook_meta_tags' ) );
 	
 	// Whenever you publish a post, post to facebook
@@ -598,5 +598,5 @@ if ( isset( $dl_pluginleenkmeFacebook ) ) {
 	
 	// edit-post.php post row update
 	add_filter( 'post_row_actions', 'republish_row_action', 10, 2 );
+	add_filter( 'page_row_actions', 'republish_row_action', 10, 2 );
 }
-?>

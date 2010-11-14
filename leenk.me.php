@@ -4,37 +4,43 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook profile/page, and Google Buzz whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.1.7
+Version: 1.1.8
 Author URI: http://leenk.me/about/
-Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, posts, twitter post, tinyurl, twitter friendly links, admin, authors, contributors, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
+Tags: twitter, facebook, google, buzz, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 */
 
-define( 'leenk.me_version' , '1.1.7' );
+define( 'leenk.me_version' , '1.1.8' );
 
 class leenkme {
-	var $options_name			= "leenkme";
-	var $leenkme_API			= "leenkme_API";
-	var $twitter				= "twitter";
-	var $facebook				= "facebook";
-	var $googlebuzz				= "googlebuzz";
-	var $base_url 				= "";
-	var $api_url				= "";
+	// Class members	
+	var $options_name			= 'leenkme';
+	var $leenkme_API			= 'leenkme_API';
+	var $twitter				= 'twitter';
+	var $facebook				= 'facebook';
+	var $googlebuzz				= 'googlebuzz';
+	var $base_url 				= 'base_url';
+	var $api_url				= 'api_url';
+	var $timeout				= 'timeout';
+	var $post_types				= 'post_types';
 	
 	function leenkme() {
 		global $wp_version;
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url = 'https://leenk.me/api/1.1/';
+		$this->api_url	= 'https://leenk.me/api/1.1/';
+		$this->timeout	= '5000';		// in miliseconds
 	}
 	
 	function get_leenkme_settings() {
 		$twitter = false;
 		$facebook = false;
 		$googlebuzz = false;
+		$post_types = array('post');
 		
 		$options = array( 	$this->twitter 		=> $twitter,
 							$this->facebook 	=> $facebook,
-							$this->googlebuzz 	=> $googlebuzz	);
+							$this->googlebuzz 	=> $googlebuzz,
+							$this->post_types	=> $post_types	);
 	
 		$leenkme_settings = get_option( $this->options_name );
 		if ( !empty( $leenkme_settings ) ) {
@@ -47,7 +53,7 @@ class leenkme {
 	}
 
 	function get_user_settings( $user_id = false ) {
-		$leenkme_API = "";
+		$leenkme_API = '';
 		
 		$options = array( $this->leenkme_API => $leenkme_API );
 
@@ -95,6 +101,10 @@ class leenkme {
 					$leenkme_settings[$this->googlebuzz] = false;
 				}
 				
+				if ( isset( $_POST['post_types'] ) ) {
+					$leenkme_settings[$this->post_types] = $_POST['post_types'];
+				}
+				
 				update_option( $this->options_name, $leenkme_settings );
 				
 				// It's not pretty, but the easiest way to get the menu to refresh after save...
@@ -128,6 +138,7 @@ class leenkme {
                 </p>
                 <?php } ?>
 				<?php if ( current_user_can( 'activate_plugins' ) ) {?>
+                <h3>Modules</h3>
                 <table id="leenkme_activate_plugins">
                     <tr><td id="leenkme_plugin_name">Twitter: </td>
                     <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php if ( $leenkme_settings[$this->twitter] ) echo 'checked="checked"'; ?> /></td></tr>
@@ -136,7 +147,34 @@ class leenkme {
                     <tr><td id="leenkme_plugin_name">Google Buzz: </td>
                     <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php if ( $leenkme_settings[$this->googlebuzz] ) echo 'checked="checked"'; ?> /></td></tr>
                 </table>
-				<?php } ?>
+                
+                <h3>Post Types to Publish</h3>
+                <table id="leenkme_activate_plugins">
+				<tr><td id="leenkme_plugin_name">Post: </td>
+                <td id="post_type">
+                	<input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
+                    <input type="hidden" value="post" name="post_types[]" />
+                </td></tr>
+                <?php 
+				if ( version_compare( $this->wp_version, '2.9', '>' ) ) {
+					$hidden_post_types = array( 'post', 'attachment', 'revision', 'nav_menu_item' );
+					foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
+						if ( in_array( $post_type->name, $hidden_post_types ) ) continue;
+						?>
+						<tr><td id="leenkme_plugin_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
+						<td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php if ( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ) echo 'checked="checked"'; ?> /></td></tr>
+						<?php
+					} ?>
+                </table>
+                <?php
+				} else {
+				?>
+                </table>
+                <p>To take advantage of publishing to Pages and Custom Post Types, please upgrade to the latest version of WordPress.</p>
+                <?php
+				}
+				?>
+                <?php } ?>
 				<p class="submit">
 					<input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
 				</p>
@@ -152,7 +190,7 @@ class leenkme {
 }
 
 // Instantiate the class
-if ( class_exists( "leenkme" ) ) {
+if ( class_exists( 'leenkme' ) ) {
 	$dl_pluginleenkme = new leenkme();
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
@@ -294,13 +332,19 @@ function leenkme_ajax_verify() {
 		
 		$result = leenkme_ajax_connect( $connect_arr );
 		
-		if ( isset( $result["response"]["code"] ) ) {
-			die( $result["body"] );
+		if ( isset( $result ) ) {			
+			if ( is_wp_error( $result ) ) {
+				die( $result->get_error_message() );	
+			} else if ( isset( $result['response']['code'] ) ) {
+				die( $result['body'] );
+			} else {
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
+			}
 		} else {
-			die( "ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me." );
+			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
 		}
 	} else {
-		die( "Please fill in your API key." );
+		die( 'Please fill in your API key.' );
 	}
 }
 
@@ -319,12 +363,14 @@ function leenkme_connect( $post ) {
 											array( 	'method' => 'POST', 
 													'body' => $body, 
 													'headers' => $headers,
-													'sslverify' => false ) );
+													'sslverify' => false,
+													'httpversion' => '1.1',
+													'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
 				return $result;
 			} else {
-				return "Undefined error occurred, Please contact leenk.me support.";
+				return 'Undefined error occurred, Please contact leenk.me support.';
 			}
 		}
 	}
@@ -343,14 +389,18 @@ function leenkme_ajax_connect( $connect_arr ) {
 											array( 	'method' => 'POST', 
 													'body' => $body, 
 													'headers' => $headers,
-													'sslverify' => false ) );
+													'sslverify' => false,
+													'httpversion' => '1.1',
+													'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
 				return $result;
 			} else {
-				return "Undefined error occurred, Please contact leenk.me support.";
+				return 'Undefined error occurred, Please contact leenk.me support.';
 			}
 		}
+	} else {
+		return 'booyah.';
 	}
 }
 
@@ -382,6 +432,8 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'admin_head-toplevel_page_leenkme', 'leenkme_js' );
 	add_action( 'admin_head-edit.php', 'leenkme_js' );
 	add_action( 'admin_head-post.php', 'leenkme_js' );
+	add_action( 'admin_head-page.php', 'leenkme_js' ); 			// used for WP2.9.x
+	add_action( 'admin_head-edit-pages.php', 'leenkme_js' ); 	// used for WP2.9.x
 	add_action( 'wp_ajax_verify', 'leenkme_ajax_verify', 10, 1 );
 	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
 	
@@ -425,4 +477,3 @@ if ( !function_exists( 'str_ireplace' ) ) {
 		return $was_string ? $result[0] : $result;
 	}
 }
-?>
