@@ -14,7 +14,7 @@ leenk.me automatically publishes a tweet to your Twitter account, a status updat
 What can you do with leenk.me?
 
 * Publish automatically to your social networks when you publish a new post in WordPress.
-* Works with Posts, Pages, and Custom Post Types.
+* Works with Posts, Pages, and Custom Post Types. (Requires WP 2.9+ for Posts and 3.0+ for Custom Post Types)
 * Choose which categories are published automatically.
 * Exclude individual posts from being published to your social networks.
 * Automatically post to your social networks when a scheduled post is published.
