@@ -64,7 +64,7 @@ class leenkme_Twitter {
 		
 		// Get the user options
 		$user_settings = $this->get_user_settings( $user_id );
-		$twitter_settings = $this->get_twitter_settings();
+		$twitter_settings = $this->get_leenkme_twitter_settings();
 		
 		if ( isset( $_POST['update_twitter_settings'] ) ) {			
 			if ( isset( $_POST['leenkme_tweetformat'] ) ) {
