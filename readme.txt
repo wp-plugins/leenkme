@@ -1,15 +1,15 @@
 === leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, google, google buzz, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure
+Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 Requires at least: 2.8
-Tested up to: 3.0.1
-Stable tag: 1.1.9
+Tested up to: 3.0.2
+Stable tag: 1.2.0
 
-leenk.me empowers you to publish to your Twitter, Facebook, & Google Buzz account whenever you publish a new post in WordPress.
+leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
 
 == Description ==
 
-leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile and/or Fan Page, and a Buzz to your Google Buzz profile whenever you publish a new post in your WordPress website.
+leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile and/or Fan Page, a Buzz to your Google Buzz profile, and a share on your LinkedIn profile whenever you publish a new post in your WordPress website.
 
 What can you do with leenk.me?
 
@@ -25,6 +25,7 @@ What can you do with leenk.me?
 * Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
 * Customize your Buzz message for individual posts.
 * Customize your Facebook post for individual posts.
+* Customize your LinkedIn shares for individual posts.
 
 What sets leenk.me apart from others?
 
@@ -71,11 +72,19 @@ http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress
 
 http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/
 
+= How to use the leenk.me LinkedIn plugin =
+
+http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/
+
 = Where can I find additional help or make suggestions? =
 
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.2.0 =
+* Added LinkedIn support!
+* Tested on WordPress 2.8.6, 2.9.2, and 3.0.2.
+
 = 1.1.9 =
 * Fixed function call in Twitter module
 
@@ -97,13 +106,11 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 * Updated Facebook screenshots.
 
 = 1.1.4 =
-
 * Fixed problem caused by users not saving Twitter/Facebook/Google Buzz settings before trying to use the plugin
 * Set "Post to Profile" as initial default for Facebook settings
 * Removed superfulous get_user_option call for Google Buzz post meta.
 
 = 1.1.3 =
-
 * Added Google Buzz support!
 * Fixed some table formatting for the custom post boxes.
 * Added additional error reporting.
@@ -114,12 +121,10 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 * Tested on WordPress 2.8.6, 2.9.2, and 3.0.1.
 
 = 1.1.2 =
-
 * Fixed bug causing Facebook posts to not have a "description" if there was no excerpt defined in WordPress.
 * Tested on WordPress 2.8.6, 2.9.2, and 3.0.1.
 
 = 1.1.1 =
-
 * Removed unnecessary CSS and images.
 * Changed leenk.me main settings page to reduce CSS bloat.
 * Re-organized the Twitter and Facebook code to be a little more efficient for multi-user setups.
@@ -127,22 +132,18 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 * Tested on WordPress 2.8.6, 2.9.2, and 3.0.1.
 
 = 1.1.0 =
-
 * Efficiency updates, now the leenk.me plugin only contacts leenk.me 1 time per user (instead of 1 time per social network).
 * Updated leenk.me API from 1.0 to 1.1, to assist with efficiency and better error reporting.
 * Fixed duplicate leenk.me screen in WP2.8.x (though I recommend upgrading to the latest version).
 * Updated AJAX popup box, made it wider and higher.
 
 = 1.0.2 =
-
 * Fixed bug caused by not having thumbnails enabled in WP2.8.x and WP2.9.x.
 
 = 1.0.1 =
-
 * Fixed small bug: removed default check from Facebook profile for new plugin activations.
 
 = 1.0.0 = 
-
 * leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
 
 == Screenshots ==
@@ -153,7 +154,9 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 4. Update your Twitter settings
 5. Update your Facebook settings
 6. Update your Google Buzz settings
-7. ReTweet, RePublish, ReBuzz row actions
-8. Post specific settings for Twitter
-9. Post specific settings for Facebook
-10. Post specific settings for Google Buzz
+7. Update your LinkedIn settings
+8. ReTweet, RePublish, ReBuzz row actions
+9. Post specific settings for Twitter
+10. Post specific settings for Facebook
+11. Post specific settings for Google Buzz
+12. Post specific settings for LinkedIn
