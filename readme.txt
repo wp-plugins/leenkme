@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 Requires at least: 2.8
 Tested up to: 3.0.2
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 
 leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
 
@@ -81,6 +81,9 @@ http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.2.1 =
+* Removed screenshots from plugin, seems to be causing an issue with WordPress updating.
+
 = 1.2.0 =
 * Added LinkedIn support!
 * Tested on WordPress 2.8.6, 2.9.2, and 3.0.2.
@@ -145,18 +148,3 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 
 = 1.0.0 = 
 * leenk.me is a fork from [Twitter Post](http://wordpress.org/extend/plugins/rf-twitterpost/), which unfortunately is no longer supported because Twitter deactivated their REST API.
-
-== Screenshots ==
-
-1. leenk.me plugin settings page
-2. verify your leenk.me API key
-3. Enable Twitter, Facebook, and Google Buzz plugins
-4. Update your Twitter settings
-5. Update your Facebook settings
-6. Update your Google Buzz settings
-7. Update your LinkedIn settings
-8. ReTweet, RePublish, ReBuzz row actions
-9. Post specific settings for Twitter
-10. Post specific settings for Facebook
-11. Post specific settings for Google Buzz
-12. Post specific settings for LinkedIn
