@@ -161,7 +161,6 @@ class leenkme_GoogleBuzz {
 				if ( 'publish' === $post->post_status ) { ?>
 				<tr><td colspan="2">
 				<input style="float: right;" type="button" class="button" name="rebuzz_googlebuzz" id="rebuzz_button" value="<?php _e( 'ReBuzz', 'leenkme_GoogleBuzz' ) ?>" />
-				<?php wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' ); ?>
 				</td></tr>
 				<?php } ?>
 			</table>
@@ -192,7 +191,7 @@ function leenkme_googlebuzz_js() {
 			var data = {
 				action: 			'rebuzz',
 				id:  				$('input#post_ID').val(),
-				_wpnonce: 			$('input#rebuzz_wpnonce').val()
+				_wpnonce: 			$('input#leenkme_wpnonce').val()
 			};
 			
 			ajax_response(data);
@@ -202,7 +201,7 @@ function leenkme_googlebuzz_js() {
 			var data = {
 				action: 			'rebuzz',
 				id:  				$(this).attr('id'),
-				_wpnonce: 			$('input#rebuzz_wpnonce').val()
+				_wpnonce: 			$('input#leenkme_wpnonce').val()
 			};
 			
 			ajax_response(data);
@@ -246,7 +245,7 @@ function leenkme_ajax_gb() {
 }
 
 function leenkme_ajax_rebuzz() {
-	check_ajax_referer( 'rebuzz' );
+	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'googlebuzz_exclude', true ) ) {
@@ -280,7 +279,6 @@ function rebuzz_row_action( $actions, $post ) {
 		// Only show ReBuzz button if the post is "buzzed"
 		if ( 'publish' === $post->post_status ) {
 			$actions['rebuzz'] = '<a class="rebuzz_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReBuzz this Post' ) ) . '" href="#">' . __( 'ReBuzz' ) . '</a>';
-			wp_nonce_field( 'rebuzz', 'rebuzz_wpnonce' );
 		}
 	}
 

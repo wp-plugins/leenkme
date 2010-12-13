@@ -283,7 +283,6 @@ class leenkme_Facebook {
 				if ( 'publish' === $post->post_status ) { ?>
 				<tr><td colspan="2">
 				<input style="float: right;" type="button" class="button" name="republish_facebook" id="republish_button" value="<?php _e( 'RePublish', 'leenkme_Facebook' ) ?>" />
-				<?php wp_nonce_field( 'republish', 'republish_wpnonce' ); ?>
 				</td></tr>
 				<?php } ?>
 			</table>
@@ -319,7 +318,7 @@ function leenkme_facebook_js() {
 			var data = {
 				action: 			'republish',
 				id:  				$('input#post_ID').val(),
-				_wpnonce: 			$('input#republish_wpnonce').val()
+				_wpnonce: 			$('input#leenkme_wpnonce').val()
 			};
 			
 			ajax_response(data);
@@ -329,7 +328,7 @@ function leenkme_facebook_js() {
 			var data = {
 				action: 			'republish',
 				id:  				$(this).attr('id'),
-				_wpnonce: 			$('input#republish_wpnonce').val()
+				_wpnonce: 			$('input#leenkme_wpnonce').val()
 			};
             
 			ajax_response(data);
@@ -383,7 +382,7 @@ function leenkme_ajax_fb() {
 }
 
 function leenkme_ajax_republish() {
-	check_ajax_referer( 'republish' );
+	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'facebook_exclude_profile', true ) 
@@ -418,7 +417,6 @@ function republish_row_action( $actions, $post ) {
 		// Only show RePublish button if the post is "published"
 		if ( 'publish' === $post->post_status ) {
 			$actions['republish'] = '<a class="republish_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'RePublish this Post' ) ) . '" href="#">' . __( 'RePublish' ) . '</a>';
-			wp_nonce_field( 'republish', 'republish_wpnonce' );
 		}
 	}
 

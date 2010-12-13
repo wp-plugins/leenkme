@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook profile/page, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.2.1
+Version: 1.2.2
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 */
 
-define( 'leenk.me_version' , '1.2.1' );
+define( 'leenk.me_version' , '1.2.2' );
 
 class leenkme {
 	// Class members	
@@ -192,6 +192,10 @@ class leenkme {
 			</form>
 		</div>
 		<?php
+	}
+	
+	function leenkme_add_wpnonce() {
+		wp_nonce_field( 'leenkme', 'leenkme_wpnonce' );
 	}
 	
 	function plugin_enabled( $plugin ) {
@@ -453,6 +457,8 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'new_to_publish', 'leenkme_connect', 20 );
 	add_action( 'draft_to_publish', 'leenkme_connect', 20 );
 	add_action( 'future_to_publish', 'leenkme_connect', 20 );
+	
+	add_action( 'admin_footer', array( $dl_pluginleenkme, 'leenkme_add_wpnonce' ) );
 	
 	add_action( 'admin_head-toplevel_page_leenkme', 'leenkme_js' );
 	add_action( 'admin_head-edit.php', 'leenkme_js' );

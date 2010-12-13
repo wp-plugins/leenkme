@@ -229,7 +229,6 @@ class leenkme_LinkedIn {
 				if ( 'publish' === $post->post_status ) { ?>
 				<tr><td colspan="2">
 				<input style="float: right;" type="button" class="button" name="reshare_linkedin" id="reshare_button" value="<?php _e( 'ReShare', 'leenkme_LinkedIn' ) ?>" />
-				<?php wp_nonce_field( 'reshare', 'reshare_wpnonce' ); ?>
 				</td></tr>
 				<?php } ?>
 			</table>
@@ -260,7 +259,7 @@ function leenkme_linkedin_js() {
 			var data = {
 				action: 	'reshare',
 				id:  		$('input#post_ID').val(),
-				_wpnonce: 	$('input#reshare_wpnonce').val()
+				_wpnonce: 	$('input#leenkme_wpnonce').val()
 			};
 			
 			ajax_response(data);
@@ -270,7 +269,7 @@ function leenkme_linkedin_js() {
 			var data = {
 				action: 	'reshare',
 				id:  		$(this).attr('id'),
-				_wpnonce: 	$('input#reshare_wpnonce').val()
+				_wpnonce: 	$('input#leenkme_wpnonce').val()
 			};
             
 			ajax_response(data);
@@ -320,7 +319,7 @@ function leenkme_ajax_li() {
 }
 
 function leenkme_ajax_reshare() {
-	check_ajax_referer( 'reshare' );
+	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'linkedin_exclude', true ) ) {
@@ -354,7 +353,6 @@ function reshare_row_action( $actions, $post ) {
 		// Only show ReShare button if the post is "published"
 		if ( 'publish' === $post->post_status ) {
 			$actions['reshare'] = '<a class="reshare_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReShare this Post' ) ) . '" href="#">' . __( 'ReShare' ) . '</a>';
-			wp_nonce_field( 'reshare', 'reshare_wpnonce' );
 		}
 	}
 

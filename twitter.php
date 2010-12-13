@@ -180,7 +180,6 @@ class leenkme_Twitter {
 				if ( "publish" === $post->post_status ) { ?>
 				<tr><td colspan="2">
 				<input style="float: right;" type="button" class="button" name="retweet_twitter" id="retweet_button" value="<?php _e( 'ReTweet', 'leenkme_Twitter' ) ?>" />
-				<?php wp_nonce_field( 'retweet', 'retweet_wpnonce' ); ?>
 				</td></tr>
 				<?php } ?>
 			</table>
@@ -211,9 +210,9 @@ function leenkme_twitter_js() {
 			var data = {
 				action: 	'retweet',
 				id:  		$('input#post_ID').val(),
-				_wpnonce: 	$('input#retweet_wpnonce').val()
+				_wpnonce: 	$('input#leenkme_wpnonce').val()
 			};
-			
+            
 			ajax_response(data);
 		});
 		
@@ -221,7 +220,7 @@ function leenkme_twitter_js() {
 			var data = {
 				action: 	'retweet',
 				id:  		$(this).attr('id'),
-				_wpnonce: 	$('input#retweet_wpnonce').val()
+				_wpnonce: 	$('input#leenkme_wpnonce').val()
 			};
 			
 			ajax_response(data);
@@ -261,7 +260,7 @@ function leenkme_ajax_tweet() {
 }
 
 function leenkme_ajax_retweet() {
-	check_ajax_referer( 'retweet' );
+	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'twitter_exclude', true ) ) {
@@ -295,7 +294,6 @@ function retweet_row_action( $actions, $post ) {
 		// Only show ReTweet button if the post is "published"
 		if ( 'publish' === $post->post_status ) {
 			$actions['retweet'] = '<a class="retweet_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReTweet this Post' ) ) . '" href="#">' . __( 'ReTweet' ) . '</a>';
-			wp_nonce_field( 'retweet', 'retweet_wpnonce' );
 		}
 	}
 
