@@ -91,7 +91,7 @@ class leenkme_LinkedIn {
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
 			
-			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
+			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['share_all_users'] ) ) {
 					$linkedin_settings[$this->share_all_users] = true;
 				} else {
@@ -130,7 +130,7 @@ class leenkme_LinkedIn {
                     <div class="publish-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Share content on your LinkedIn account from several specific category IDs, e.g. 3,4,5<br />Share all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
-                    <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
+                    <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
                     <p>Share All Authors? <input type="checkbox" name="share_all_users" <?php if ( $linkedin_settings[$this->share_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to share to each available author account.</p>

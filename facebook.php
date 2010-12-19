@@ -5,6 +5,7 @@ class leenkme_Facebook {
 	var $options_name				= 'leenkme_facebook';
 	var $facebook_profile			= 'facebook_profile';
 	var $facebook_page				= 'facebook_page';
+	var $facebook_group				= 'facebook_group';
 	var $facebook_message			= 'facebook_message';
 	var $facebook_linkname			= 'facebook_linkname';
 	var $facebook_caption			= 'facebook_caption';
@@ -41,6 +42,7 @@ class leenkme_Facebook {
 		// Default values for the options
 		$facebook_profile		= true;
 		$facebook_page			= false;
+		$facebook_group			= false;
 		$facebook_message		= '%TITLE%';
 		$facebook_linkname		= '%WPSITENAME%';
 		$facebook_caption 		= '%WPTAGLINE%';
@@ -50,6 +52,7 @@ class leenkme_Facebook {
 		$options = array(
 							 $this->facebook_profile 		=> $facebook_profile,
 							 $this->facebook_page 			=> $facebook_page,
+							 $this->facebook_group 			=> $facebook_group,
 							 $this->facebook_message		=> $facebook_message,
 							 $this->facebook_linkname		=> $facebook_linkname,
 							 $this->facebook_caption 		=> $facebook_caption,
@@ -94,6 +97,12 @@ class leenkme_Facebook {
 				$user_settings[$this->facebook_page] = false;
 			}
 			
+			if ( isset( $_POST['facebook_group'] ) ) {
+				$user_settings[$this->facebook_group] = true;
+			} else {
+				$user_settings[$this->facebook_group] = false;
+			}
+			
 			if ( isset( $_POST['facebook_message'] ) ) {
 				$user_settings[$this->facebook_message] = $_POST['facebook_message'];
 			}
@@ -116,7 +125,7 @@ class leenkme_Facebook {
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
 			
-			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
+			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['publish_all_users'] ) ) {
 					$facebook_settings[$this->publish_all_users] = true;
 				} else {
@@ -139,6 +148,7 @@ class leenkme_Facebook {
                 	<h3>Social Settings</h3>
                     <p>Publish to Personal Profile? <input type="checkbox" id="facebook_profile" name="facebook_profile" <?php if ( $user_settings[$this->facebook_profile] ) echo "checked='checked'"; ?> /></p>
                     <p>Publish to Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php if ( $user_settings[$this->facebook_page] ) echo "checked='checked'"; ?> /></p>
+                    <p>Publish to Group? <input type="checkbox" id="facebook_group" name="facebook_group" <?php if ( $user_settings[$this->facebook_group] ) echo "checked='checked'"; ?> /></p>
                 </div>
                 <div id="facebook_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
@@ -162,7 +172,7 @@ class leenkme_Facebook {
                     <div class="publish-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
-                    <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
+                    <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
                     <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php if ( $facebook_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to publish to each available author account.</p>
@@ -193,6 +203,12 @@ class leenkme_Facebook {
 			update_post_meta( $post_id, 'facebook_exclude_page', $_POST["facebook_exclude_page"] );
 		} else {
 			delete_post_meta( $post_id, 'facebook_exclude_page' );
+		}
+
+		if ( isset( $_POST["facebook_exclude_group"] ) ) {
+			update_post_meta( $post_id, 'facebook_exclude_group', $_POST["facebook_exclude_group"] );
+		} else {
+			delete_post_meta( $post_id, 'facebook_exclude_group' );
 		}
 		
 		if ( isset( $_POST['facebook_message'] ) && !empty( $_POST['facebook_message'] ) ) {
@@ -236,6 +252,7 @@ class leenkme_Facebook {
 			
 			$exclude_profile = get_post_meta( $post->ID, 'facebook_exclude_profile', true ); 
 			$exclude_page = get_post_meta( $post->ID, 'facebook_exclude_page', true ); 
+			$exclude_group = get_post_meta( $post->ID, 'facebook_exclude_group', true ); 
 			$facebook_message = get_post_meta( $post->ID, 'facebook_message', true);
 			$facebook_linkname = get_post_meta( $post->ID, 'facebook_linkname', true);
 			$facebook_caption = get_post_meta( $post->ID, 'facebook_caption', true);
@@ -279,6 +296,11 @@ class leenkme_Facebook {
 				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
 				</td></tr>
 				<?php } ?>
+				<?php if ( $user_settings['facebook_group'] ) { ?>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Group:', 'leenkme' ) ?></td>
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_group" <?php if ( $facebook_group ) echo 'checked="checked"'; ?> />
+				</td></tr>
+				<?php } ?>
 				<?php // Only show RePublish button if the post is "published"
 				if ( 'publish' === $post->post_status ) { ?>
 				<tr><td colspan="2">
@@ -303,11 +325,13 @@ function leenkme_facebook_js() {
 		$('input#fb_publish').click(function() {
 			var facebook_profile = $('input#facebook_profile').attr('checked')
 			var facebook_page = $('input#facebook_page').attr('checked')
+			var facebook_group = $('input#facebook_group').attr('checked')
 			
 			var data = {
 				action:				'fb_publish',
 				facebook_profile:	facebook_profile,
 				facebook_page:		facebook_page,
+				facebook_group:		facebook_group,
 				_wpnonce:			$('input#fb_publish_wpnonce').val()
 			};
 			
@@ -363,6 +387,9 @@ function leenkme_ajax_fb() {
 			$connect_arr[$api_key]['facebook_page'] = true;
 		}
 		
+		if ( isset( $_POST['facebook_group'] ) && 'true' === $_POST['facebook_group'] ) {
+			$connect_arr[$api_key]['facebook_group'] = true;
+		}
 		$result = leenkme_ajax_connect($connect_arr);
 		
 		if ( isset( $result ) ) {			
@@ -386,8 +413,9 @@ function leenkme_ajax_republish() {
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'facebook_exclude_profile', true ) 
-				&& get_post_meta( $_POST['id'], 'facebook_exclude_page', true ) ) {
-			die( 'You have excluded this post from publishing to your Facebook profile and page. If you would like to publish it, edit the post and remove the appropriate exclude check boxes.' );
+				&& get_post_meta( $_POST['id'], 'facebook_exclude_page', true )
+				&& get_post_meta( $_POST['id'], 'facebook_exclude_group', true ) ) {
+			die( 'You have excluded this post from publishing to your Facebook profile, Fan Page, and Group. If you would like to publish it, edit the post and remove the appropriate exclude check boxes.' );
 		} else {
 			$post = get_post( $_POST['id'] );
 			
@@ -434,12 +462,18 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	}
 	
 	if ( get_post_meta( $post->ID, 'facebook_exclude_page', true ) ) {
-		$exclude_profile = true;
+		$exclude_page = true;
 	} else {
 		$exclude_page = false;
 	}
 	
-	if ( !$exclude_profile && !$exclude_page ) {
+	if ( get_post_meta( $post->ID, 'facebook_exclude_group', true ) ) {
+		$exclude_group = true;
+	} else {
+		$exclude_group = false;
+	}
+	
+	if ( !$exclude_profile && !$exclude_page && !$exclude_group ) {
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_facebook' );
@@ -488,7 +522,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						if ( !$continue ) continue;	// Skip to next in foreach
 					}
 						
-					if ( !$options['facebook_profile'] && !$options['facebook_page'] ) {
+					if ( !$options['facebook_profile'] && !$options['facebook_page']  && !$options['facebook_group']) {
 						continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
 					}
 	
@@ -500,6 +534,11 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					// Added facebook page to connection array if enabled
 					if ( $options['facebook_page'] ) {
 						$connect_arr[$api_key]['facebook_page'] = true;
+					}
+	
+					// Added facebook page to connection array if enabled
+					if ( $options['facebook_group'] ) {
+						$connect_arr[$api_key]['facebook_group'] = true;
 					}
 
 					// Get META facebook message

@@ -70,7 +70,7 @@ class leenkme_GoogleBuzz {
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
 			
-			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
+			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['buzz_all_users'] ) ) {
 					$googlebuzz_settings[$this->buzz_all_users] = true;
 				} else {
@@ -95,7 +95,7 @@ class leenkme_GoogleBuzz {
                     <div class="buzz-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Buzz to your profile from several specific category IDs, e.g. 3,4,5<br />Buzz all posts to your profile except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
-                    <?php if ( current_user_can('activate_plugins') ) { //then we're displaying the main Admin options ?>
+                    <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
                     <p>Buzz All Authors? <input type="checkbox" name="buzz_all_users" <?php if ( $googlebuzz_settings[$this->buzz_all_users] ) echo 'checked="checked"'; ?> /></p>
                     <div class="buzz-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to buzz to each available author account.</p>

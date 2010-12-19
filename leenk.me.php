@@ -2,19 +2,20 @@
 /*
 Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
-Description: Automatically publish to your Twitter, Facebook profile/page, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
+Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.2.2
+Version: 1.2.3
 Author URI: http://leenk.me/about/
-Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
+Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 */
 
-define( 'leenk.me_version' , '1.2.2' );
+define( 'LEENKME_VERSION' , '1.2.3' );
 
 class leenkme {
 	// Class members	
 	var $options_name			= 'leenkme';
 	var $leenkme_API			= 'leenkme_API';
+	var $version				= 'version';
 	var $twitter				= 'twitter';
 	var $facebook				= 'facebook';
 	var $googlebuzz				= 'googlebuzz';
@@ -30,6 +31,8 @@ class leenkme {
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
 		$this->api_url	= 'https://leenk.me/api/1.1/';
 		$this->timeout	= '5000';		// in miliseconds
+		
+		$this->upgrade();
 	}
 	
 	function get_leenkme_settings() {
@@ -85,7 +88,7 @@ class leenkme {
 			}			
 			update_user_option( $user_id, $this->options_name, $user_settings );
 			
-			if ( current_user_can( 'activate_plugins' ) ) { //we're dealing with the main Admin options
+			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
 				if ( isset( $_POST['twitter'] ) ) {
 					$leenkme_settings[$this->twitter] = true;
 				} else {
@@ -146,9 +149,9 @@ class leenkme {
                 <a href="http://leenk.me/">Click here to subscribe to leenk.me and generate an API key</a>
                 </p>
                 <?php } ?>
-				<?php if ( current_user_can( 'activate_plugins' ) ) {?>
+				<?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) {?>
                 <h3>Modules</h3>
-                <table id="leenkme_activate_plugins">
+                <table id="leenkme_leenkme_manage_all_settings">
                     <tr><td id="leenkme_plugin_name">Twitter: </td>
                     <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php if ( $leenkme_settings[$this->twitter] ) echo 'checked="checked"'; ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">Facebook: </td>
@@ -160,7 +163,7 @@ class leenkme {
                 </table>
                 
                 <h3>Post Types to Publish</h3>
-                <table id="leenkme_activate_plugins">
+                <table id="leenkme_leenkme_manage_all_settings">
 				<tr><td id="leenkme_plugin_name">Post: </td>
                 <td id="post_type">
                 	<input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
@@ -202,6 +205,42 @@ class leenkme {
 		$leenkme_settings = $this->get_leenkme_settings();
 		return $leenkme_settings[$plugin];
 	}
+	
+	function upgrade() {
+		$leenkme_settings = $this->get_leenkme_settings();
+		
+		if ( isset( $leenkme_settings['version'] ) ) {
+			$old_version = $leenkme_settings['version'];
+		} else {
+			$old_version = 0;
+		}
+		
+		if ( version_compare( $old_version, '1.2.3', '<' ) ) {
+			$this->upgrade_to_1_2_3();
+		}
+		
+		$leenkme_settings['version'] = LEENKME_VERSION;
+		update_option( $this->options_name, $leenkme_settings );
+	}
+	
+	function upgrade_to_1_2_3() {
+		$role = get_role('administrator');
+		if ($role !== NULL)
+			$role->add_cap('leenkme_manage_all_settings');
+			$role->add_cap('leenkme_edit_user_settings');
+
+		$role = get_role('editor');
+		if ($role !== NULL)
+			$role->add_cap('leenkme_edit_user_settings');
+
+		$role = get_role('author');
+		if ($role !== NULL)
+			$role->add_cap('leenkme_edit_user_settings');
+
+		$role = get_role('contributor');
+		if ($role !== NULL)
+			$role->add_cap('leenkme_edit_user_settings');
+	}
 }
 
 // Instantiate the class
@@ -233,30 +272,30 @@ function leenkme_ap() {
 		return;
 	}
 	
-	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/leenkme-logo-16x16.png' );
+	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/leenkme-logo-16x16.png' );
 	
 	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9') {
-		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'edit_posts', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
 		global $dl_pluginleenkmeTwitter;
-		add_submenu_page( 'leenkme', __( 'Twitter Settings', 'leenkme' ), __( 'Twitter', 'leenkme' ), 'edit_posts', 'leenkme_twitter', array( &$dl_pluginleenkmeTwitter, 'print_twitter_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'Twitter Settings', 'leenkme' ), __( 'Twitter', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_twitter', array( &$dl_pluginleenkmeTwitter, 'print_twitter_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		global $dl_pluginleenkmeFacebook;
-		add_submenu_page( 'leenkme', __( 'Facebook Settings', 'leenkme' ), __( 'Facebook', 'leenkme' ), 'edit_posts', 'leenkme_facebook', array( &$dl_pluginleenkmeFacebook, 'print_facebook_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'Facebook Settings', 'leenkme' ), __( 'Facebook', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_facebook', array( &$dl_pluginleenkmeFacebook, 'print_facebook_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
 		global $dl_pluginleenkmeGoogleBuzz;
-		add_submenu_page( 'leenkme', __( 'Google Buzz Settings', 'leenkme' ), __( 'Google Buzz', 'leenkme' ), 'edit_posts', 'leenkme_googlebuzz', array( &$dl_pluginleenkmeGoogleBuzz, 'print_googlebuzz_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'Google Buzz Settings', 'leenkme' ), __( 'Google Buzz', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_googlebuzz', array( &$dl_pluginleenkmeGoogleBuzz, 'print_googlebuzz_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
 		global $dl_pluginleenkmeLinkedIn;
-		add_submenu_page( 'leenkme', __( 'LinkedIn Settings', 'leenkme' ), __( 'LinkedIn', 'leenkme' ), 'edit_posts', 'leenkme_linkedin', array( &$dl_pluginleenkmeLinkedIn, 'print_linkedin_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'LinkedIn Settings', 'leenkme' ), __( 'LinkedIn', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_linkedin', array( &$dl_pluginleenkmeLinkedIn, 'print_linkedin_settings_page' ) );
 	}
 }
 
