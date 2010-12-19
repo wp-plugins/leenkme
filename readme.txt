@@ -83,7 +83,7 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 == Changelog ==
 = 1.2.3 =
 * Added ability to publish to Facebook Groups
-* Added ability to restrict certain WordPress roles from access the plugin settings
+* Added ability to restrict certain WordPress roles from access the plugin settings - two new roles were created, "leenkme_manage_all_settings" for Administrators, and 'leenkme_edit_user_settings' for Editors/Authors/Contributors.
 
 = 1.2.2 =
 * Changed the way the leenk.me _wpnonce fields are handled, previously it was causing an overload in the $_GET structure for some WordPress sites when filtering and/or searching posts in the WordPress Dashboard.
