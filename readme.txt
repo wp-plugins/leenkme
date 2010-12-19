@@ -10,7 +10,6 @@ leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & Linke
 == Description ==
 
 leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/Fan Page/Group, a Buzz to your Google Buzz profile, and a share on your LinkedIn profile whenever you publish a new post in your WordPress website.
-
 What can you do with leenk.me?
 
 * Publish automatically to your social networks when you publish a new post in WordPress.
@@ -34,7 +33,9 @@ What sets leenk.me apart from others?
 * leenk.me doesn't need to save your social network passwords.
 * You authorize which applications are connected to your leenk.me account.
 
-[Support](http://leenk.me/contact)
+You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The basic leenk.me subscription starts at 99 cents every three months with a one month free trial. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
+
+Have questions? Contact me through the lenek.me [support](http://leenk.me/contact) form.
 
 == Installation ==
 
