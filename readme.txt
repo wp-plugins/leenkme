@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress
 Requires at least: 2.8
 Tested up to: 3.0.3
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 
 leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
 
@@ -82,6 +82,9 @@ http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.2.4 =
+* Fixed bug causing "Pending Review" to "Publish" posts to be ignored by leenk.me.
+
 = 1.2.3 =
 * Added ability to publish to Facebook Groups
 * Added ability to restrict certain WordPress roles from access the plugin settings - two new roles were created, "leenkme_manage_all_settings" for Administrators, and 'leenkme_edit_user_settings' for Editors/Authors/Contributors.
