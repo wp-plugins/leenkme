@@ -102,6 +102,8 @@ class leenkme_Twitter {
 				<ul style="font-size: 11px;">
 					<li>%TITLE% - Displays Title of your post in your Twitter feed.*</li>
 					<li>%URL% - Displays TinyURL of your post in your Twitter feed.*</li>
+					<li>%CATS% - Displays the categories of your post in your Twitter feed as a hashtag.*</li>
+					<li>%TAGS% - Displays ags your post in your Twitter feed as a hashtag.*</li>
 				</ul>
 				</div>
                 <div id="twitter_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
@@ -119,7 +121,7 @@ class leenkme_Twitter {
 				<?php } ?>
 				<p><input type="button" class="button" name="verify_twitter_connect" id="tweet" value="<?php _e( 'Send a Test Tweet', 'leenkme_Twitter' ) ?>" />
 				<?php wp_nonce_field( 'tweet', 'tweet_wpnonce' ); ?></p>
-				<p style="font-size: 11px; margin-top: 25px;">*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it's either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis).</p>
+				<p style="font-size: 11px; margin-top: 25px;">*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it's either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis). If you use the %CATS% or %TAGS% variable, categories are given priority, it will display every category that will fit within the tweet length limitation. After adding the categories leenk.me moves onto tags and will add every tag that will fit within the tweet length limitation. leenk.me will also strip out any non-word character from the Twitter "hashtag" a single word.</p>
 				
 				<p class="submit">
 					<input class="button-primary" type="submit" name="update_twitter_settings" value="<?php _e( 'Save Settings', 'leenkme_Twitter' ) ?>" />
@@ -375,12 +377,11 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						$tweet = htmlspecialchars( stripcslashes( $options['leenkme_tweetformat'] ) );
 					}
 					
-					$tweetLen = strlen( $tweet );
-					
 					if ( preg_match( '/%URL%/i', $tweet ) ) {
 						$urlLen = strlen( $url );
 						$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
 						
+						$tweetLen = strlen( $tweet );
 						if ( $totalLen <= $maxLen ) {
 							$tweet = str_ireplace( "%URL%", $url, $tweet );
 						} else {
@@ -388,14 +389,13 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						}
 					}
 					
-					$tweetLen = strlen( $tweet );
-					
 					if ( preg_match( '/%TITLE%/i', $tweet ) ) {
 						$title = $post->post_title;
 					
 						$titleLen = strlen( $title ); 
 						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
 						
+						$tweetLen = strlen( $tweet );
 						if ( $totalLen <= $maxLen ) {
 							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
 						} else {
@@ -403,6 +403,66 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 							$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
 							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
 						}
+					}
+					
+					if ( preg_match( '/%CATS%/i', $tweet ) ) {
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						$cat_str = "";
+						foreach($post_categories as $c){
+							$cat = get_category( $c );
+							$cat_str .= "#" . preg_replace( "/\W/", "", $cat->name ) . " ";
+						}
+						$cat_str = trim( $cat_str );
+					
+						$tweetLen = strlen( $tweet );
+						$catLen = strlen( $cat_str );
+						$totalLen = $catLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
+						
+						if ( $totalLen > $maxLen ) {
+							$diff = $totalLen - $maxLen;
+							
+							$split_cat_str = preg_split( "\s", $cat_str );
+							
+							while ( $diff < $catLen ) {
+								array_pop( $split_cat_str );
+								
+								$cat_str = join( " ", $split_cat_str );
+								$calLen = strlen( $cat_str );
+							}
+						}
+						
+						$tweet = str_ireplace( "%CATS%", $cat_str, $tweet );
+					}
+					
+					if ( preg_match( '/%TAGS%/i', $tweet ) ) {
+						$post_tags = wp_get_post_tags( $post->ID );
+						
+						$tag_str = "";
+						foreach($post_tags as $t){
+							$tag = get_tag( $t );
+							$tag_str .= "#" . preg_replace( "/\W/", "", $tag->name ) . " ";
+						}
+						$tag_str = trim( $tag_str );
+					
+						$tweetLen = strlen( $tweet );
+						$tagLen = strlen( $tag_str );
+						$totalLen = $tagLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
+						
+						if ( $totalLen > $maxLen ) {
+							$diff = $totalLen - $maxLen;
+							
+							$split_tag_str = preg_split( "\s", $tag_str );
+							
+							while ( $diff < $tagLen ) {
+								array_pop( $split_tag_str );
+								
+								$tag_str = join( " ", $split_tag_str );
+								$tagLen = strlen( $tag_str );
+							}
+						}
+						
+						$tweet = str_ireplace( "%TAGS%", $ctag_str, $tweet );
 					}
 
 					if ( strlen( $tweet ) <= $maxLen ) {
