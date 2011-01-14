@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.2.5
+Version: 1.2.6
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags
 */
 
-define( 'LEENKME_VERSION' , '1.2.5' );
+define( 'LEENKME_VERSION' , '1.2.6' );
 
 class leenkme {
 	// Class members	
@@ -140,7 +140,7 @@ class leenkme {
 		<div class=wrap>
 			<form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
 				<h2>leenk.me Settings</h2>
-				<p>leenk.me API Key: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php _e(apply_filters( 'format_to_edit', htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ) ), 'leenkme') ?>" />
+				<p>leenk.me API Key: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ), 'leenkme') ?>" />
 				<input type="button" class="button" name="verify_leenkme_api" id="verify" value="<?php _e( 'Verify leenk.me API', 'leenkme' ) ?>" />
 				<?php wp_nonce_field( 'verify', 'leenkme_verify_wpnonce' ); ?>
 				</p>

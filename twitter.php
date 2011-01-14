@@ -96,7 +96,7 @@ class leenkme_Twitter {
 			<form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 				<h2>Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <h3>Message Settings</h3>
-				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( apply_filters( 'format_to_edit', htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ) ), 'leenkme_Twitter') ?>" /></p>
+				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ), 'leenkme_Twitter') ?>" /></p>
 				<div class="tweet-format" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
 				<ul style="font-size: 11px;">
@@ -108,7 +108,7 @@ class leenkme_Twitter {
 				</div>
                 <div id="twitter_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
                 <h3>Publish Settings</h3>
-				<p>Tweet Categories: <input name="tweetcats" type="text" style="width: 25%;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->tweetCats] ), 'leenkme_Twitter' ) ?>" /></p>
+				<p>Tweet Categories: <input name="tweetcats" type="text" style="width: 25%;" value="<?php _e( $user_settings[$this->tweetCats], 'leenkme_Twitter' ) ?>" /></p>
 				<div class="tweet-cats" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Tweet posts from several specific category IDs, e.g. 3,4,5<br />Tweet all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
 				</div>
@@ -379,9 +379,9 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 					
 					if ( preg_match( '/%URL%/i', $tweet ) ) {
 						$urlLen = strlen( $url );
+						$tweetLen = strlen( utf8_decode( $tweet ) );
 						$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
 						
-						$tweetLen = strlen( $tweet );
 						if ( $totalLen <= $maxLen ) {
 							$tweet = str_ireplace( "%URL%", $url, $tweet );
 						} else {
@@ -391,11 +391,10 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 					
 					if ( preg_match( '/%TITLE%/i', $tweet ) ) {
 						$title = $post->post_title;
-					
-						$titleLen = strlen( $title ); 
+						$titleLen = strlen( utf8_decode( $title ) ); 
+						$tweetLen = strlen( utf8_decode( $tweet ) );
 						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
 						
-						$tweetLen = strlen( $tweet );
 						if ( $totalLen <= $maxLen ) {
 							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
 						} else {
@@ -415,8 +414,8 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						}
 						$cat_str = trim( $cat_str );
 					
-						$tweetLen = strlen( $tweet );
-						$catLen = strlen( $cat_str );
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$catLen = strlen( utf8_decode( $cat_str ) );
 						$totalLen = $catLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 						
 						if ( $totalLen > $maxLen ) {
@@ -428,7 +427,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 								array_pop( $split_cat_str );
 								
 								$cat_str = join( " ", $split_cat_str );
-								$calLen = strlen( $cat_str );
+								$calLen = strlen( utf8_decode( $cat_str ) );
 							}
 						}
 						
@@ -445,8 +444,8 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						}
 						$tag_str = trim( $tag_str );
 					
-						$tweetLen = strlen( $tweet );
-						$tagLen = strlen( $tag_str );
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$tagLen = strlen( utf8_decode( $tag_str ) );
 						$totalLen = $tagLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 						
 						if ( $totalLen > $maxLen ) {
@@ -458,14 +457,14 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 								array_pop( $split_tag_str );
 								
 								$tag_str = join( " ", $split_tag_str );
-								$tagLen = strlen( $tag_str );
+								$tagLen = strlen( utf8_decode( $tag_str ) );
 							}
 						}
 						
 						$tweet = str_ireplace( "%TAGS%", $ctag_str, $tweet );
 					}
 
-					if ( strlen( $tweet ) <= $maxLen ) {
+					if ( strlen( utf8_decode( $tweet ) ) <= $maxLen ) {
 						$connect_arr[$api_key]['twitter_status'] = $tweet;
 					}
 				}

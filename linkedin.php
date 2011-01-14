@@ -112,8 +112,8 @@ class leenkme_LinkedIn {
                 <h2>LinkedIn Settings (<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="linkedin_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
-                    <p>Default Comment: <input name="linkedin_comment" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->linkedin_comment] ), 'leenkme_LinkedIn' ) ?>" /></p>
-                    <p>Default Link Name: <input name="linkedin_title" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->linkedin_title] ), 'leenkme_LinkedIn' ) ?>" /></p>
+                    <p>Default Comment: <input name="linkedin_comment" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_comment], 'leenkme_LinkedIn' ) ?>" /></p>
+                    <p>Default Link Name: <input name="linkedin_title" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_title], 'leenkme_LinkedIn' ) ?>" /></p>
                     <div class="linkedin-format" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
                     <ul style="font-size: 11px;">
@@ -122,11 +122,11 @@ class leenkme_LinkedIn {
                         <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
                     </ul>
                     </div>
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->default_image] ), 'leenkme_LinkedIn' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
+                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->default_image], 'leenkme_LinkedIn' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
 				</div>
                 <div id="linkedin_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Publish Settings</h3>
-                    <p>Share Categories: <input name="share_cats" type="text" style="width: 250px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->share_cats] ), 'leenkme_LinkedIn' ) ?>" /></p>
+                    <p>Share Categories: <input name="share_cats" type="text" style="width: 250px;" value="<?php _e( $user_settings[$this->share_cats], 'leenkme_LinkedIn' ) ?>" /></p>
                     <div class="publish-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Share content on your LinkedIn account from several specific category IDs, e.g. 3,4,5<br />Share all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
@@ -457,18 +457,23 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post ) {
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
 					
-					$descLen = strlen( $description );
+					$descLen = strlen( utf8_decode( $description ) );
 					
 					if ( $descLen >= $maxLen ) {
 						$diff = $maxLen - $descLen;  // reversed because I need a negative number
 						$description = substr( $description, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
 					}
 				
-					if ( !( $picture = get_post_meta( $post->ID, 'linkedin_image', true ) ) ) {
+					if ( !( $picture = apply_filters( 'linkedin_image', get_post_meta( $post->ID, 'linkedin_image', true ), $post->ID ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
 							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
-						} else if ( !empty( $options['default_image'] ) ) {
+						} else if ( $images = get_children( 'post_parent=" . $post->ID . "&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
+							foreach ( $images as $attachment_id => $attachment ) {
+								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
+								break;
+							}
+						}  else if ( !empty( $options['default_image'] ) ) {
 							$picture = $options['default_image'];
 						}
 					}	

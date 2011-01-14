@@ -152,9 +152,9 @@ class leenkme_Facebook {
                 </div>
                 <div id="facebook_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
-                    <p>Default Message: <input name="facebook_message" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->facebook_message] ), 'leenkme_Facebook' ) ?>" /></p>
-                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->facebook_linkname] ), 'leenkme_Facebook' ) ?>" /></p>
-                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->facebook_caption] ), 'leenkme_Facebook' ) ?>" /></p>
+                    <p>Default Message: <input name="facebook_message" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_message], 'leenkme_Facebook' ) ?>" /></p>
+                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_linkname], 'leenkme_Facebook' ) ?>" /></p>
+                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_caption], 'leenkme_Facebook' ) ?>" /></p>
                     <div class="facebook-format" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
                     <ul style="font-size: 11px;">
@@ -163,12 +163,12 @@ class leenkme_Facebook {
                         <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
                     </ul>
                     </div>
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->default_image] ), 'leenkme_Facebook' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
+                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_Facebook' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;"><strong>NOTE</strong> Do not use an image URL hosted by Facebook. Facebook will reject your message.</p>
 				</div>
                 <div id="facebook_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Publish Settings</h3>
-                    <p>Publish Categories: <input name="publish_cats" type="text" style="width: 250px;" value="<?php _e( apply_filters( 'format_to_edit', $user_settings[$this->publish_cats] ), 'leenkme_Facebook' ) ?>" /></p>
+                    <p>Publish Categories: <input name="publish_cats" type="text" style="width: 250px;" value="<?php _e( $user_settings[$this->publish_cats], 'leenkme_Facebook' ) ?>" /></p>
                     <div class="publish-cats" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
                     </div>
@@ -591,10 +591,15 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
 					
-					if ( !( $picture = get_post_meta( $post->ID, 'facebook_image', true ) ) ) {
+					if ( !( $picture = apply_filters( 'facebook_image', get_post_meta( $post->ID, 'facebook_image', true ), $post->ID ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
 							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
+						} else if ( $images = get_children( 'post_parent=" . $post->ID . "&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
+							foreach ( $images as $attachment_id => $attachment ) {
+								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
+								break;
+							}
 						} else if ( !empty( $options['default_image'] ) ) {
 							$picture = $options['default_image'];
 						}
