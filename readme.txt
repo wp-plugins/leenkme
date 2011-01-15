@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags
 Requires at least: 2.8
 Tested up to: 3.0.3
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 
 leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
 
@@ -82,6 +82,9 @@ http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.2.7 =
+* Squashed bug causing non-thumbnail posts to have a thumbnail associated with them from the Media Library.
+
 = 1.2.6 =
 * Added filters, 'facebook_image' and 'linkedin_image' to override the image used when posting to Facebook and LinkedIn.
 * Squashed bug causing twitter to improperly calculate the Tweet length for Russian characters.

@@ -595,7 +595,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
 							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
-						} else if ( $images = get_children( 'post_parent=" . $post->ID . "&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
+						} else if ( $images = get_children( 'post_parent=' . $post->ID . '&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
 							foreach ( $images as $attachment_id => $attachment ) {
 								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
 								break;
