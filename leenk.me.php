@@ -29,7 +29,7 @@ class leenkme {
 		global $wp_version;
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url	= apply_filters( 'leenkme_api_url' , 'https://leenk.me/api/1.1/' );
+		$this->api_url	= 'https://leenk.me/api/1.1/';
 		$this->timeout	= '5000';		// in miliseconds
 		
 		$this->upgrade();
@@ -426,7 +426,7 @@ function leenkme_connect( $post ) {
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
 			$request = new WP_Http;
-			$result = $request->request( $dl_pluginleenkme->api_url, 
+			$result = $request->request( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
 											array( 	'method' => 'POST', 
 													'body' => $body, 
 													'headers' => $headers,
@@ -452,7 +452,7 @@ function leenkme_ajax_connect( $connect_arr ) {
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
 			$request = new WP_Http;
-			$result = $request->request( $dl_pluginleenkme->api_url, 
+			$result = $request->request( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
 											array( 	'method' => 'POST', 
 													'body' => $body, 
 													'headers' => $headers,
