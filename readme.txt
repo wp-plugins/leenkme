@@ -82,6 +82,10 @@ http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
 
 == Changelog ==
+= 1.2.8 =
+* Added filter for leenkme_api_url for people who do not have cURL and need to remove the HTTPS.
+* Added filter for leenkme_url on "Click here to subscribe to leenk.me and generate an API key" hyperlink, for leenk.me partner pages.
+
 = 1.2.7 =
 * Squashed bug causing non-thumbnail posts to have a thumbnail associated with them from the Media Library.
 

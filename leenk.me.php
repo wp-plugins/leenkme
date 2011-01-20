@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.2.7
+Version: 1.2.8
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags
 */
 
-define( 'LEENKME_VERSION' , '1.2.7' );
+define( 'LEENKME_VERSION' , '1.2.8' );
 
 class leenkme {
 	// Class members	
@@ -29,7 +29,7 @@ class leenkme {
 		global $wp_version;
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url	= 'https://leenk.me/api/1.1/';
+		$this->api_url	= apply_filters( 'leenkme_api_url' , 'https://leenk.me/api/1.1/' );
 		$this->timeout	= '5000';		// in miliseconds
 		
 		$this->upgrade();
@@ -146,7 +146,7 @@ class leenkme {
 				</p>
                 <?php if ( empty( $user_settings[$this->leenkme_API] ) ) { ?>
                 <p>
-                <a href="http://leenk.me/">Click here to subscribe to leenk.me and generate an API key</a>
+                <a href="<?php echo apply_filters( 'leenkme_url', 'http://leenk.me/' ); ?>">Click here to subscribe to leenk.me and generate an API key</a>
                 </p>
                 <?php } ?>
 				<?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) {?>
