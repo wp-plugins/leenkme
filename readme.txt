@@ -83,8 +83,8 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 
 == Changelog ==
 = 1.2.8 =
-* Added filter for leenkme_api_url for people who do not have cURL and need to remove the HTTPS.
-* Added filter for leenkme_url on "Click here to subscribe to leenk.me and generate an API key" hyperlink, for leenk.me partner pages.
+* Facebook added a new "links" method to the API. Added option to use it instead of the normal "feeds" method.
+* Facebook also started restricting Message and Description length. Added restriction back into plugin (420 charactesr for Message, 300 characters for description).
 
 = 1.2.7 =
 * Squashed bug causing non-thumbnail posts to have a thumbnail associated with them from the Media Library.
