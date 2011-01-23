@@ -9,6 +9,7 @@ class leenkme_Facebook {
 	var $facebook_message			= 'facebook_message';
 	var $facebook_linkname			= 'facebook_linkname';
 	var $facebook_caption			= 'facebook_caption';
+	var $facebook_share_link		= 'facebook_share_link';
 	var $default_image				= 'default_image';
 	var $publish_cats				= 'publish_cats';
 	var $publish_all_users			= 'publish_all_users';
@@ -43,6 +44,7 @@ class leenkme_Facebook {
 		$facebook_profile		= true;
 		$facebook_page			= false;
 		$facebook_group			= false;
+		$facebook_share_link	= false;
 		$facebook_message		= '%TITLE%';
 		$facebook_linkname		= '%WPSITENAME%';
 		$facebook_caption 		= '%WPTAGLINE%';
@@ -53,6 +55,7 @@ class leenkme_Facebook {
 							 $this->facebook_profile 		=> $facebook_profile,
 							 $this->facebook_page 			=> $facebook_page,
 							 $this->facebook_group 			=> $facebook_group,
+							 $this->facebook_share_link		=> $facebook_share_link,
 							 $this->facebook_message		=> $facebook_message,
 							 $this->facebook_linkname		=> $facebook_linkname,
 							 $this->facebook_caption 		=> $facebook_caption,
@@ -132,6 +135,12 @@ class leenkme_Facebook {
 					$facebook_settings[$this->publish_all_users] = false;
 				}
 				
+				if ( isset( $_POST['facebook_share_link'] ) ) {
+					$facebook_settings[$this->facebook_share_link] = true;
+				} else {
+					$facebook_settings[$this->facebook_share_link] = false;
+				}
+				
 				update_option( $this->options_name, $facebook_settings );
 			}
 			
@@ -146,25 +155,35 @@ class leenkme_Facebook {
                 <h2>Facebook Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="facebook_options">
                 	<h3>Social Settings</h3>
-                    <p>Publish to Personal Profile? <input type="checkbox" id="facebook_profile" name="facebook_profile" <?php if ( $user_settings[$this->facebook_profile] ) echo "checked='checked'"; ?> /></p>
-                    <p>Publish to Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php if ( $user_settings[$this->facebook_page] ) echo "checked='checked'"; ?> /></p>
-                    <p>Publish to Group? <input type="checkbox" id="facebook_group" name="facebook_group" <?php if ( $user_settings[$this->facebook_group] ) echo "checked='checked'"; ?> /></p>
+                    <p>Publish to Personal Profile? <input type="checkbox" id="facebook_profile" name="facebook_profile" <?php checked( $user_settings[$this->facebook_profile] ); ?> /></p>
+                    <p>Publish to Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php checked( $user_settings[$this->facebook_page] ); ?> /></p>
+                    <p>Publish to Group? <input type="checkbox" id="facebook_group" name="facebook_group" <?php checked( $user_settings[$this->facebook_group] ); ?> /></p>
+                    <p>Include Share Link? <input type="checkbox" id="facebook_share_link" name="facebook_share_link" <?php checked( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
+                    <div class="facebook-format" style="margin-left: 50px;">
+                        <p style="font-size: 11px; margin-bottom: 0px;">NOTE: Facebook now offers two ways to share links, one for your <em>feed</em> and one for your <em>links</em>. The <em>feed</em> API does not include a <strong>share link</strong>, the <em>links</em> API does. There are pro's and con's to both. If you want to include the <strong>share link</strong>, then you cannot customize the Link Name, Caption, Description, or Picture of the post (Facebook pulls these automatically). This could have some unexpected results. For instance, Facebook might pull the wrong image or the wrong text for the description. Hopefully Facebook will expand the new API to allow these customizations. If you can live without the <strong>share link</strong> then you can continue to customize the Link Name, Caption, Description, and Picture as you have in the past.</p>
+                    </div>
+                    
                 </div>
                 <div id="facebook_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
                     <p>Default Message: <input name="facebook_message" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_message], 'leenkme_Facebook' ) ?>" /></p>
-                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_linkname], 'leenkme_Facebook' ) ?>" /></p>
-                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_caption], 'leenkme_Facebook' ) ?>" /></p>
+                    <?php if ( $facebook_settings[$this->facebook_share_link] ) {
+                    	echo "<h4>You cannot modify the Link Name, Caption, Descrpition, or Picture with Share Link enabled.</h4>";
+                    } ?>
+                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_linkname], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
+                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_caption], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
                     <div class="facebook-format" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
-                    <ul style="font-size: 11px;">
-                        <li>%TITLE% - Displays the post title.</li>
-                        <li>%WPSITENAME% - Displays the WordPress site name (found in Settings -> General).</li>
-                        <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
-                    </ul>
+                        <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
+                        <ul style="font-size: 11px;">
+                            <li>%TITLE% - Displays the post title.</li>
+                            <li>%WPSITENAME% - Displays the WordPress site name (found in Settings -> General).</li>
+                            <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
+                        </ul>
                     </div>
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_Facebook' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;"><strong>NOTE</strong> Do not use an image URL hosted by Facebook. Facebook will reject your message.</p>
+                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>                    
+                    <div class="publish-cats" style="margin-left: 50px;">
+                    	<p style="font-size: 11px; margin-bottom: 0px;"><strong>NOTE</strong> Do not use an image URL hosted by Facebook. Facebook will reject your message.</p>
+                    </div>
 				</div>
                 <div id="facebook_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Publish Settings</h3>
@@ -258,7 +277,8 @@ class leenkme_Facebook {
 			$facebook_caption = get_post_meta( $post->ID, 'facebook_caption', true);
 			$facebook_description = get_post_meta( $post->ID, 'facebook_description', true);
 			$facebook_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_image', true ) ) );
-			$user_settings = $this->get_user_settings( $user_id ); ?>
+			$user_settings = $this->get_user_settings( $user_id );
+			$facebook_settings = $this->get_leenkme_facebook_settings(); ?>
 	
 			<div id="postlm" class="postbox">
 			<h3><?php _e( 'leenk.me Facebook', 'leenkme' ) ?></h3>
@@ -273,15 +293,18 @@ class leenkme_Facebook {
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Message:', 'leenkme' ) ?></td>
 				  <td><input value="<?php echo $facebook_message; ?>" type="text" name="facebook_message" size="80px"/></td></tr>
+				<?php if ( $facebook_settings[$this->facebook_share_link] ) {
+                    echo "<tr><td colspan='2' style='text-align: center;'><h4>You cannot modify the Link Name, Caption, Descrpition, or Picture with Share Link enabled.</h4></td></tr>";
+                } ?>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Link Name:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px"/></td></tr>
+				  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Caption:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px"/></td></tr>
+				  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Description:', 'leenkme' ) ?></td>
-				  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5"><?php echo $facebook_description; ?></textarea>
+				  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> ><?php echo $facebook_description; ?></textarea>
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px"/></td></tr>
+				  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
 				  <td style="vertical-align:top; width:80px;">
 					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
@@ -454,6 +477,8 @@ function republish_row_action( $actions, $post ) {
 // Add function to pubslih to facebook
 function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeFacebook;
+	$maxMessageLen = 420;
+	$maxDescLen = 300;
 	
 	if ( get_post_meta( $post->ID, 'facebook_exclude_profile', true ) ) {
 		$exclude_profile = true;
@@ -475,6 +500,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 	
 	if ( !$exclude_profile && !$exclude_page && !$exclude_group ) {
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		$facebook_settings = $dl_pluginleenkmeFacebook->get_leenkme_facebook_settings();
+		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_facebook' );
 			
@@ -552,6 +579,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					$message = str_ireplace( '%TITLE%', $post_title, $message );
 					$message = str_ireplace( '%WPSITENAME%', $wp_sitename, $message );
 					$message = str_ireplace( '%WPTAGLINE%', $wp_tagline, $message );
+					$messageLen = strlen( utf8_decode( $message ) );
+					
+					if ( $messageLen > $maxMessageLen ) {
+						$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
+						$message = substr( $message, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
+					}
 		
 					// Get META facebook link name
 					$linkname = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_linkname', true ) ) );
@@ -590,6 +623,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					$description = str_ireplace( '%TITLE%', $post_title, $description );
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
+					$descLen = strlen( utf8_decode( $message ) );
+					
+					if ( $descLen > $maxDescLen ) {
+						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
+						$description = substr( $description, 0, $diff ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+					}
 					
 					if ( !( $picture = apply_filters( 'facebook_image', get_post_meta( $post->ID, 'facebook_image', true ), $post->ID ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
@@ -607,6 +646,10 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 													
 					if ( isset( $picture ) && !empty( $picture ) ) {
 						$connect_arr[$api_key]['facebook_picture'] = $picture;
+					}
+		
+					if ( $facebook_settings['facebook_share_link'] ) {
+						$connect_arr[$api_key]['facebook_share_link'] = 'true';
 					}
 					
 					$connect_arr[$api_key]['facebook_message'] = $message;
