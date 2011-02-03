@@ -623,7 +623,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 					$description = str_ireplace( '%TITLE%', $post_title, $description );
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
-					$descLen = strlen( utf8_decode( $message ) );
+					$descLen = strlen( utf8_decode( $description ) );
 					
 					if ( $descLen > $maxDescLen ) {
 						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
