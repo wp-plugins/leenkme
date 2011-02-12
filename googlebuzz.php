@@ -234,10 +234,10 @@ function leenkme_ajax_gb() {
 			} else if ( isset( $result['response']['code'] ) ) {
 				die( $result['body'] );
 			} else {
-				die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
+				die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
 			}
 		} else {
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
+			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
 		}
 	} else {
 		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
@@ -261,10 +261,10 @@ function leenkme_ajax_rebuzz() {
 				} else if ( isset( $result['response']['code'] ) ) {
 					die( $result['body'] );
 				} else {
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact support@leenk.me.' );
+					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
 				}
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact support@leenk.me.' );
+				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
 			}
 		}
 	} else {
