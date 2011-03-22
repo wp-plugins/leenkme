@@ -317,14 +317,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 		// I've made an assumption that most users will include the %URL% text
 		// So, instead of trying to get the link several times for multi-user setups
 		// I'm getting the URL once and using it later --- for the sake of efficiency
-		$plugins = get_option( 'active_plugins' );
-		$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
-		//check to see if Twitter Friendly Links plugin is activated			
-		if ( in_array( $required_plugin , $plugins ) ) {
-			$url = permalink_to_twitter_link( get_permalink( $post->ID ) ); // if yes, we want to use that for our URL shortening service.
-		} else {
-			$url = leenkme_get_tinyurl( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
-		}
+		$url = leenkme_get_shortened_url( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
@@ -477,15 +470,22 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 }
 
 // Example followed from http://planetozh.com/blog/2009/08/how-to-make-http-requests-with-wordpress/
-function leenkme_get_tinyurl( $url ) { 
-	$api_url = 'http://tinyurl.com/api-create.php?url=';
-	$request = new WP_Http;
-	$result = $request->request( $api_url . $url );
-	
-	if ( is_wp_error( $result ) ) { //if we get an error just us the normal permalink URL
-		return $url;
+function leenkme_get_shortened_url( $url ) { 
+	$plugins = get_option( 'active_plugins' );
+	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
+	//check to see if Twitter Friendly Links plugin is activated			
+	if ( in_array( $required_plugin , $plugins ) ) {
+		$url = permalink_to_twitter_link( get_permalink( $post->ID ) ); // if yes, we want to use that for our URL shortening service.
 	} else {
-		return $result['body']; 
+		$api_url = apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . $url, $url );
+		$request = new WP_Http;
+		$result = $request->request( $api_url );
+		
+		if ( is_wp_error( $result ) ) { //if we get an error just us the normal permalink URL
+			return $url;
+		} else {
+			return $result['body']; 
+		}
 	}
 }
 
