@@ -21,7 +21,8 @@ What can you do with leenk.me?
 * Additional authors can setup their own leenk.me accounts and add them to your website.
 * Publish to all author's leenk.me accounts whenever a post is published.
 * Customize your Tweet format with the custom variables %TITLE%, %URL%, %CATS%, and %TAGS%.
-* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
+* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL by default.
+* Now you can (use your own custom URL shortener]](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/)!
 * Customize your Buzz message for individual posts.
 * Customize your Facebook post for individual posts.
 * Customize your LinkedIn shares for individual posts.
