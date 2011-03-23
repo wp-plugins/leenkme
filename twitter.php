@@ -475,7 +475,7 @@ function leenkme_get_shortened_url( $url ) {
 	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
 	//check to see if Twitter Friendly Links plugin is activated			
 	if ( in_array( $required_plugin , $plugins ) ) {
-		return permalink_to_twitter_link( get_permalink( $post->ID ) ); // if yes, we want to use that for our URL shortening service.
+		return permalink_to_twitter_link( $url ); // if yes, we want to use that for our URL shortening service.
 	} else {
 		$api_url = apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . $url, $url );
 		$request = new WP_Http;

@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 Requires at least: 2.8
 Tested up to: 3.0.4
-Stable tag: 1.2.12
+Stable tag: 1.2.13
 
 leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
 
@@ -86,6 +86,9 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
+= 1.2.13 =
+* Bug fix for Twitter Friendly Links URL shortener (again)
+
 = 1.2.12 =
 * Bug fix for Twitter Friendly Links URL shortener
 
