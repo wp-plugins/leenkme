@@ -7,6 +7,7 @@ class leenkme_LinkedIn {
 	var $linkedin_title				= 'linkedin_title';
 	var $default_image				= 'default_image';
 	var $share_cats					= 'share_cats';
+	var $clude						= 'clude';
 	var $share_all_users			= 'share_all_users';
 
 	// Constructor
@@ -19,7 +20,15 @@ class leenkme_LinkedIn {
 	  --------------------------------------------------------------------*/
 	
 	function get_leenkme_linkedin_settings() {
-		$share_all_users = '';
+		global $wpdb;
+		
+		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+		
+		if ( 1 < $user_count ) {
+			$share_all_users = true;
+		} else {
+			$share_all_users = false;
+		}
 		
 		$options = array( $this->share_all_users => $share_all_users );
 	
@@ -39,13 +48,15 @@ class leenkme_LinkedIn {
 		$linkedin_comment		= '%TITLE%';
 		$linkedin_title			= '%WPSITENAME%';
 		$default_image			= '';
-		$share_cats			= '';
+		$share_cats				= array( '0' );
+		$clude					= 'in';
 		
 		$options = array(
 							 $this->linkedin_comment		=> $linkedin_comment,
 							 $this->linkedin_title			=> $linkedin_title,
 							 $this->default_image 			=> $default_image,
-							 $this->share_cats 			=> $share_cats
+							 $this->share_cats 				=> $share_cats,
+							 $this->clude	 				=> $clude
 						);
 						
 		// Get values from the WP options table in the database, re-assign if found
@@ -85,8 +96,12 @@ class leenkme_LinkedIn {
 				$user_settings[$this->default_image] = $_POST['default_image'];
 			}
 
-			if ( isset( $_POST['share_cats'] ) ) {
+			if ( isset( $_POST['clude'] ) && isset( $_POST['share_cats'] ) ) {
+				$user_settings[$this->clude] = $_POST['clude'];
 				$user_settings[$this->share_cats] = $_POST['share_cats'];
+			} else {
+				$user_settings[$this->clude] = 'in';
+				$user_settings[$this->share_cats] = array( '0' );
 			}
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
@@ -108,7 +123,7 @@ class leenkme_LinkedIn {
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-            <form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+            <form id="leenkme" method="post" action="">
                 <h2>LinkedIn Settings (<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="linkedin_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
@@ -126,12 +141,31 @@ class leenkme_LinkedIn {
 				</div>
                 <div id="linkedin_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Publish Settings</h3>
-                    <p>Share Categories: <input name="share_cats" type="text" style="width: 250px;" value="<?php _e( $user_settings[$this->share_cats], 'leenkme_LinkedIn' ) ?>" /></p>
-                    <div class="publish-cats" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Share content on your LinkedIn account from several specific category IDs, e.g. 3,4,5<br />Share all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
+                    <p>Share Categories:</p>
+                
+                    <div class="tweet-cats" style="margin-left: 50px;">
+                    <p>
+                    <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+                    <p>
+                    <select id='categories' name='share_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->share_cats] ) ); ?>>All Categories</option>
+                    <?php 
+                    $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+                    foreach ( (array)$categories as $category ) {
+                        ?>
+                        
+                        <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->share_cats] ) ); ?>><?php echo $category->name; ?></option>
+    
+    
+                        <?php
+                    }
+                    ?>
+                    </select></p>
+                    <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
+                    
                     </div>
                     <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
-                    <p>Share All Authors? <input type="checkbox" name="share_all_users" <?php if ( $linkedin_settings[$this->share_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Share All Authors? <input type="checkbox" name="share_all_users" <?php checked( $linkedin_settings[$this->share_all_users] ); ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to share to each available author account.</p>
                     </div>
@@ -149,6 +183,9 @@ class leenkme_LinkedIn {
 	
 	function leenkme_linkedin_meta_tags( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+			
+		if ( isset( $_REQUEST['_inline_edit'] ) )
 			return;
 		
 		if ( isset( $_POST['linkedin_comment'] ) && !empty( $_POST['linkedin_comment'] ) ) {
@@ -223,7 +260,7 @@ class leenkme_LinkedIn {
 					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from LinkedIn:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php if ( $linkedin_exclude ) echo 'checked="checked"'; ?> />
+				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php checked( $linkedin_exclude ); ?> />
 				</td></tr>
 				<?php // Only show ReShare button if the post is "published"
 				if ( 'publish' === $post->post_status ) { ?>
@@ -246,7 +283,7 @@ if ( class_exists( 'leenkme_LinkedIn' ) ) {
 function leenkme_linkedin_js() {
 ?>
 
-		$('input#li_share').click(function() {
+		$('input#li_share').live('click', function() {
 			var data = {
 				action:		'li_share',
 				_wpnonce:	$('input#li_share_wpnonce').val()
@@ -255,7 +292,7 @@ function leenkme_linkedin_js() {
 			ajax_response(data);
 		});
 
-		$('input#reshare_button').click(function() {
+		$('input#reshare_button').live('click', function() {
 			var data = {
 				action: 	'reshare',
 				id:  		$('input#post_ID').val(),
@@ -265,7 +302,7 @@ function leenkme_linkedin_js() {
 			ajax_response(data);
 		});
 
-		$('a.reshare_row_action').click(function() {
+		$('a.reshare_row_action').live('click', function() {
 			var data = {
 				action: 	'reshare',
 				id:  		$(this).attr('id'),
@@ -323,11 +360,11 @@ function leenkme_ajax_reshare() {
 	
 	if ( isset( $_POST['id'] ) ) {
 		if ( get_post_meta( $_POST['id'], 'linkedin_exclude', true ) ) {
-			die( 'You have excluded this post from sharinging to your LinkedIn profile. If you would like to share it, edit the post and remove the appropriate exclude check box.' );
+			die( 'You have excluded this post from sharing to your LinkedIn profile. If you would like to share it, edit the post and remove the appropriate exclude check box.' );
 		} else {
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_share_to_linkedin( array(), $post ) );
+			$result = leenkme_ajax_connect( leenkme_share_to_linkedin( array(), $post, true ) );
 			
 			if ( isset( $result ) ) {			
 				if ( is_wp_error( $result ) ) {
@@ -335,7 +372,7 @@ function leenkme_ajax_reshare() {
 				} else if ( isset( $result["response"]["code"] ) ) {
 					die( $result["body"] );
 				} else {
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+					die( '<p>Error received! Please check your <a href="admin.php?page=leenkme_linkedin">LinkedIn settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.</p>' );
 				}
 			} else {
 				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
@@ -360,7 +397,7 @@ function reshare_row_action( $actions, $post ) {
 }
 									
 // Add function to share on LinkedIn
-function leenkme_share_to_linkedin( $connect_arr = array(), $post ) {
+function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeLinkedIn;
 	$maxLen = 400;	//LinkedIn has a 400 character limit for descriptions
 	
@@ -396,29 +433,38 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post ) {
 				
 				$options = $dl_pluginleenkmeLinkedIn->get_user_settings( $user_id );
 				if ( !empty( $options ) ) {
-					if ( !empty( $options['share_cats'] ) ) {	
-						$continue = FALSE;
-						$cats = split( ",", $options['share_cats'] );
-						
-						foreach ( $cats as $cat ) {
-							if ( preg_match( '/^-\d+/', $cat ) ) {
-								$cat = preg_replace( '/^-/', '', $cat );
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = FALSE;
-									break;	// In an excluded category, break out of foreach
-								} else  {
-									$continue = TRUE; // if not, than we can continue
-								}
-							} else if ( preg_match( '/\d+/', $cat ) ) {
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = TRUE; // if  in an included category, set continue = TRUE.
-								}
-							}
-						}
 					
-						if ( !$continue ) continue;	// Skip to next in foreach
+					if ( !empty( $options['share_cats'] ) && isset( $options['clude'] )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['share_cats'] ) ) ) {
+						
+						if ( 'ex' == $options['clude'] && in_array( '0', $options['share_cats'] ) ) {
+							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> set to Exclude All Categories.</p>";
+							continue;
+						}
+						
+						$match = false;
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						foreach ( $post_categories as $cat ) {
+						
+							if ( in_array( (int)$cat, $options['share_cats'] ) ) {
+							
+								$match = true;
+								
+							}
+							
+						}
+						
+						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> or remove the post from the excluded category.</p>";
+							continue;
+						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> or add the post into the included category.</p>";
+							continue;
+						}
 					}
-
+					
 					// Get META LinkedIn comment
 					$comment = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'linkedin_comment', true ) ) );
 					

@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.2.13
+Version: 1.3.0
 Author URI: http://leenk.me/about/
-Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly
+Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.2.13' );
+define( 'LEENKME_VERSION' , '1.3.0' );
 
 class leenkme {
 	// Class members	
@@ -20,6 +20,7 @@ class leenkme {
 	var $facebook				= 'facebook';
 	var $googlebuzz				= 'googlebuzz';
 	var $linkedin				= 'linkedin';
+	var $friendfeed				= 'friendfeed';
 	var $base_url 				= 'base_url';
 	var $api_url				= 'api_url';
 	var $timeout				= 'timeout';
@@ -27,25 +28,28 @@ class leenkme {
 	
 	function leenkme() {
 		global $wp_version;
+		
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url	= 'https://leenk.me/api/1.1/';
+		$this->api_url	= 'https://leenk.me/api/dev/';
 		$this->timeout	= '5000';		// in miliseconds
-		
-		$this->upgrade();
+	
+		add_action( 'init', array( &$this, 'upgrade' ) );
 	}
 	
 	function get_leenkme_settings() {
-		$twitter = false;
-		$facebook = false;
-		$googlebuzz = false;
-		$linkedin = false;
-		$post_types = array('post');
+		$twitter 		= false;
+		$facebook		= false;
+		$googlebuzz 	= false;
+		$linkedin 		= false;
+		$friendfeed		= false;
+		$post_types 	= array('post');
 		
 		$options = array( 	$this->twitter 		=> $twitter,
 							$this->facebook 	=> $facebook,
 							$this->googlebuzz 	=> $googlebuzz,
 							$this->linkedin 	=> $linkedin,
+							$this->friendfeed 	=> $friendfeed,
 							$this->post_types	=> $post_types	);
 	
 		$leenkme_settings = get_option( $this->options_name );
@@ -113,6 +117,12 @@ class leenkme {
 					$leenkme_settings[$this->linkedin] = false;
 				}
 				
+				if ( isset( $_POST['friendfeed'] ) ) {
+					$leenkme_settings[$this->friendfeed] = true;
+				} else {
+					$leenkme_settings[$this->friendfeed] = false;
+				}
+				
 				if ( isset( $_POST['post_types'] ) ) {
 					$leenkme_settings[$this->post_types] = $_POST['post_types'];
 				}
@@ -138,7 +148,7 @@ class leenkme {
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-			<form id="leenkme" method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+			<form id="leenkme" method="post" action="">
 				<h2>leenk.me Settings</h2>
 				<p>leenk.me API Key: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ), 'leenkme') ?>" />
 				<input type="button" class="button" name="verify_leenkme_api" id="verify" value="<?php _e( 'Verify leenk.me API', 'leenkme' ) ?>" />
@@ -153,13 +163,15 @@ class leenkme {
                 <h3>Modules</h3>
                 <table id="leenkme_leenkme_manage_all_settings">
                     <tr><td id="leenkme_plugin_name">Twitter: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php if ( $leenkme_settings[$this->twitter] ) echo 'checked="checked"'; ?> /></td></tr>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">Facebook: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php if ( $leenkme_settings[$this->facebook] ) echo 'checked="checked"'; ?> /></td></tr>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">Google Buzz: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php if ( $leenkme_settings[$this->googlebuzz] ) echo 'checked="checked"'; ?> /></td></tr>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td></tr>
                     <tr><td id="leenkme_plugin_name">LinkedIn: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php if ( $leenkme_settings[$this->linkedin] ) echo 'checked="checked"'; ?> /></td></tr>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td></tr>
+                    <tr><td id="leenkme_plugin_name">FriendFeed: </td>
+                    <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td></tr>
                 </table>
                 
                 <h3>Post Types to Publish</h3>
@@ -176,7 +188,7 @@ class leenkme {
 						if ( in_array( $post_type->name, $hidden_post_types ) ) continue;
 						?>
 						<tr><td id="leenkme_plugin_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
-						<td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php if ( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ) echo 'checked="checked"'; ?> /></td></tr>
+						<td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php checked( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ); ?> /></td></tr>
 						<?php
 					} ?>
                 </table>
@@ -219,6 +231,10 @@ class leenkme {
 			$this->upgrade_to_1_2_3();
 		}
 		
+		if ( version_compare( $old_version, '1.3.0', '<' ) ) {
+			$this->upgrade_to_1_3_0();
+		}
+		
 		$leenkme_settings['version'] = LEENKME_VERSION;
 		update_option( $this->options_name, $leenkme_settings );
 	}
@@ -241,6 +257,117 @@ class leenkme {
 		if ($role !== NULL)
 			$role->add_cap('leenkme_edit_user_settings');
 	}
+	
+	function upgrade_to_1_3_0() {
+		global $wpdb;
+		
+		$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
+		
+		foreach ( $user_ids as $user_id ) {
+			
+			$tw_user_settings = get_user_option( 'leenkme_twitter', $user_id );
+			if ( !empty( $tw_user_settings )
+					&& isset( $tw_user_settings['tweetcats'] ) && !empty( $tw_user_settings['tweetcats'] ) ) {
+			
+				$new_tweetcats = $this->convert_old_categories( $tw_user_settings['tweetcats'] );
+				if ( !empty( $new_tweetcats ) ) {
+					
+					$tw_user_settings['clude'] = array_shift( $new_tweetcats );
+					$tw_user_settings['tweetcats'] = $new_tweetcats;
+					update_user_option( $user_id, 'leenkme_twitter', $tw_user_settings );
+					
+				} 
+			
+			}
+			
+			$fb_user_settings = get_user_option( 'leenkme_facebook', $user_id );
+			if ( !empty( $fb_user_settings ) 
+					&& isset( $fb_user_settings['publish_cats'] ) && !empty( $fb_user_settings['publish_cats'] ) ) {
+			
+				$new_publish_cats = $this->convert_old_categories( $fb_user_settings['publish_cats'] );
+				
+				if ( !empty( $new_publish_cats ) ) {
+					
+					$fb_user_settings['clude'] = array_shift( $new_publish_cats );
+					$fb_user_settings['publish_cats'] = $new_publish_cats;
+					update_user_option( $user_id, 'leenkme_facebook', $fb_user_settings );
+					
+				} 
+			
+			}
+
+			$gb_user_settings = get_user_option( 'leenkme_googlebuzz', $user_id );
+			if ( !empty( $gb_user_settings )
+					&& isset( $gb_user_settings['buzz_cats'] ) && !empty( $gb_user_settings['buzz_cats'] ) ) {
+			
+				$new_buzz_cats = $this->convert_old_categories( $gb_user_settings['buzz_cats'] );
+				
+				if ( !empty( $new_buzz_cats ) ) {
+					
+					$gb_user_settings['clude'] = array_shift( $new_buzz_cats );
+					$gb_user_settings['buzz_cats'] = $new_buzz_cats;
+					update_user_option( $user_id, 'leenkme_googlebuzz', $gb_user_settings );
+					
+				}
+			
+			}
+			
+			$li_user_settings = get_user_option( 'leenkme_linkedin', $user_id );
+			if ( !empty( $li_user_settings )
+					&&isset( $li_user_settings['share_cats'] ) && !empty( $li_user_settings['share_cats'] ) ) {
+			
+				$new_share_cats = $this->convert_old_categories( $li_user_settings['share_cats'] );
+				
+				if ( !empty( $new_share_cats ) ) {
+					
+					$li_user_settings['clude'] = array_shift( $new_share_cats );
+					$li_user_settings['share_cats'] = $new_share_cats;
+					update_user_option( $user_id, 'leenkme_linkedin', $li_user_settings );
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+	function convert_old_categories( $categories ) {
+
+		$cats = split( ",", $categories );
+		
+		foreach ( (array)$cats as $cat ) {
+			
+			if ( preg_match( '/^-\d+/', $cat ) ) {
+				
+				$exclude[] = (int)preg_replace( '/^-/', '', $cat );
+				
+			} else if ( preg_match( '/\d+/', $cat ) ) {
+				
+				$include[] = (int)$cat;
+				
+			}
+			
+		}
+		
+		if ( !empty( $include ) ) {
+		
+			array_unshift( $include, 'in' );
+			return $include;
+			
+		} else if ( !empty( $exclude ) ) {
+		
+			array_unshift( $exclude, 'ex' );
+			return $exclude;
+			
+		} else {
+
+			return array( 'in', '0' ); // Default to include all categories
+			
+		}
+		
+	}
+	
 }
 
 // Instantiate the class
@@ -261,6 +388,10 @@ if ( class_exists( 'leenkme' ) ) {
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
 		require_once( 'linkedin.php' );
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+		require_once( 'friendfeed.php' );
 	}
 }
 
@@ -297,6 +428,11 @@ function leenkme_ap() {
 		global $dl_pluginleenkmeLinkedIn;
 		add_submenu_page( 'leenkme', __( 'LinkedIn Settings', 'leenkme' ), __( 'LinkedIn', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_linkedin', array( &$dl_pluginleenkmeLinkedIn, 'print_linkedin_settings_page' ) );
 	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+		global $dl_pluginleenkmeFriendFeed;
+		add_submenu_page( 'leenkme', __( 'FriendFeed Settings', 'leenkme' ), __( 'FriendFeed', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_friendfeed', array( &$dl_pluginleenkmeFriendFeed, 'print_friendfeed_settings_page' ) );
+	}
 }
 
 // Example followed from http://codex.wordpress.org/AJAX_in_Plugins
@@ -305,11 +441,11 @@ function leenkme_js() {
 ?>
 <script type="text/javascript">
 	jQuery(document).ready(function($) {
-		$('input#api').click(function() {
+		$('input#api').live('click', function() {
 			$('input#api').css('background-color', 'white');
 		});
 	
-		$('input#verify').click(function() {
+		$('input#verify').live('click', function() {
 			var leenkme_API = $('input#api').val();
 			var error = false;
 			if (leenkme_API == "") {
@@ -340,6 +476,10 @@ function leenkme_js() {
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
 		leenkme_linkedin_js();
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+		leenkme_friendfeed_js();
 	}
 ?>
 
@@ -405,13 +545,13 @@ function leenkme_ajax_verify() {
 			} else if ( isset( $result['response']['code'] ) ) {
 				die( $result['body'] );
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 			}
 		} else {
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 		}
 	} else {
-		die( 'Please fill in your API key.' );
+		die( __( 'Please fill in your API key.' ) );
 	}
 }
 
@@ -437,7 +577,7 @@ function leenkme_connect( $post ) {
 			if ( isset( $result ) ) {
 				return $result;
 			} else {
-				return 'Undefined error occurred, Please contact leenk.me support.';
+				return __( 'Undefined error occurred, Please contact leenk.me support.' );
 			}
 		}
 	}
@@ -463,21 +603,22 @@ function leenkme_ajax_connect( $connect_arr ) {
 			if ( isset( $result ) ) {
 				return $result;
 			} else {
-				return 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.';
+				return __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' );
 			}
 		}
 	} else {
-			return 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.';
+			return __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' );
 	}
 }
 
 function leenkme_help_list( $contextual_help, $screen ) {
 	if ( 'leenkme' == $screen->parent_base ) {
-		$contextual_help[$screen->id] = '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
+		$contextual_help[$screen->id] = __( '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | ' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | ' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">Google Buzz</a>' .
-'<a href="http://leenk.me/2010/12/XX/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a>';
+'<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a>' .
+'<a href="http://leenk.me/2011/04/01/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>' );
 	}
 
 	return $contextual_help;
@@ -546,5 +687,23 @@ if ( !function_exists( 'str_ireplace' ) ) {
 	
 		$result = preg_replace( $search, $replace, $subject );
 		return $was_string ? $result[0] : $result;
+	}
+}
+// disabled() since 3.0, needed to maintain 2.8, and 2.9 backwards compatability
+if ( !function_exists( 'disabled' ) ) {
+	/**
+	 * Outputs the html disabled attribute.
+	 *
+	 * Compares the first two arguments and if identical marks as disabled
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param mixed $disabled One of the values to compare
+	 * @param mixed $current (true) The other value to compare if not just true
+	 * @param bool $echo Whether to echo or just return the string
+	 * @return string html attribute or empty string
+	 */
+	function disabled( $disabled, $current = true, $echo = true ) {
+		return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
 	}
 }

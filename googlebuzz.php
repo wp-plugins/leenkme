@@ -4,6 +4,7 @@ class leenkme_GoogleBuzz {
 	// Class members		
 	var $options_name			= 'leenkme_googlebuzz';
 	var $buzz_cats				= 'buzz_cats';
+	var $clude					= 'clude';
 	var $buzz_all_users			= 'buzz_all_users';
 
 	// Constructor
@@ -16,7 +17,15 @@ class leenkme_GoogleBuzz {
 	  --------------------------------------------------------------------*/
 	
 	function get_leenkme_googlebuzz_settings() {
-		$buzz_all_users = '';
+		global $wpdb;
+		
+		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+		
+		if ( 1 < $user_count ) {
+			$buzz_all_users = true;
+		} else {
+			$buzz_all_users = false;
+		}
 		
 		$options = array( $this->buzz_all_users => $buzz_all_users );
 	
@@ -33,10 +42,12 @@ class leenkme_GoogleBuzz {
 	// Option loader function
 	function get_user_settings( $user_id ) {
 		// Default values for the options
-		$buzz_cats		= '';
+		$buzz_cats		= array( '0' );
+		$clude			= 'in';
 		
 		$options = array(
-							 $this->buzz_cats 		=> $buzz_cats
+							 $this->buzz_cats 		=> $buzz_cats,
+							 $this->clude	 		=> $clude
 						);
 						
 		// Get values from the WP options table in the database, re-assign if found
@@ -64,8 +75,12 @@ class leenkme_GoogleBuzz {
 		$googlebuzz_settings = $this->get_leenkme_googlebuzz_settings();
 		
 		if ( isset( $_POST['update_googlebuzz_settings'] ) ) {
-			if ( isset( $_POST['buzz_cats'] ) ) {
+			if ( isset( $_POST['clude'] ) && isset( $_POST['buzz_cats'] ) ) {
+				$user_settings[$this->clude] = $_POST['clude'];
 				$user_settings[$this->buzz_cats] = $_POST['buzz_cats'];
+			} else {
+				$user_settings[$this->clude] = 'in';
+				$user_settings[$this->buzz_cats] = array( '0' );
 			}
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
@@ -87,16 +102,34 @@ class leenkme_GoogleBuzz {
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-            <form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+            <form id="leenkme" method="post" action="">
                 <h2>Google Buzz Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="googlebuzz_options">
                 <h3>Publish Settings</h3>
-                    <p>Buzz Categories: <input name="buzz_cats" type="text" style="width: 250px;" value="<?php _e( $user_settings[$this->buzz_cats], 'leenkme_GoogleBuzz' ) ?>" /></p>
-                    <div class="buzz-cats" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Buzz to your profile from several specific category IDs, e.g. 3,4,5<br />Buzz all posts to your profile except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
+                    <p>Buzz Categories:</p>
+                
+                    <div class="tweet-cats" style="margin-left: 50px;">
+                    	<p>
+                        <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+                        <p>
+                        <select id='categories' name='buzz_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->buzz_cats] ) ); ?>>All Categories</option>
+                        <?php 
+                        $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+                        foreach ( (array)$categories as $category ) {
+                            ?>
+                            
+                            <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->buzz_cats] ) ); ?>><?php echo $category->name; ?></option>
+        
+        
+                            <?php
+                        }
+                        ?>
+                        </select></p>
+                        <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
                     </div>
                     <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
-                    <p>Buzz All Authors? <input type="checkbox" name="buzz_all_users" <?php if ( $googlebuzz_settings[$this->buzz_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Buzz All Authors? <input type="checkbox" name="buzz_all_users" <?php checked( $googlebuzz_settings[$this->buzz_all_users] ); ?> /></p>
                     <div class="buzz-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to buzz to each available author account.</p>
                     </div>
@@ -114,6 +147,9 @@ class leenkme_GoogleBuzz {
 	
 	function leenkme_googlebuzz_meta_tags( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+			
+		if ( isset( $_REQUEST['_inline_edit'] ) )
 			return;
 	
 		if ( isset( $_POST['googlebuzz_custombuzz'] ) && !empty( $_POST['googlebuzz_custombuzz'] ) ) {
@@ -155,7 +191,7 @@ class leenkme_GoogleBuzz {
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Buzz:', 'leenkme' ) ?></td>
 				<td>
-					<input style="margin-top: 5px;" type="checkbox" name="googlebuzz_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
+					<input style="margin-top: 5px;" type="checkbox" name="googlebuzz_exclude" <?php checked( $exclude ); ?> />
 				</td></tr>
 				<?php // Only show ReBuzz button if the post is "buzzed"
 				if ( 'publish' === $post->post_status ) { ?>
@@ -178,7 +214,7 @@ if ( class_exists( 'leenkme_GoogleBuzz' ) ) {
 function leenkme_googlebuzz_js() {
 ?>
 
-		$('input#gb_buzz').click(function() {
+		$('input#gb_buzz').live('click', function() {
 			var data = {
 				action:				'gb_buzz',
 				_wpnonce:			$('input#gb_buzz_wpnonce').val()
@@ -187,7 +223,7 @@ function leenkme_googlebuzz_js() {
 			ajax_response(data);
 		});
 
-		$('input#rebuzz_button').click(function() {
+		$('input#rebuzz_button').live('click', function() {
 			var data = {
 				action: 			'rebuzz',
 				id:  				$('input#post_ID').val(),
@@ -197,7 +233,7 @@ function leenkme_googlebuzz_js() {
 			ajax_response(data);
 		});
 
-		$('a.rebuzz_row_action').click(function() {
+		$('a.rebuzz_row_action').live('click', function() {
 			var data = {
 				action: 			'rebuzz',
 				id:  				$(this).attr('id'),
@@ -253,7 +289,7 @@ function leenkme_ajax_rebuzz() {
 		} else {
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_buzz_to_googlebuzz( array(), $post ) );
+			$result = leenkme_ajax_connect( leenkme_buzz_to_googlebuzz( array(), $post, true ) );
 			
 			if ( isset( $result ) ) {	
 				if ( is_wp_error( $result ) ) {
@@ -286,7 +322,7 @@ function rebuzz_row_action( $actions, $post ) {
 }
 									
 // Add function to pubslih to googlebuzz
-function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
+function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeGoogleBuzz;
 	$maxMessageLen = 240;
 	
@@ -337,27 +373,36 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post ) {
 
 				$options = $dl_pluginleenkmeGoogleBuzz->get_user_settings( $user_id );
 				if ( !empty( $options ) ) {
-					if ( !empty( $options['buzz_cats'] ) ) {
-						$continue = FALSE;
-						$cats = split( ",", $options['buzz_cats'] );
+					
+					if ( !empty( $options['buzz_cats'] ) && isset( $options['clude'] )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['buzz_cats'] ) ) ) {
 						
-						foreach ( $cats as $cat ) {
-							if ( preg_match( '/^-\d+/', $cat ) ) {
-								$cat = preg_replace( '/^-/', '', $cat );
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = FALSE;
-									break;	// In an excluded category, break out of foreach
-								} else  {
-									$continue = TRUE; // if not, than we can continue
-								}
-							} else if ( preg_match( '/\d+/', $cat ) ) {
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = TRUE; // if  in an included category, set continue = TRUE.
-								}
-							}
+						if ( 'ex' == $options['clude'] && in_array( '0', $options['buzz_cats'] ) ) {
+							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> set to Exclude All Categories.</p>";
+							continue;
 						}
 						
-						if ( !$continue ) continue;	// Skip to next in foreach
+						$match = false;
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						foreach ( $post_categories as $cat ) {
+						
+							if ( in_array( (int)$cat, $options['buzz_cats'] ) ) {
+							
+								$match = true;
+								
+							}
+							
+						}
+						
+						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> or remove the post from the excluded category.</p>";
+							continue;
+						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> or add the post into the included category.</p>";
+							continue;
+						}
 					}
 					
 					$connect_arr[$api_key]['googlebuzz_message'] = $message;

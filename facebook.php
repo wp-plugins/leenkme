@@ -12,6 +12,7 @@ class leenkme_Facebook {
 	var $facebook_share_link		= 'facebook_share_link';
 	var $default_image				= 'default_image';
 	var $publish_cats				= 'publish_cats';
+	var $clude						= 'clude';
 	var $publish_all_users			= 'publish_all_users';
 
 	// Constructor
@@ -24,7 +25,15 @@ class leenkme_Facebook {
 	  --------------------------------------------------------------------*/
 	
 	function get_leenkme_facebook_settings() {
-		$publish_all_users = '';
+		global $wpdb;
+		
+		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+		
+		if ( 1 < $user_count ) {
+			$publish_all_users = true;
+		} else {
+			$publish_all_users = false;
+		}
 		
 		$options = array( $this->publish_all_users => $publish_all_users );
 	
@@ -49,7 +58,8 @@ class leenkme_Facebook {
 		$facebook_linkname		= '%WPSITENAME%';
 		$facebook_caption 		= '%WPTAGLINE%';
 		$default_image			= '';
-		$publish_cats			= '';
+		$publish_cats			= array( '0' );
+		$clude					= 'in';
 		
 		$options = array(
 							 $this->facebook_profile 		=> $facebook_profile,
@@ -60,7 +70,8 @@ class leenkme_Facebook {
 							 $this->facebook_linkname		=> $facebook_linkname,
 							 $this->facebook_caption 		=> $facebook_caption,
 							 $this->default_image 			=> $default_image,
-							 $this->publish_cats 			=> $publish_cats
+							 $this->publish_cats 			=> $publish_cats,
+							 $this->clude	 				=> $clude
 						);
 						
 		// Get values from the WP options table in the database, re-assign if found
@@ -105,6 +116,12 @@ class leenkme_Facebook {
 			} else {
 				$user_settings[$this->facebook_group] = false;
 			}
+				
+			if ( isset( $_POST['facebook_share_link'] ) ) {
+				$user_settings[$this->facebook_share_link] = true;
+			} else {
+				$user_settings[$this->facebook_share_link] = false;
+			}
 			
 			if ( isset( $_POST['facebook_message'] ) ) {
 				$user_settings[$this->facebook_message] = $_POST['facebook_message'];
@@ -122,8 +139,12 @@ class leenkme_Facebook {
 				$user_settings[$this->default_image] = $_POST['default_image'];
 			}
 
-			if ( isset( $_POST['publish_cats'] ) ) {
+			if ( isset( $_POST['clude'] ) && isset( $_POST['publish_cats'] ) ) {
+				$user_settings[$this->clude] = $_POST['clude'];
 				$user_settings[$this->publish_cats] = $_POST['publish_cats'];
+			} else {
+				$user_settings[$this->clude] = 'in';
+				$user_settings[$this->publish_cats] = array( '0' );
 			}
 			
 			update_user_option($user_id, $this->options_name, $user_settings);
@@ -133,12 +154,6 @@ class leenkme_Facebook {
 					$facebook_settings[$this->publish_all_users] = true;
 				} else {
 					$facebook_settings[$this->publish_all_users] = false;
-				}
-				
-				if ( isset( $_POST['facebook_share_link'] ) ) {
-					$facebook_settings[$this->facebook_share_link] = true;
-				} else {
-					$facebook_settings[$this->facebook_share_link] = false;
 				}
 				
 				update_option( $this->options_name, $facebook_settings );
@@ -151,14 +166,14 @@ class leenkme_Facebook {
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-            <form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+            <form id="leenkme" method="post" action="">
                 <h2>Facebook Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <div id="facebook_options">
                 	<h3>Social Settings</h3>
                     <p>Publish to Personal Profile? <input type="checkbox" id="facebook_profile" name="facebook_profile" <?php checked( $user_settings[$this->facebook_profile] ); ?> /></p>
                     <p>Publish to Fan Page? <input type="checkbox" id="facebook_page" name="facebook_page" <?php checked( $user_settings[$this->facebook_page] ); ?> /></p>
                     <p>Publish to Group? <input type="checkbox" id="facebook_group" name="facebook_group" <?php checked( $user_settings[$this->facebook_group] ); ?> /></p>
-                    <p>Include Share Link? <input type="checkbox" id="facebook_share_link" name="facebook_share_link" <?php checked( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
+                    <p>Include Share Link? <input type="checkbox" id="facebook_share_link" name="facebook_share_link" <?php checked( $user_settings[$this->facebook_share_link] ); ?> /></p>
                     <div class="facebook-format" style="margin-left: 50px;">
                         <p style="font-size: 11px; margin-bottom: 0px;">NOTE: Facebook now offers two ways to share links, one for your <em>feed</em> and one for your <em>links</em>. The <em>feed</em> API does not include a <strong>share link</strong>, the <em>links</em> API does. There are pros and cons to both. If you want to include the <strong>share link</strong>, then you cannot customize the Link Name, Caption, Description, or Picture of the post (Facebook pulls these automatically). This could have some unexpected results. For instance, Facebook might pull the wrong image or the wrong text for the description. Hopefully Facebook will expand the new API to allow these customizations. If you can live without the <strong>share link</strong> then you can continue to customize the Link Name, Caption, Description, and Picture as you have in the past.</p>
                     </div>
@@ -167,11 +182,11 @@ class leenkme_Facebook {
                 <div id="facebook_format_options" style="margin-top:25px; border-top: 1px solid grey;">
                 	<h3>Message Settings</h3>
                     <p>Default Message: <input name="facebook_message" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_message], 'leenkme_Facebook' ) ?>" /></p>
-                    <?php if ( $facebook_settings[$this->facebook_share_link] ) {
+                    <?php if ( $user_settings[$this->facebook_share_link] ) {
                     	echo "<h4>You cannot modify the Link Name, Caption, Descrpition, or Picture with Share Link enabled.</h4>";
                     } ?>
-                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_linkname], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
-                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_caption], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>
+                    <p>Default Link Name: <input name="facebook_linkname" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_linkname], 'leenkme_Facebook' ) ?>" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></p>
+                    <p>Default Caption: <input name="facebook_caption" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->facebook_caption], 'leenkme_Facebook' ) ?>" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></p>
                     <div class="facebook-format" style="margin-left: 50px;">
                         <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
                         <ul style="font-size: 11px;">
@@ -180,19 +195,39 @@ class leenkme_Facebook {
                             <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
                         </ul>
                     </div>
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_Facebook' ) ?>" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></p>                    
+                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_Facebook' ) ?>" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></p>                    
                     <div class="publish-cats" style="margin-left: 50px;">
                     	<p style="font-size: 11px; margin-bottom: 0px;"><strong>NOTE</strong> Do not use an image URL hosted by Facebook. Facebook will reject your message.</p>
                     </div>
 				</div>
                 <div id="facebook_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
+                
                 	<h3>Publish Settings</h3>
-                    <p>Publish Categories: <input name="publish_cats" type="text" style="width: 250px;" value="<?php _e( $user_settings[$this->publish_cats], 'leenkme_Facebook' ) ?>" /></p>
-                    <div class="publish-cats" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Publish to your wall from several specific category IDs, e.g. 3,4,5<br />Publish all posts to your wall except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
+                    <p>Publish Categories: 
+                
+                    <div class="tweet-cats" style="margin-left: 50px;">
+                    	<p>
+                        <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+                        <p>
+                        <select id='categories' name='publish_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->publish_cats] ) ); ?>>All Categories</option>
+                        <?php 
+                        $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+                        foreach ( (array)$categories as $category ) {
+                            ?>
+                            
+                            <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->publish_cats] ) ); ?>><?php echo $category->name; ?></option>
+        
+        
+                            <?php
+                        }
+                        ?>
+                        </select></p>
+                        <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
                     </div>
+                    
                     <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
-                    <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php if ( $facebook_settings[$this->publish_all_users] ) echo 'checked="checked"'; ?> /></p>
+                    <p>Publish All Authors? <input type="checkbox" name="publish_all_users" <?php checked( $facebook_settings[$this->publish_all_users] ); ?> /></p>
                     <div class="publish-allusers" style="margin-left: 50px;">
                     <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to publish to each available author account.</p>
                     </div>
@@ -210,6 +245,9 @@ class leenkme_Facebook {
 	
 	function leenkme_facebook_meta_tags( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+			
+		if ( isset( $_REQUEST['_inline_edit'] ) )
 			return;
 
 		if ( isset( $_POST["facebook_exclude_profile"] ) ) {
@@ -293,35 +331,35 @@ class leenkme_Facebook {
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Message:', 'leenkme' ) ?></td>
 				  <td><input value="<?php echo $facebook_message; ?>" type="text" name="facebook_message" size="80px"/></td></tr>
-				<?php if ( $facebook_settings[$this->facebook_share_link] ) {
+				<?php if ( $user_settings[$this->facebook_share_link] ) {
                     echo "<tr><td colspan='2' style='text-align: center;'><h4>You cannot modify the Link Name, Caption, Descrpition, or Picture with Share Link enabled.</h4></td></tr>";
                 } ?>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Link Name:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
+				  <td><input value="<?php echo $facebook_linkname; ?>" type="text" name="facebook_linkname" size="80px" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Custom Caption:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
+				  <td><input value="<?php echo $facebook_caption; ?>" type="text" name="facebook_caption" size="80px" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Description:', 'leenkme' ) ?></td>
-				  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> ><?php echo $facebook_description; ?></textarea>
+				  <td><textarea style="margin-top: 5px;" name="facebook_description" cols="66" rows="5" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> ><?php echo $facebook_description; ?></textarea>
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px" <?php disabled( $facebook_settings[$this->facebook_share_link] ); ?> /></td></tr>
+				  <td><input value="<?php echo $facebook_image; ?>" type="text" name="facebook_image" size="80px" <?php disabled( $user_settings[$this->facebook_share_link] ); ?> /></td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
 				  <td style="vertical-align:top; width:80px;">
 					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
 				</td></tr>
 				<?php if ( $user_settings['facebook_profile'] ) { ?>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_profile" <?php if ( $exclude_profile ) echo 'checked="checked"'; ?> />
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_profile" <?php checked( $exclude_profile ); ?> />
 				</td></tr>
 				<?php } ?>
 				<?php if ( $user_settings['facebook_page'] ) { ?>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Page:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php if ( $exclude_page ) echo 'checked="checked"'; ?> />
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_page" <?php checked( $exclude_page ); ?> />
 				</td></tr>
 				<?php } ?>
 				<?php if ( $user_settings['facebook_group'] ) { ?>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Group:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_group" <?php if ( $facebook_group ) echo 'checked="checked"'; ?> />
+				  <td><input style="margin-top: 5px;" type="checkbox" name="facebook_exclude_group" <?php checked( $exclude_group ); ?> />
 				</td></tr>
 				<?php } ?>
 				<?php // Only show RePublish button if the post is "published"
@@ -345,7 +383,7 @@ if ( class_exists( 'leenkme_Facebook' ) ) {
 function leenkme_facebook_js() {
 ?>
 
-		$('input#fb_publish').click(function() {
+		$('input#fb_publish').live('click', function() {
 			var facebook_profile = $('input#facebook_profile').attr('checked')
 			var facebook_page = $('input#facebook_page').attr('checked')
 			var facebook_group = $('input#facebook_group').attr('checked')
@@ -361,7 +399,7 @@ function leenkme_facebook_js() {
 			ajax_response(data);
 		});
 
-		$('input#republish_button').click(function() {
+		$('input#republish_button').live('click', function() {
 			var data = {
 				action: 			'republish',
 				id:  				$('input#post_ID').val(),
@@ -371,7 +409,7 @@ function leenkme_facebook_js() {
 			ajax_response(data);
 		});
 
-		$('a.republish_row_action').click(function() {
+		$('a.republish_row_action').live('click', function() {
 			var data = {
 				action: 			'republish',
 				id:  				$(this).attr('id'),
@@ -442,7 +480,7 @@ function leenkme_ajax_republish() {
 		} else {
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post ) );
+			$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post, true ) );
 			
 			if ( isset( $result ) ) {			
 				if ( is_wp_error( $result ) ) {
@@ -475,7 +513,7 @@ function republish_row_action( $actions, $post ) {
 }
 									
 // Add function to pubslih to facebook
-function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
+function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeFacebook;
 	$maxMessageLen = 420;
 	$maxDescLen = 300;
@@ -517,7 +555,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 			$wp_tagline = strip_tags( get_bloginfo( 'description' ) );
 			
 			foreach ( $user_ids as $user_id ) {
-				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
+				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
 				if ( empty( $user_settings['leenkme_API'] ) ) {
 					continue;	//Skip user if they do not have an API key set
 				}
@@ -526,27 +564,36 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 				
 				$options = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
 				if ( !empty( $options ) ) {
-					if ( !empty( $options['publish_cats'] ) ) {	
-						$continue = FALSE;
-						$cats = split( ",", $options['publish_cats'] );
-						
-						foreach ( $cats as $cat ) {
-							if ( preg_match( '/^-\d+/', $cat ) ) {
-								$cat = preg_replace( '/^-/', '', $cat );
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = FALSE;
-									break;	// In an excluded category, break out of foreach
-								} else  {
-									$continue = TRUE; // if not, than we can continue
-								}
-							} else if ( preg_match( '/\d+/', $cat ) ) {
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = TRUE; // if  in an included category, set continue = TRUE.
-								}
-							}
-						}
 					
-						if ( !$continue ) continue;	// Skip to next in foreach
+					if ( !empty( $options['publish_cats'] ) && isset( $options['clude'] )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['publish_cats'] ) ) ) {
+						
+						if ( 'ex' == $options['clude'] && in_array( '0', $options['publish_cats'] ) ) {
+							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_facebook'>Leenk.me Facebook settings</a> set to Exclude All Categories.</p>";
+							continue;
+						}
+						
+						$match = false;
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						foreach ( $post_categories as $cat ) {
+						
+							if ( in_array( (int)$cat, $options['publish_cats'] ) ) {
+							
+								$match = true;
+								
+							}
+							
+						}
+						
+						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_facebook'>Leenk.me Facebook settings</a> or remove the post from the excluded category.</p>";
+							continue;
+						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_facebook'>Leenk.me Facebook settings</a> or add the post into the included category.</p>";
+							continue;
+						}
 					}
 						
 					if ( !$options['facebook_profile'] && !$options['facebook_page']  && !$options['facebook_group']) {
@@ -648,7 +695,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post ) {
 						$connect_arr[$api_key]['facebook_picture'] = $picture;
 					}
 		
-					if ( $facebook_settings['facebook_share_link'] ) {
+					if ( $options['facebook_share_link'] ) {
 						$connect_arr[$api_key]['facebook_share_link'] = 'true';
 					}
 					

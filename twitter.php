@@ -5,6 +5,7 @@ class leenkme_Twitter {
 	var $options_name			= 'leenkme_twitter';
 	var $tweetFormat			= 'leenkme_tweetformat';
 	var $tweetCats				= 'tweetcats';
+	var $clude					= 'clude';
 	var $tweetAllUsers			= 'leenkme_tweetallusers';
 
 	// Constructor
@@ -17,7 +18,15 @@ class leenkme_Twitter {
 	  --------------------------------------------------------------------*/
 	
 	function get_leenkme_twitter_settings() {
-		$tweetAllUsers = '';
+		global $wpdb;
+		
+		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+		
+		if ( 1 < $user_count ) {
+			$tweetAllUsers = true;
+		} else {
+			$tweetAllUsers = false;
+		}
 		
 		$options = array( $this->tweetAllUsers => $tweetAllUsers );
 	
@@ -35,11 +44,13 @@ class leenkme_Twitter {
 	function get_user_settings( $user_id ) {
 		// Default values for the options
 		$tweetFormat 		= 'Blogged %TITLE%: %URL%';
-		$tweetCats		 	= '';
+		$tweetCats		 	= array( '0' );
+		$clude				= 'in';
 		
 		$options = array(
 							 $this->tweetFormat 		=> $tweetFormat,
-							 $this->tweetCats 			=> $tweetCats
+							 $this->tweetCats 			=> $tweetCats,
+							 $this->clude	 			=> $clude
 						);
 						
 		// Get values from the WP options table in the database, re-assign if found
@@ -71,8 +82,12 @@ class leenkme_Twitter {
 				$user_settings[$this->tweetFormat] = $_POST['leenkme_tweetformat'];
 			}
 			
-			if ( isset( $_POST['tweetcats'] ) ) {
+			if ( isset( $_POST['clude'] ) && isset( $_POST['tweetcats'] ) ) {
+				$user_settings[$this->clude] = $_POST['clude'];
 				$user_settings[$this->tweetCats] = $_POST['tweetcats'];
+			} else {
+				$user_settings[$this->clude] = 'in';
+				$user_settings[$this->tweetCats] = array( '0' );
 			}
 			
 			update_user_option( $user_id, $this->options_name, $user_settings );
@@ -93,7 +108,7 @@ class leenkme_Twitter {
 		// Display HTML form for the options below
 		?>
 		<div class=wrap>
-			<form id="leenkme" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+			<form id="leenkme" method="post" action="">
 				<h2>Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
                 <h3>Message Settings</h3>
 				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ), 'leenkme_Twitter') ?>" /></p>
@@ -106,14 +121,34 @@ class leenkme_Twitter {
 					<li>%TAGS% - Displays ags your post in your Twitter feed as a hashtag.*</li>
 				</ul>
 				</div>
+               
                 <div id="twitter_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
+               
                 <h3>Publish Settings</h3>
-				<p>Tweet Categories: <input name="tweetcats" type="text" style="width: 25%;" value="<?php _e( $user_settings[$this->tweetCats], 'leenkme_Twitter' ) ?>" /></p>
+				<p>Tweet Categories:</p>
+                
 				<div class="tweet-cats" style="margin-left: 50px;">
-				<p style="font-size: 11px; margin-bottom: 0px;">Tweet posts from several specific category IDs, e.g. 3,4,5<br />Tweet all posts except those from a category by prefixing its ID with a '-' (minus) sign, e.g. -3,-4,-5</p>
+                	<p>
+                    <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+                    <p>
+                    <select id='categories' name='tweetcats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->tweetCats] ) ); ?>>All Categories</option>
+                    <?php 
+                    $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+                    foreach ( (array)$categories as $category ) {
+                        ?>
+                        
+                        <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->tweetCats] ) ); ?>><?php echo $category->name; ?></option>
+    
+    
+                        <?php
+                    }
+                    ?>
+                    </select></p>
+                    <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
 				</div>
 				<?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //then we're displaying the main Admin options ?>
-				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php if ( $twitter_settings[$this->tweetAllUsers] ) echo 'checked="checked"'; ?> /></p>
+				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php checked( $twitter_settings[$this->tweetAllUsers] ); ?> /></p>
 				<div class="tweet-allusers" style="margin-left: 50px;">
 				<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
                 </div>
@@ -133,6 +168,9 @@ class leenkme_Twitter {
 	
 	function leenkme_twitter_meta_tags( $post_id ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			return;
+			
+		if ( isset( $_REQUEST['_inline_edit'] ) )
 			return;
 			
 		if ( isset( $_POST['leenkme_tweet'] ) && !empty( $_POST['leenkme_tweet'] ) ) {
@@ -166,7 +204,7 @@ class leenkme_Twitter {
 			<table>
 				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
 				<td style="vertical-align:top; width:80px;">
-					<p>%TITLE%,  %URL%</p>
+					<p>%TITLE%, %URL%, %CATS%, %TAGS%</p>
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Tweet Format:', 'leenkme' ) ?></td>
 				<td><input value="<?php echo $tweet ?>" type="text" name="leenkme_tweet" maxlength="140" size="80px"/></td></tr>
@@ -176,7 +214,7 @@ class leenkme_Twitter {
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
 				<td>
-					<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php if ( $exclude ) echo 'checked="checked"'; ?> />
+					<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php checked ( $exclude ); ?> />
 				</td></tr>
 				<?php // Only show ReTweet button if the post is "published"
 				if ( "publish" === $post->post_status ) { ?>
@@ -199,7 +237,7 @@ if ( class_exists( 'leenkme_Twitter' ) ) {
 function leenkme_twitter_js() {
 ?>
 
-		$('input#tweet').click(function() {
+		$('input#tweet').live('click', function() {
 			var data = {
 				action: 	'tweet',
 				_wpnonce: 	$('input#tweet_wpnonce').val()
@@ -208,7 +246,7 @@ function leenkme_twitter_js() {
 			ajax_response(data);
 		});
 		
-		$('input#retweet_button').click(function() {
+		$('input#retweet_button').live('click', function() {
 			var data = {
 				action: 	'retweet',
 				id:  		$('input#post_ID').val(),
@@ -218,7 +256,7 @@ function leenkme_twitter_js() {
 			ajax_response(data);
 		});
 		
-		$('a.retweet_row_action').click(function() {
+		$('a.retweet_row_action').live('click', function() {
 			var data = {
 				action: 	'retweet',
 				id:  		$(this).attr('id'),
@@ -270,7 +308,7 @@ function leenkme_ajax_retweet() {
 		} else {
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post ) );
+			$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post, true ) );
 			
 			if ( isset( $result ) ) {			
 				if ( is_wp_error( $result ) ) {
@@ -278,7 +316,7 @@ function leenkme_ajax_retweet() {
 				} else if ( isset( $result['response']['code'] ) ) {
 					die( $result['body'] );
 				} else {
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+					die( '<p>Error received! Please check your <a href="admin.php?page=leenkme_twitter">Twitter settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.</p>' );
 				}
 			} else {
 				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
@@ -303,7 +341,7 @@ function retweet_row_action( $actions, $post ) {
 }
 									
 // Add function to pubslih to twitter
-function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
+function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
 	$maxLen = 140;
 	
@@ -317,7 +355,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 		// I've made an assumption that most users will include the %URL% text
 		// So, instead of trying to get the link several times for multi-user setups
 		// I'm getting the URL once and using it later --- for the sake of efficiency
-		$url = leenkme_get_shortened_url( get_permalink( $post->ID ) ); //else use TinyURL's URL shortening service.
+		$url = leenkme_get_shortened_url( get_permalink( $post->ID ), $post->ID ); //else use TinyURL's URL shortening service.
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
@@ -338,28 +376,38 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 				$api_key = $user_settings['leenkme_API'];
 				
 				$options = $dl_pluginleenkmeTwitter->get_user_settings( $user_id );
+				
 				if ( !empty( $options ) ) {	
-					if ( !empty( $options['tweetcats'] ) ) {				
-						$continue = FALSE;
-						$cats = split( ",", $options['tweetcats'] );
+					
+					if ( ( !empty( $options['tweetcats'] ) && isset( $options['clude'] ) )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['tweetcats'] ) ) ) {
 						
-						foreach ( $cats as $cat ) {
-							if ( preg_match( '/^-\d+/', $cat ) ) {
-								$cat = preg_replace( '/^-/', '', $cat );
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = FALSE;
-									break;	// In an excluded category, break out of foreach
-								} else  {
-									$continue = TRUE; // if not, than we can continue -- thanks Webmaster HC at hablacentro.com :)
-								}
-							} else if ( preg_match( '/\d+/', $cat ) ) {
-								if ( in_category( (int)$cat, $post ) ) {
-									$continue = TRUE; // if  in an included category, set continue = TRUE.
-								}
-							}
+						if ( 'ex' == $options['clude'] && in_array( '0', (array)$options['tweetcats'] ) ) {
+							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> set to Exclude All Categories.</p>";
+							continue;
 						}
 						
-						if ( !$continue ) continue; // Skip to next in foreach
+						$match = false;
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						foreach ( $post_categories as $cat ) {
+						
+							if ( in_array( (int)$cat, $options['tweetcats'] ) ) {
+							
+								$match = true;
+								
+							}
+							
+						}
+						
+						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or remove the post from the excluded category.</p>";
+							continue;
+						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or add the post into the included category.</p>";
+							continue;
+						}
 					}
 					
 					// Get META tweet format
@@ -403,7 +451,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						$cat_str = "";
 						foreach($post_categories as $c){
 							$cat = get_category( $c );
-							$cat_str .= "#" . preg_replace( "/\W/", "", $cat->name ) . " ";
+							$cat_str .= "#" . preg_replace( '/\W/', '', $cat->name ) . " ";
 						}
 						$cat_str = trim( $cat_str );
 					
@@ -414,12 +462,12 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						if ( $totalLen > $maxLen ) {
 							$diff = $totalLen - $maxLen;
 							
-							$split_cat_str = preg_split( "\s", $cat_str );
+							$split_cat_str = preg_split( '/\s/', $cat_str );
 							
 							while ( $diff < $catLen ) {
 								array_pop( $split_cat_str );
 								
-								$cat_str = join( " ", $split_cat_str );
+								$cat_str = join( ' ', (array)$split_cat_str );
 								$calLen = strlen( utf8_decode( $cat_str ) );
 							}
 						}
@@ -433,7 +481,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						$tag_str = "";
 						foreach($post_tags as $t){
 							$tag = get_tag( $t );
-							$tag_str .= "#" . preg_replace( "/\W/", "", $tag->name ) . " ";
+							$tag_str .= "#" . preg_replace( '/\W/', '', $tag->name ) . " ";
 						}
 						$tag_str = trim( $tag_str );
 					
@@ -444,17 +492,17 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 						if ( $totalLen > $maxLen ) {
 							$diff = $totalLen - $maxLen;
 							
-							$split_tag_str = preg_split( "\s", $tag_str );
+							$split_tag_str = preg_split( '/\s/', $tag_str );
 							
 							while ( $diff < $tagLen ) {
 								array_pop( $split_tag_str );
 								
-								$tag_str = join( " ", $split_tag_str );
+								$tag_str = join( " ", (array)$split_tag_str );
 								$tagLen = strlen( utf8_decode( $tag_str ) );
 							}
 						}
 						
-						$tweet = str_ireplace( "%TAGS%", $ctag_str, $tweet );
+						$tweet = str_ireplace( "%TAGS%", $tag_str, $tweet );
 					}
 
 					if ( strlen( utf8_decode( $tweet ) ) <= $maxLen ) {
@@ -470,7 +518,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post ) {
 }
 
 // Example followed from http://planetozh.com/blog/2009/08/how-to-make-http-requests-with-wordpress/
-function leenkme_get_shortened_url( $url ) { 
+function leenkme_get_shortened_url( $url, $post_id ) { 
 	$plugins = get_option( 'active_plugins' );
 	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
 	//check to see if Twitter Friendly Links plugin is activated			
@@ -482,7 +530,7 @@ function leenkme_get_shortened_url( $url ) {
 		$result = $request->request( $api_url );
 		
 		if ( is_wp_error( $result ) ) { //if we get an error just us the normal permalink URL
-			return $url;
+			return wp_get_shortlink( $post_id );
 		} else {
 			return $result['body']; 
 		}

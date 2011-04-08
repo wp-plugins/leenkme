@@ -1,15 +1,16 @@
 === leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, googlebuzz, google, buzz, linkedin, linked, in, oauth, profile, fan page, facebook groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
+Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 Requires at least: 2.8
-Tested up to: 3.1
-Stable tag: 1.2.13
+Tested up to: 3.1.0
+Stable tag: 1.3.0
 
-leenk.me empowers you to publish to your Twitter, Facebook, Google Buzz, & LinkedIn accounts whenever you publish a new post in WordPress.
+leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, Google Buzz, LinkedIn, & FriendFeed accounts automatically.
 
 == Description ==
 
-leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/Fan Page/Group, a Buzz to your Google Buzz profile, and a share on your LinkedIn profile whenever you publish a new post in your WordPress website.
+leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/fan page/group walls, a buzz to your Google Buzz profile, a share on your LinkedIn profile, and an entry on your FriendFeed profile/group whenever you publish a new post in your WordPress website.
+
 What can you do with leenk.me?
 
 * Publish automatically to your social networks when you publish a new post in WordPress.
@@ -18,24 +19,28 @@ What can you do with leenk.me?
 * Exclude individual posts from being published to your social networks.
 * Automatically post to your social networks when a scheduled post is published.
 * Resend previously published posts to your social networks.
-* Additional authors can setup their own leenk.me accounts and add them to your website.
+* Additional authors can setup their own leenk.me accounts and add them to your WordPress dashboard.
 * Publish to all author's leenk.me accounts whenever a post is published.
 * Customize your Tweet format with the custom variables %TITLE%, %URL%, %CATS%, and %TAGS%.
-* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL.
+* Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL or WordPress's default short URL.
+* Add a filter to (use your own custom URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/), like bit.ly
 * Customize your Buzz message for individual posts.
 * Customize your Facebook post for individual posts.
 * Customize your LinkedIn shares for individual posts.
+* Customize your FriendFeed entries for individual posts.
 
 What sets leenk.me apart from others?
 
 * Extremely easy to use and setup, essentially a "set it and forget it" service.
+* Highly customizable!
 * leenk.me uses the most secure APIs available to connect to your social networks.
 * leenk.me doesn't need to save your social network passwords.
 * You authorize which applications are connected to your leenk.me account.
+* leenk.me is instant, no need to wait for an RSS reader to get your latest posts... publishing sends your content to leenk.me automatically.
 
-You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The basic leenk.me subscription starts at 99 cents every three months with a one month free trial. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
+You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The leenk.me subscription is 99 cents a month with a one month free trial. Cancel anytime before your trial ends and you won't be charged. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
 
-Have questions? Contact me through the lenek.me [support](http://leenk.me/contact) form.
+Have questions? Contact me through the leenk.me [support](http://leenk.me/contact) form.
 
 == Installation ==
 
@@ -77,6 +82,10 @@ http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpr
 
 http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/
 
+= How to use the leenk.me FriendFeed plugin =
+
+http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/
+
 = Where can I find additional help or make suggestions? =
 
 Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we will respond as soon as possible.
@@ -86,6 +95,17 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
+= 1.3.0 =
+* Added FriendFeed support!
+* Updated the category include/exclude option for each page
+* Automatically enable the "All Authors?" option on new activations for sites that have multiple users setup
+* Fixed error introduced with the share link feature on the Facebook module
+* General security hardening
+* Fixed bug causing leenk.me post meta to be erased when you quick-edit a post
+* Fixed JavaScript bug that prevents the "Re" functions from working immediately after quick-editing post info
+* Fixed Tweet Category/Tag warnings
+* Added disabled() helper function for WP2.9.2 and below
+
 = 1.2.13 =
 * Bug fix for Twitter Friendly Links URL shortener (again)
 
