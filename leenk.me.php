@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.0
+Version: 1.3.1
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.3.0' );
+define( 'LEENKME_VERSION' , '1.3.1' );
 
 class leenkme {
 	// Class members	
@@ -35,6 +35,7 @@ class leenkme {
 		$this->timeout	= '5000';		// in miliseconds
 	
 		add_action( 'init', array( &$this, 'upgrade' ) );
+
 	}
 	
 	function get_leenkme_settings() {
@@ -263,7 +264,12 @@ class leenkme {
 		
 		$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
 		
-		foreach ( $user_ids as $user_id ) {
+		foreach ( (array)$user_ids as $user_id ) {
+			
+			if ( !user_can( $user_id, 'leenkme_edit_user_settings' ) ) {
+				clean_user_cache( $user_id );
+				continue;
+			}
 			
 			$tw_user_settings = get_user_option( 'leenkme_twitter', $user_id );
 			if ( !empty( $tw_user_settings )
@@ -327,6 +333,8 @@ class leenkme {
 				}
 				
 			}
+			
+			clean_user_cache( $user_id );
 			
 		}
 		
@@ -616,9 +624,9 @@ function leenkme_help_list( $contextual_help, $screen ) {
 		$contextual_help[$screen->id] = __( '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | ' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | ' .
-'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">Google Buzz</a>' .
-'<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a>' .
-'<a href="http://leenk.me/2011/04/01/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>' );
+'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">Google Buzz</a> | ' .
+'<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a> | ' .
+'<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>' );
 	}
 
 	return $contextual_help;
