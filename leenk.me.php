@@ -31,7 +31,7 @@ class leenkme {
 		
 		$this->wp_version = $wp_version;
 		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url	= 'https://leenk.me/api/dev/';
+		$this->api_url	= 'https://leenk.me/api/1.1/';
 		$this->timeout	= '5000';		// in miliseconds
 	
 		add_action( 'init', array( &$this, 'upgrade' ) );
