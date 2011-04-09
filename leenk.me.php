@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.1
+Version: 1.3.2
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.3.1' );
+define( 'LEENKME_VERSION' , '1.3.2' );
 
 class leenkme {
 	// Class members	
@@ -630,10 +630,12 @@ function leenkme_help_list( $contextual_help, $screen ) {
 	}
 
 	return $contextual_help;
+
 }
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkme ) ) {
+
 	/*--------------------------------------------------------------------
 	    Actions
 	  --------------------------------------------------------------------*/
@@ -658,10 +660,12 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
 	
 	add_filter( 'contextual_help_list', 'leenkme_help_list', 10, 2);
+
 } 
 
 // From PHP_Compat-1.6.0a2 Compat/Function/str_ireplace.php for PHP4 Compatibility
 if ( !function_exists( 'str_ireplace' ) ) {
+
     function str_ireplace( $search, $replace, $subject ) {
 		// Sanity check
 		if ( is_string( $search ) && is_array( $replace ) ) {
@@ -696,9 +700,11 @@ if ( !function_exists( 'str_ireplace' ) ) {
 		$result = preg_replace( $search, $replace, $subject );
 		return $was_string ? $result[0] : $result;
 	}
+
 }
 // disabled() since 3.0, needed to maintain 2.8, and 2.9 backwards compatability
 if ( !function_exists( 'disabled' ) ) {
+
 	/**
 	 * Outputs the html disabled attribute.
 	 *
@@ -714,4 +720,54 @@ if ( !function_exists( 'disabled' ) ) {
 	function disabled( $disabled, $current = true, $echo = true ) {
 		return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
 	}
+
+}
+
+// user_can() since 3.1, needed to maintain 2.8, 2.9, and 3.0 backwards compatability
+if ( !function_exists( 'user_can' ) ) {
+
+	/**
+	 * Whether a particular user has capability or role.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param int|object $user User ID or object.
+	 * @param string $capability Capability or role name.
+	 * @return bool
+	 */
+	function user_can( $user, $capability ) {
+		if ( ! is_object( $user ) )
+			$user = new WP_User( $user );
+	
+		if ( ! $user || ! $user->ID )
+			return false;
+	
+		$args = array_slice( func_get_args(), 2 );
+		$args = array_merge( array( $capability ), $args );
+	
+		return call_user_func_array( array( &$user, 'has_cap' ), $args );
+	}
+
+}
+
+// user_can() since 3.0, needed to maintain 2.8 and 2.9 backwards compatability
+if ( !function_exists( 'clean_user_cache' ) ) {
+
+	/**
+	 * Clean all user caches
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param int $id User ID
+	 */
+	function clean_user_cache($id) {
+		$user = new WP_User($id);
+	
+		wp_cache_delete($id, 'users');
+		wp_cache_delete($user->user_login, 'userlogins');
+		wp_cache_delete($user->user_email, 'useremail');
+		wp_cache_delete($user->user_nicename, 'userslugs');
+		wp_cache_delete('blogs_of_user-' . $id, 'users');
+	}
+
 }
