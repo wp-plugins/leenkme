@@ -1,229 +1,296 @@
-<?php		
-// Define class
-class leenkme_LinkedIn {
-	// Class members		
-	var $options_name				= 'leenkme_linkedin';
-	var $linkedin_comment			= 'linkedin_comment';
-	var $linkedin_title				= 'linkedin_title';
-	var $default_image				= 'default_image';
-	var $share_cats					= 'share_cats';
-	var $clude						= 'clude';
-	var $share_all_users			= 'share_all_users';
+<?php	
 
-	// Constructor
-	function leenkme_LinkedIn() {
-		//Not Currently Needed
-	}
-	
-	/*--------------------------------------------------------------------
-		Administrative Functions
-	  --------------------------------------------------------------------*/
-	
-	function get_leenkme_linkedin_settings() {
-		global $wpdb;
+if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 		
-		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+	// Define class
+	class leenkme_LinkedIn {
 		
-		if ( 1 < $user_count ) {
-			$share_all_users = true;
-		} else {
-			$share_all_users = false;
+		// Class members		
+		var $options_name				= 'leenkme_linkedin';
+		var $linkedin_comment			= 'linkedin_comment';
+		var $linkedin_title				= 'linkedin_title';
+		var $default_image				= 'default_image';
+		var $share_cats					= 'share_cats';
+		var $clude						= 'clude';
+		var $share_all_users			= 'share_all_users';
+	
+		// Constructor
+		function leenkme_LinkedIn() {
+			//Not Currently Needed
 		}
 		
-		$options = array( $this->share_all_users => $share_all_users );
-	
-		$leenkme_settings = get_option( $this->options_name );
-		if ( !empty( $leenkme_settings ) ) {
-			foreach ( $leenkme_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
+		/*--------------------------------------------------------------------
+			Administrative Functions
+		  --------------------------------------------------------------------*/
 		
-		return $options;
-	}
-  
-	// Option loader function
-	function get_user_settings( $user_id ) {
-		// Default values for the options
-		$linkedin_comment		= '%TITLE%';
-		$linkedin_title			= '%WPSITENAME%';
-		$default_image			= '';
-		$share_cats				= array( '0' );
-		$clude					= 'in';
-		
-		$options = array(
-							 $this->linkedin_comment		=> $linkedin_comment,
-							 $this->linkedin_title			=> $linkedin_title,
-							 $this->default_image 			=> $default_image,
-							 $this->share_cats 				=> $share_cats,
-							 $this->clude	 				=> $clude
-						);
-						
-		// Get values from the WP options table in the database, re-assign if found
-		$user_settings = get_user_option( $this->options_name, $user_id );
-		if ( !empty( $user_settings ) ) {
-			foreach ( $user_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
-		
-		// Need this for initial INIT, for people who don't save the default settings...
-		update_user_option( $user_id, $this->options_name, $user_settings );
-		
-		return $options;
-	}
-	
-	// Print the admin page for the plugin
-	function print_linkedin_settings_page() {
-		global $current_user;
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
-		
-		// Get the user options
-		$user_settings = $this->get_user_settings( $user_id );
-		$linkedin_settings = $this->get_leenkme_linkedin_settings();
-		
-		if ( isset( $_POST['update_linkedin_settings'] ) ) {
-			if ( isset( $_POST['linkedin_comment'] ) ) {
-				$user_settings[$this->linkedin_comment] = $_POST['linkedin_comment'];
-			}
-
-			if ( isset( $_POST['linkedin_title'] ) ) {
-				$user_settings[$this->linkedin_title] = $_POST['linkedin_title'];
-			}
+		function get_leenkme_linkedin_settings() {
 			
-			if ( isset( $_POST['default_image'] ) ) {
-				$user_settings[$this->default_image] = $_POST['default_image'];
-			}
-
-			if ( isset( $_POST['clude'] ) && isset( $_POST['share_cats'] ) ) {
-				$user_settings[$this->clude] = $_POST['clude'];
-				$user_settings[$this->share_cats] = $_POST['share_cats'];
-			} else {
-				$user_settings[$this->clude] = 'in';
-				$user_settings[$this->share_cats] = array( '0' );
-			}
+			global $wpdb;
 			
-			update_user_option($user_id, $this->options_name, $user_settings);
+			$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
 			
-			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
-				if ( isset( $_POST['share_all_users'] ) ) {
-					$linkedin_settings[$this->share_all_users] = true;
-				} else {
-					$linkedin_settings[$this->share_all_users] = false;
+			if ( 1 < $user_count )
+				$share_all_users = true;
+			else
+				$share_all_users = false;
+			
+			$options = array( $this->share_all_users => $share_all_users );
+		
+			$leenkme_settings = get_option( $this->options_name );
+			if ( !empty( $leenkme_settings ) ) {
+				
+				foreach ( $leenkme_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
 				}
 				
-				update_option( $this->options_name, $linkedin_settings );
 			}
 			
-			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_LinkedIn' );?></strong></p></div>
-			<?php
+			return $options;
+			
 		}
-		// Display HTML form for the options below
-		?>
-		<div class=wrap>
-            <form id="leenkme" method="post" action="">
-                <h2>LinkedIn Settings (<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">help</a>)</h2>
-                <div id="linkedin_format_options" style="margin-top:25px; border-top: 1px solid grey;">
-                	<h3>Message Settings</h3>
-                    <p>Default Comment: <input name="linkedin_comment" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_comment], 'leenkme_LinkedIn' ) ?>" /></p>
-                    <p>Default Link Name: <input name="linkedin_title" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_title], 'leenkme_LinkedIn' ) ?>" /></p>
-                    <div class="linkedin-format" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
-                    <ul style="font-size: 11px;">
-                        <li>%TITLE% - Displays the post title.</li>
-                        <li>%WPSITENAME% - Displays the WordPress site name (found in Settings -> General).</li>
-                        <li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
-                    </ul>
-                    </div>
-                    <p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->default_image], 'leenkme_LinkedIn' ) ?>" /></p>                    <div class="publish-cats" style="margin-left: 50px;">
-				</div>
-                <div id="linkedin_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
-                	<h3>Publish Settings</h3>
-                    <p>Share Categories:</p>
-                
-                    <div class="tweet-cats" style="margin-left: 50px;">
-                    <p>
-                    <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
-                    <p>
-                    <select id='categories' name='share_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
-                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->share_cats] ) ); ?>>All Categories</option>
-                    <?php 
-                    $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
-                    foreach ( (array)$categories as $category ) {
-                        ?>
+	  
+		// Option loader function
+		function get_user_settings( $user_id ) {
+			
+			// Default values for the options
+			$linkedin_comment		= '%TITLE%';
+			$linkedin_title			= '%WPSITENAME%';
+			$default_image			= '';
+			$share_cats				= array( '0' );
+			$clude					= 'in';
+			
+			$options = array(
+								 $this->linkedin_comment		=> $linkedin_comment,
+								 $this->linkedin_title			=> $linkedin_title,
+								 $this->default_image 			=> $default_image,
+								 $this->share_cats 				=> $share_cats,
+								 $this->clude	 				=> $clude
+							);
+							
+			// Get values from the WP options table in the database, re-assign if found
+			$user_settings = get_user_option( $this->options_name, $user_id );
+			if ( !empty( $user_settings ) ) {
+				
+				foreach ( $user_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
+				}
+				
+			}
+			
+			// Need this for initial INIT, for people who don't save the default settings...
+			update_user_option( $user_id, $this->options_name, $user_settings );
+			
+			return $options;
+			
+		}
+		
+		// Print the admin page for the plugin
+		function print_linkedin_settings_page() {
+			global $dl_pluginleenkme, $current_user;
+			
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+			// Get the user options
+			$user_settings = $this->get_user_settings( $user_id );
+			$linkedin_settings = $this->get_leenkme_linkedin_settings();
+			
+			if ( isset( $_POST['update_linkedin_settings'] ) ) {
+				
+				if ( isset( $_POST['linkedin_comment'] ) )
+					$user_settings[$this->linkedin_comment] = $_POST['linkedin_comment'];
+	
+				if ( isset( $_POST['linkedin_title'] ) )
+					$user_settings[$this->linkedin_title] = $_POST['linkedin_title'];
+				
+				if ( isset( $_POST['default_image'] ) )
+					$user_settings[$this->default_image] = $_POST['default_image'];
+	
+				if ( isset( $_POST['clude'] ) && isset( $_POST['share_cats'] ) ) {
+					
+					$user_settings[$this->clude] = $_POST['clude'];
+					$user_settings[$this->share_cats] = $_POST['share_cats'];
+					
+				} else {
+					
+					$user_settings[$this->clude] = 'in';
+					$user_settings[$this->share_cats] = array( '0' );
+					
+				}
+				
+				update_user_option($user_id, $this->options_name, $user_settings);
+				
+				if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
+				
+					if ( isset( $_POST['share_all_users'] ) )
+						$linkedin_settings[$this->share_all_users] = true;
+					else
+						$linkedin_settings[$this->share_all_users] = false;
+					
+					update_option( $this->options_name, $linkedin_settings );
+					
+				}
+				
+				// update settings notification ?>
+				<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_LinkedIn' );?></strong></p></div>
+				<?php
+			}
+			
+			// Display HTML form for the options below
+			?>
+			<div class=wrap>
+			<div style="width:70%;" class="postbox-container">
+			<div class="metabox-holder">	
+			<div class="meta-box-sortables ui-sortable">
+				<form id="leenkme" method="post" action="">
+					<h2 style='margin-bottom: 10px;' ><img src='<?php echo $dl_pluginleenkme->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> LinkedIn Settings (<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">help</a>)</h2>
+                    
+					<div id="post-types" class="postbox">
+					
+						<div class="handlediv" title="Click to toggle"><br /></div>
+						<h3 class="hndle"><span><?php _e( 'Message Settings' ); ?></span></h3>
+						
+						<div class="inside">
+						<p>Default Comment: <input name="linkedin_comment" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_comment], 'leenkme_LinkedIn' ) ?>" /></p>
+						<p>Default Link Name: <input name="linkedin_title" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->linkedin_title], 'leenkme_LinkedIn' ) ?>" /></p>
+						<div class="linkedin-format" style="margin-left: 50px;">
+						<p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
+						<ul style="font-size: 11px;">
+							<li>%TITLE% - Displays the post title.</li>
+							<li>%WPSITENAME% - Displays the WordPress site name (found in Settings -> General).</li>
+							<li>%WPTAGLINE% - Displays the WordPress TagLine (found in Settings -> General).</li>
+						</ul>
+						</div>
+						<p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->default_image], 'leenkme_LinkedIn' ) ?>" /></p>
                         
-                        <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->share_cats] ) ); ?>><?php echo $category->name; ?></option>
-    
-    
-                        <?php
-                    }
-                    ?>
-                    </select></p>
-                    <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
+						<p>
+                        	<input type="button" class="button" name="verify_linkedin_connect" id="li_share" value="<?php _e( 'Share a Test Message', 'leenkme_LinkedIn' ) ?>" />
+							<?php wp_nonce_field( 'li_share', 'li_share_wpnonce' ); ?>
+                        
+                            <input class="button-primary" type="submit" name="update_linkedin_settings" value="<?php _e( 'Save Settings', 'leenkme_LinkedIn' ) ?>" />
+                        </p>
+                    
+                        </div>
                     
                     </div>
-                    <?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
-                    <p>Share All Authors? <input type="checkbox" name="share_all_users" <?php checked( $linkedin_settings[$this->share_all_users] ); ?> /></p>
-                    <div class="publish-allusers" style="margin-left: 50px;">
-                    <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to share to each available author account.</p>
+                       
+					<div id="post-types" class="postbox">
+					
+						<div class="handlediv" title="Click to toggle"><br /></div>
+						<h3 class="hndle"><span><?php _e( 'Publish Settings' ); ?></span></h3>
+						
+						<div class="inside">
+						<p>Share Categories:</p>
+					
+						<div class="share-cats" style="margin-left: 50px;">
+						<p>
+						<input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+						<p>
+						<select id='categories' name='share_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+							<option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->share_cats] ) ); ?>>All Categories</option>
+						<?php 
+						$categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+						
+						foreach ( (array)$categories as $category ) {
+							?>
+							
+							<option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->share_cats] ) ); ?>><?php echo $category->name; ?></option>
+		
+		
+							<?php
+						}
+						?>
+                        
+						</select></p>
+						<p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
+						
+						</div>
+                        
+						<?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
+                        
+						<p>Share All Authors? <input type="checkbox" name="share_all_users" <?php checked( $linkedin_settings[$this->share_all_users] ); ?> /></p>
+						<div class="publish-allusers" style="margin-left: 50px;">
+						<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to share to each available author account.</p>
+						</div>
+                        
+						<?php } ?>
+                        
+                        <p>
+                            <input class="button-primary" type="submit" name="update_linkedin_settings" value="<?php _e( 'Save Settings', 'leenkme_LinkedIn' ) ?>" />
+                        </p>
+                        
+                        </div>
+                    
                     </div>
-                    <?php } ?>
-                    <p><input type="button" class="button" name="verify_linkedin_connect" id="li_share" value="<?php _e( 'Share a Test Message', 'leenkme_LinkedIn' ) ?>" />
-                    <?php wp_nonce_field( 'li_share', 'li_share_wpnonce' ); ?></p>
-                </div>
-                <p class="submit">
-                    <input class="button-primary" type="submit" name="update_linkedin_settings" value="<?php _e( 'Save Settings', 'leenkme_LinkedIn' ) ?>" />
-                </p>
-            </form>
-		</div>
-		<?php
-	}
-	
-	function leenkme_linkedin_meta_tags( $post_id ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-			return;
+				</form>
+			</div>
+            </div>
+            </div>
+            </div>
+			<?php
 			
-		if ( isset( $_REQUEST['_inline_edit'] ) )
-			return;
-		
-		if ( isset( $_POST['linkedin_comment'] ) && !empty( $_POST['linkedin_comment'] ) ) {
-			update_post_meta( $post_id, 'linkedin_comment', $_POST['linkedin_comment'] );
-		} else {
-			delete_post_meta( $post_id, 'linkedin_comment' );
 		}
 		
-		if ( isset( $_POST['linkedin_title'] ) && !empty( $_POST['linkedin_title'] ) ) {
-			update_post_meta( $post_id, 'linkedin_title', $_POST['linkedin_title'] );
-		} else {
-			delete_post_meta( $post_id, 'linkedin_title' );
-		}
-		
-		if ( isset( $_POST['linkedin_description'] ) && !empty( $_POST['linkedin_description'] ) ) {
-			update_post_meta( $post_id, 'linkedin_description', $_POST['linkedin_description'] );
-		} else {
-			delete_post_meta( $post_id, 'linkedin_description' );
-		}
-
-		if ( isset($_POST["linkedin_image"] ) && !empty( $_POST["linkedin_image"] ) ) {
-			update_post_meta( $post_id, 'linkedin_image', $_POST["linkedin_image"] );
-		} else {
-			delete_post_meta( $post_id, 'linkedin_image' );
-		}
-
-		if ( isset( $_POST['linkedin_exclude'] ) ) {
-			update_post_meta( $post_id, 'linkedin_exclude', $_POST['linkedin_exclude'] );
-		} else {
-			delete_post_meta( $post_id, 'linkedin_exclude' );
-		}
-	}
+		function leenkme_linkedin_meta_tags( $post_id ) {
+			
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+				return;
+				
+			if ( isset( $_REQUEST['_inline_edit'] ) )
+				return;
+			
+			if ( isset( $_POST['linkedin_comment'] ) && !empty( $_POST['linkedin_comment'] ) )
+				update_post_meta( $post_id, 'linkedin_comment', $_POST['linkedin_comment'] );
+			else
+				delete_post_meta( $post_id, 'linkedin_comment' );
+			
+			if ( isset( $_POST['linkedin_title'] ) && !empty( $_POST['linkedin_title'] ) )
+				update_post_meta( $post_id, 'linkedin_title', $_POST['linkedin_title'] );
+			else
+				delete_post_meta( $post_id, 'linkedin_title' );
+			
+			if ( isset( $_POST['linkedin_description'] ) && !empty( $_POST['linkedin_description'] ) )
+				update_post_meta( $post_id, 'linkedin_description', $_POST['linkedin_description'] );
+			else
+				delete_post_meta( $post_id, 'linkedin_description' );
 	
-	function leenkme_add_linkedin_meta_tag_options() {
-		global $post, $current_user, $dl_pluginleenkme;
+			if ( isset($_POST["linkedin_image"] ) && !empty( $_POST["linkedin_image"] ) )
+				update_post_meta( $post_id, 'linkedin_image', $_POST["linkedin_image"] );
+			else
+				delete_post_meta( $post_id, 'linkedin_image' );
+	
+			if ( isset( $_POST['linkedin_exclude'] ) )
+				update_post_meta( $post_id, 'linkedin_exclude', $_POST['linkedin_exclude'] );
+			else
+				delete_post_meta( $post_id, 'linkedin_exclude' );
+				
+		}
 		
-		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
-		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+		function leenkme_add_linkedin_meta_tag_options() { 
+			global $dl_pluginleenkme;
+			
+			$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+			foreach ( $leenkme_settings['post_types'] as $post_type ) {
+				
+				add_meta_box( 
+					'leenkme-LinkedIn',
+					__( 'leenk.me LinkedIn', 'leenkme' ),
+					array( $this, 'leenkme_linkedin_meta_box' ),
+					$post_type 
+				);
+				
+			}
+			
+		}
+		
+		function leenkme_linkedin_meta_box()  {
+			
+			global $post, $current_user;
+		
 			get_currentuserinfo();
 			$user_id = $current_user->ID;
 			
@@ -234,11 +301,6 @@ class leenkme_LinkedIn {
 			$linkedin_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'linkedin_image', true ) ) );
 			$linkedin_exclude = get_post_meta( $post->ID, 'linkedin_exclude', true );
 			$user_settings = $this->get_user_settings( $user_id ); ?>
-	
-			<div id="postlm" class="postbox">
-			<h3><?php _e( 'leenk.me LinkedIn', 'leenkme' ) ?></h3>
-			<div class="inside">
-			<div id="postlm">
 		
 			<input value="linkedin_edit" type="hidden" name="linkedin_edit" />
 			<table>
@@ -262,17 +324,23 @@ class leenkme_LinkedIn {
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from LinkedIn:', 'leenkme' ) ?></td>
 				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php checked( $linkedin_exclude ); ?> />
 				</td></tr>
+                
 				<?php // Only show ReShare button if the post is "published"
 				if ( 'publish' === $post->post_status ) { ?>
+                
 				<tr><td colspan="2">
 				<input style="float: right;" type="button" class="button" name="reshare_linkedin" id="reshare_button" value="<?php _e( 'ReShare', 'leenkme_LinkedIn' ) ?>" />
 				</td></tr>
+                
 				<?php } ?>
+                
 			</table>
-			</div></div></div>
 			<?php 
+			
 		}
+		
 	}
+
 }
 
 if ( class_exists( 'leenkme_LinkedIn' ) ) {
@@ -544,8 +612,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeLinkedIn ) ) {
-	add_action( 'edit_form_advanced', array( $dl_pluginleenkmeLinkedIn, 'leenkme_add_linkedin_meta_tag_options' ), 1 );
-	add_action( 'edit_page_form', array( $dl_pluginleenkmeLinkedIn, 'leenkme_add_linkedin_meta_tag_options' ), 1 );
+	add_action( 'admin_init', array( $dl_pluginleenkmeLinkedIn, 'leenkme_add_linkedin_meta_tag_options' ), 1 );
 	add_action( 'save_post', array( $dl_pluginleenkmeLinkedIn, 'leenkme_linkedin_meta_tags' ) );
 	
 	// Whenever you publish a post, post to LinkedIn

@@ -1,204 +1,265 @@
-<?php		
-// Define class
-class leenkme_Twitter {
-	// Class members		
-	var $options_name			= 'leenkme_twitter';
-	var $tweetFormat			= 'leenkme_tweetformat';
-	var $tweetCats				= 'tweetcats';
-	var $clude					= 'clude';
-	var $tweetAllUsers			= 'leenkme_tweetallusers';
+<?php
 
-	// Constructor
-	function leenkme_Twitter() {
-		//Not Currently Needed
-	}
+if ( ! class_exists( 'leenkme_Twitter' ) ) {
 	
-	/*--------------------------------------------------------------------
-		Administrative Functions
-	  --------------------------------------------------------------------*/
+	// Define class
+	class leenkme_Twitter {
+		
+		// Class members		
+		var $options_name			= 'leenkme_twitter';
+		var $tweetFormat			= 'leenkme_tweetformat';
+		var $tweetCats				= 'tweetcats';
+		var $clude					= 'clude';
+		var $tweetAllUsers			= 'leenkme_tweetallusers';
 	
-	function get_leenkme_twitter_settings() {
-		global $wpdb;
-		
-		$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
-		
-		if ( 1 < $user_count ) {
-			$tweetAllUsers = true;
-		} else {
-			$tweetAllUsers = false;
+		// Constructor
+		function leenkme_Twitter() {
+			//Not Currently Needed
 		}
 		
-		$options = array( $this->tweetAllUsers => $tweetAllUsers );
-	
-		$leenkme_twitter_settings = get_option( $this->options_name );
-		if ( !empty( $leenkme_twitter_settings ) ) {
-			foreach ( $leenkme_twitter_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
+		/*--------------------------------------------------------------------
+			Administrative Functions
+		  --------------------------------------------------------------------*/
 		
-		return $options;
-	}
-  
-	// Option loader function
-	function get_user_settings( $user_id ) {
-		// Default values for the options
-		$tweetFormat 		= 'Blogged %TITLE%: %URL%';
-		$tweetCats		 	= array( '0' );
-		$clude				= 'in';
+		function get_leenkme_twitter_settings() {
+			
+			global $wpdb;
+			
+			$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
+			
+			if ( 1 < $user_count )
+				$tweetAllUsers = true;
+			else
+				$tweetAllUsers = false;
+			
+			$options = array( $this->tweetAllUsers => $tweetAllUsers );
 		
-		$options = array(
-							 $this->tweetFormat 		=> $tweetFormat,
-							 $this->tweetCats 			=> $tweetCats,
-							 $this->clude	 			=> $clude
-						);
-						
-		// Get values from the WP options table in the database, re-assign if found
-		$user_settings = get_user_option( $this->options_name, $user_id );
-		if ( !empty( $user_settings ) ) {
-			foreach ( $user_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
-		
-		// Need this for initial INIT, for people who don't save the default settings...
-		update_user_option( $user_id, $this->options_name, $user_settings );
-		
-		return $options;
-	}
-	
-	// Print the admin page for the plugin
-	function print_twitter_settings_page() {
-		global $current_user;
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
-		
-		// Get the user options
-		$user_settings = $this->get_user_settings( $user_id );
-		$twitter_settings = $this->get_leenkme_twitter_settings();
-		
-		if ( isset( $_POST['update_twitter_settings'] ) ) {			
-			if ( isset( $_POST['leenkme_tweetformat'] ) ) {
-				$user_settings[$this->tweetFormat] = $_POST['leenkme_tweetformat'];
+			$leenkme_twitter_settings = get_option( $this->options_name );
+			if ( !empty( $leenkme_twitter_settings ) ) {
+				
+				foreach ( $leenkme_twitter_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
+				}
+				
 			}
 			
-			if ( isset( $_POST['clude'] ) && isset( $_POST['tweetcats'] ) ) {
-				$user_settings[$this->clude] = $_POST['clude'];
-				$user_settings[$this->tweetCats] = $_POST['tweetcats'];
-			} else {
-				$user_settings[$this->clude] = 'in';
-				$user_settings[$this->tweetCats] = array( '0' );
+			return $options;
+		}
+	  
+		// Option loader function
+		function get_user_settings( $user_id ) {
+			
+			// Default values for the options
+			$tweetFormat 		= 'Blogged %TITLE%: %URL%';
+			$tweetCats		 	= array( '0' );
+			$clude				= 'in';
+			
+			$options = array(
+								 $this->tweetFormat 		=> $tweetFormat,
+								 $this->tweetCats 			=> $tweetCats,
+								 $this->clude	 			=> $clude
+							);
+							
+			// Get values from the WP options table in the database, re-assign if found
+			$user_settings = get_user_option( $this->options_name, $user_id );
+			if ( !empty( $user_settings ) ) {
+				
+				foreach ( $user_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
+				}
+				
 			}
 			
+			// Need this for initial INIT, for people who don't save the default settings...
 			update_user_option( $user_id, $this->options_name, $user_settings );
 			
-			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
-				if ( isset( $_POST['leenkme_tweetallusers'] ) ) {
-					$twitter_settings[$this->tweetAllUsers] = true;
-				} else {
-					$twitter_settings[$this->tweetAllUsers] = false;
-				}
-				update_option( $this->options_name, $twitter_settings );
-			}
+			return $options;
 			
-			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_Twitter' );?></strong></p></div>
+		}
+		
+		// Print the admin page for the plugin
+		function print_twitter_settings_page() {
+			global $dl_pluginleenkme;
+			
+			global $current_user;
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+			// Get the user options
+			$user_settings = $this->get_user_settings( $user_id );
+			$twitter_settings = $this->get_leenkme_twitter_settings();
+			
+			if ( isset( $_POST['update_twitter_settings'] ) ) {		
+				
+				if ( isset( $_POST['leenkme_tweetformat'] ) )
+					$user_settings[$this->tweetFormat] = $_POST['leenkme_tweetformat'];
+				
+				if ( isset( $_POST['clude'] ) && isset( $_POST['tweetcats'] ) ) {
+					
+					$user_settings[$this->clude] = $_POST['clude'];
+					$user_settings[$this->tweetCats] = $_POST['tweetcats'];
+					
+				} else {
+					
+					$user_settings[$this->clude] = 'in';
+					$user_settings[$this->tweetCats] = array( '0' );
+					
+				}
+				
+				update_user_option( $user_id, $this->options_name, $user_settings );
+				
+				if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
+				
+					if ( isset( $_POST['leenkme_tweetallusers'] ) )
+						$twitter_settings[$this->tweetAllUsers] = true;
+					else
+						$twitter_settings[$this->tweetAllUsers] = false;
+						
+					update_option( $this->options_name, $twitter_settings );
+					
+				}
+				
+				// update settings notification ?>
+				<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_Twitter' );?></strong></p></div>
+				<?php
+			}
+			// Display HTML form for the options below
+			?>
+			<div class=wrap>
+            <div style="width:70%;" class="postbox-container">
+            <div class="metabox-holder">	
+            <div class="meta-box-sortables ui-sortable">
+				<form id="leenkme" method="post" action="">
+					<h2 style='margin-bottom: 10px;' ><img src='<?php echo $dl_pluginleenkme->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
+                    <div id="post-types" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        <h3 class="hndle"><span><?php _e( 'Message Settings' ); ?></span></h3>
+                        
+                        <div class="inside">
+                            <p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ), 'leenkme_Twitter') ?>" /></p>
+                            
+                            <p style="font-size: 11px;;">Format Options:</p>
+                            <ul style="font-size: 11px; margin-left: 50px;">
+                                <li>%TITLE% - Displays Title of your post in your Twitter feed.*</li>
+                                <li>%URL% - Displays TinyURL of your post in your Twitter feed.*</li>
+                                <li>%CATS% - Displays the categories of your post in your Twitter feed as a hashtag.*</li>
+                                <li>%TAGS% - Displays ags your post in your Twitter feed as a hashtag.*</li>
+                            </ul>
+                            
+							<p style="font-size: 11px; margin-top: 25px;">*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it's either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis). If you use the %CATS% or %TAGS% variable, categories are given priority, it will display every category that will fit within the tweet length limitation. After adding the categories leenk.me moves onto tags and will add every tag that will fit within the tweet length limitation. leenk.me will also strip out any non-word character from the Twitter "hashtag" a single word.</p>
+					
+                    
+							<p>
+								<input type="button" class="button" name="verify_twitter_connect" id="tweet" value="<?php _e( 'Send a Test Tweet', 'leenkme_Twitter' ) ?>" />
+								<?php wp_nonce_field( 'tweet', 'tweet_wpnonce' ); ?>
+                                
+                                <input class="button-primary" type="submit" name="update_twitter_settings" value="<?php _e( 'Save Settings', 'leenkme_Twitter' ) ?>" />
+                            </p>
+                        
+                        </div>
+                    </div>
+				   
+					<div id="post-types" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        <h3 class="hndle"><span><?php _e( 'Publish Settings' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        <p>Tweet Categories:</p>
+                        
+                        <div class="tweet-cats" style="margin-left: 50px;">
+                            <p>
+                            <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+                            
+                            <p>
+                            <select id='categories' name='tweetcats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                                <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->tweetCats] ) ); ?>>All Categories</option>
+                            <?php 
+                            $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
+                            foreach ( (array)$categories as $category ) {
+                                ?>
+                                
+                                <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->tweetCats] ) ); ?>><?php echo $category->name; ?></option>
+            
+            
+                                <?php
+                            }
+                            ?>
+                            </select></p>
+                            
+                            <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
+                        </div>
+                        <?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //then we're displaying the main Admin options ?>
+                        <p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php checked( $twitter_settings[$this->tweetAllUsers] ); ?> /></p>
+                        <div class="tweet-allusers" style="margin-left: 50px;">
+                        <p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
+                        </div>
+                        <?php } ?>
+                        
+                        <p>
+                            <input class="button-primary" type="submit" name="update_twitter_settings" value="<?php _e( 'Save Settings', 'leenkme_Twitter' ) ?>" />
+                        </p>
+                        
+                        </div>
+                        </div>
+                    </div>
+				</form>
+            </div>
+            </div>
+            </div>
+			</div>
 			<?php
 		}
-		// Display HTML form for the options below
-		?>
-		<div class=wrap>
-			<form id="leenkme" method="post" action="">
-				<h2>Twitter Settings (<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">help</a>)</h2>
-                <h3>Message Settings</h3>
-				<p>Tweet Format: <input name="leenkme_tweetformat" type="text" maxlength="140" style="width: 75%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->tweetFormat] ) ), 'leenkme_Twitter') ?>" /></p>
-				<div class="tweet-format" style="margin-left: 50px;">
-				<p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
-				<ul style="font-size: 11px;">
-					<li>%TITLE% - Displays Title of your post in your Twitter feed.*</li>
-					<li>%URL% - Displays TinyURL of your post in your Twitter feed.*</li>
-					<li>%CATS% - Displays the categories of your post in your Twitter feed as a hashtag.*</li>
-					<li>%TAGS% - Displays ags your post in your Twitter feed as a hashtag.*</li>
-				</ul>
-				</div>
-               
-                <div id="twitter_publish_options" style="margin-top:25px; border-top: 1px solid grey;">
-               
-                <h3>Publish Settings</h3>
-				<p>Tweet Categories:</p>
-                
-				<div class="tweet-cats" style="margin-left: 50px;">
-                	<p>
-                    <input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
-                    <p>
-                    <select id='categories' name='tweetcats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
-                        <option value="0" <?php selected( in_array( "0", (array)$user_settings[$this->tweetCats] ) ); ?>>All Categories</option>
-                    <?php 
-                    $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
-                    foreach ( (array)$categories as $category ) {
-                        ?>
-                        
-                        <option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->tweetCats] ) ); ?>><?php echo $category->name; ?></option>
-    
-    
-                        <?php
-                    }
-                    ?>
-                    </select></p>
-                    <p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
-				</div>
-				<?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //then we're displaying the main Admin options ?>
-				<p>Tweet All Authors? <input type="checkbox" name="leenkme_tweetallusers" <?php checked( $twitter_settings[$this->tweetAllUsers] ); ?> /></p>
-				<div class="tweet-allusers" style="margin-left: 50px;">
-				<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to tweet to each available author account.</p>
-                </div>
-				</div>
-				<?php } ?>
-				<p><input type="button" class="button" name="verify_twitter_connect" id="tweet" value="<?php _e( 'Send a Test Tweet', 'leenkme_Twitter' ) ?>" />
-				<?php wp_nonce_field( 'tweet', 'tweet_wpnonce' ); ?></p>
-				<p style="font-size: 11px; margin-top: 25px;">*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it's either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis). If you use the %CATS% or %TAGS% variable, categories are given priority, it will display every category that will fit within the tweet length limitation. After adding the categories leenk.me moves onto tags and will add every tag that will fit within the tweet length limitation. leenk.me will also strip out any non-word character from the Twitter "hashtag" a single word.</p>
+		
+		function leenkme_twitter_meta_tags( $post_id ) {
+			
+			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+				return;
 				
-				<p class="submit">
-					<input class="button-primary" type="submit" name="update_twitter_settings" value="<?php _e( 'Save Settings', 'leenkme_Twitter' ) ?>" />
-				</p>
-			</form>
-		</div>
-		<?php
-	}
+			if ( isset( $_REQUEST['_inline_edit'] ) )
+				return;
+				
+			if ( isset( $_POST['leenkme_tweet'] ) && !empty( $_POST['leenkme_tweet'] ) ) {
+				update_post_meta( $post_id, 'leenkme_tweet', $_POST['leenkme_tweet'] );
+			} else {
+				delete_post_meta( $post_id, 'leenkme_tweet' );
+			}
 	
-	function leenkme_twitter_meta_tags( $post_id ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-			return;
+			if ( isset( $_POST['twitter_exclude'] ) ) {
+				update_post_meta( $post_id, 'twitter_exclude', $_POST['twitter_exclude'] );
+			} else {
+				delete_post_meta( $post_id, 'twitter_exclude' );
+			}
 			
-		if ( isset( $_REQUEST['_inline_edit'] ) )
-			return;
+		}
+		
+		function leenkme_add_twitter_meta_tag_options() {
+			global $dl_pluginleenkme;
 			
-		if ( isset( $_POST['leenkme_tweet'] ) && !empty( $_POST['leenkme_tweet'] ) ) {
-			update_post_meta( $post_id, 'leenkme_tweet', $_POST['leenkme_tweet'] );
-		} else {
-			delete_post_meta( $post_id, 'leenkme_tweet' );
+			$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+			foreach ( $leenkme_settings['post_types'] as $post_type ) {
+				
+				add_meta_box( 
+					'leenkme-Twitter',
+					__( 'leenk.me Twitter', 'leenkme' ),
+					array( $this, 'leenkme_twitter_meta_box' ),
+					$post_type 
+				);
+				
+			}
+			
 		}
-
-		if ( isset( $_POST['twitter_exclude'] ) ) {
-			update_post_meta( $post_id, 'twitter_exclude', $_POST['twitter_exclude'] );
-		} else {
-			delete_post_meta( $post_id, 'twitter_exclude' );
-		}
-	}
-	
-	function leenkme_add_twitter_meta_tag_options() {
-		global $post, $dl_pluginleenkme;
 		
-		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
-		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
-		
+		function leenkme_twitter_meta_box() {
+			global $post;
+			
 			$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
 			$exclude = get_post_meta( $post->ID, 'twitter_exclude', true ); ?>
-	
-			<div id="postlm" class="postbox">
-			<h3><?php _e( 'leenk.me Twitter', 'leenkme' ) ?></h3>
-			<div class="inside">
-			<div id="postlm">
 		
 			<input value="twitter_edit" type="hidden" name="twitter_edit" />
 			<table>
@@ -214,7 +275,7 @@ class leenkme_Twitter {
 				</td></tr>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Twitter:', 'leenkme' ) ?></td>
 				<td>
-					<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php checked ( $exclude ); ?> />
+					<input style="margin-top: 5px;" type="checkbox" name="twitter_exclude" <?php checked( $exclude || "on" == $exclude ); ?> />
 				</td></tr>
 				<?php // Only show ReTweet button if the post is "published"
 				if ( "publish" === $post->post_status ) { ?>
@@ -223,10 +284,13 @@ class leenkme_Twitter {
 				</td></tr>
 				<?php } ?>
 			</table>
-			</div></div></div>
-			<?php 
+		
+		<?php
+
 		}
+
 	}
+
 }
 
 if ( class_exists( 'leenkme_Twitter' ) ) {
@@ -519,28 +583,36 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 
 // Example followed from http://planetozh.com/blog/2009/08/how-to-make-http-requests-with-wordpress/
 function leenkme_get_shortened_url( $url, $post_id ) { 
+
 	$plugins = get_option( 'active_plugins' );
 	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
+	
 	//check to see if Twitter Friendly Links plugin is activated			
 	if ( in_array( $required_plugin , $plugins ) ) {
+		
 		return permalink_to_twitter_link( $url ); // if yes, we want to use that for our URL shortening service.
+		
 	} else {
-		$api_url = apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . $url, $url );
-		$request = new WP_Http;
-		$result = $request->request( $api_url );
+													
+		$result = wp_remote_request( apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . $url, $url ) );
 		
 		if ( is_wp_error( $result ) ) { //if we get an error just us the normal permalink URL
-			return wp_get_shortlink( $post_id );
+		
+			return home_url( '?p=' . $post_id );
+		
 		} else {
+		
 			return $result['body']; 
+		
 		}
+	
 	}
+
 }
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeTwitter ) ) {
-	add_action( 'edit_form_advanced', array( $dl_pluginleenkmeTwitter, 'leenkme_add_twitter_meta_tag_options' ), 1 );
-	add_action( 'edit_page_form', array( $dl_pluginleenkmeTwitter, 'leenkme_add_twitter_meta_tag_options' ), 1 );
+	add_action( 'admin_init', array( $dl_pluginleenkmeTwitter, 'leenkme_add_twitter_meta_tag_options' ), 1 );
 	add_action( 'save_post', array( $dl_pluginleenkmeTwitter, 'leenkme_twitter_meta_tags' ) );
 	
 	// Whenever you publish a post, post to twitter

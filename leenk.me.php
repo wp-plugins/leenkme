@@ -11,371 +11,491 @@ Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked,
 
 define( 'LEENKME_VERSION' , '1.3.2' );
 
-class leenkme {
-	// Class members	
-	var $options_name			= 'leenkme';
-	var $leenkme_API			= 'leenkme_API';
-	var $version				= 'version';
-	var $twitter				= 'twitter';
-	var $facebook				= 'facebook';
-	var $googlebuzz				= 'googlebuzz';
-	var $linkedin				= 'linkedin';
-	var $friendfeed				= 'friendfeed';
-	var $base_url 				= 'base_url';
-	var $api_url				= 'api_url';
-	var $timeout				= 'timeout';
-	var $post_types				= 'post_types';
+if ( ! class_exists( 'leenkme' ) ) {
 	
-	function leenkme() {
-		global $wp_version;
+	class leenkme {
 		
-		$this->wp_version = $wp_version;
-		$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-		$this->api_url	= 'https://leenk.me/api/1.1/';
-		$this->timeout	= '5000';		// in miliseconds
-	
-		add_action( 'init', array( &$this, 'upgrade' ) );
-
-	}
-	
-	function get_leenkme_settings() {
-		$twitter 		= false;
-		$facebook		= false;
-		$googlebuzz 	= false;
-		$linkedin 		= false;
-		$friendfeed		= false;
-		$post_types 	= array('post');
+		// Class members	
+		var $options_name			= 'leenkme';
+		var $leenkme_API			= 'leenkme_API';
+		var $version				= 'version';
+		var $twitter				= 'twitter';
+		var $facebook				= 'facebook';
+		var $googlebuzz				= 'googlebuzz';
+		var $linkedin				= 'linkedin';
+		var $friendfeed				= 'friendfeed';
+		var $base_url 				= 'base_url';
+		var $api_url				= 'api_url';
+		var $timeout				= 'timeout';
+		var $post_types				= 'post_types';
+		var $adminpages 			= array( 'leenkme', 'leenkme_twitter', 'leenkme_facebook', 'leenkme_googlebuzz', 'leenkme_linkedin', 'leenkme_friendfeed' );
 		
-		$options = array( 	$this->twitter 		=> $twitter,
-							$this->facebook 	=> $facebook,
-							$this->googlebuzz 	=> $googlebuzz,
-							$this->linkedin 	=> $linkedin,
-							$this->friendfeed 	=> $friendfeed,
-							$this->post_types	=> $post_types	);
-	
-		$leenkme_settings = get_option( $this->options_name );
-		if ( !empty( $leenkme_settings ) ) {
-			foreach ( $leenkme_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
-		
-		return $options;
-	}
-
-	function get_user_settings( $user_id = false ) {
-		$leenkme_API = '';
-		
-		$options = array( $this->leenkme_API => $leenkme_API );
-
-		$user_settings = get_user_option( $this->options_name, $user_id );
-		if ( !empty( $user_settings ) ) {
-			foreach ( $user_settings as $key => $option ) {
-				$options[$key] = $option;
-			}
-		}
-		
-		return $options	;
-	}
-	
-	function leenkme_settings_page() {
-		global $current_user;
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
-		
-		// Get the user options
-		$user_settings = $this->get_user_settings( $user_id );
-		$leenkme_settings = $this->get_leenkme_settings();
-		
-		if ( isset( $_POST['update_leenkme_settings'] ) ) {
-			if ( isset( $_POST['leenkme_API'] ) ) {
-				$user_settings[$this->leenkme_API] = $_POST['leenkme_API'];
-			}			
-			update_user_option( $user_id, $this->options_name, $user_settings );
+		function leenkme() {
 			
-			if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
-				if ( isset( $_POST['twitter'] ) ) {
-					$leenkme_settings[$this->twitter] = true;
-				} else {
-					$leenkme_settings[$this->twitter] = false;
+			global $wp_version;
+			
+			$this->wp_version = $wp_version;
+			$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
+			$this->api_url	= 'https://leenk.me/api/1.1/';
+			$this->timeout	= '5000';		// in miliseconds
+		
+			add_action( 'init', array( &$this, 'upgrade' ) );
+			add_action( 'admin_print_scripts', array( &$this, 'leenkme_print_scripts' ) );
+			add_action( 'admin_print_styles', array( &$this, 'leenkme_print_styles' ) );
+	
+		}
+		
+		function get_leenkme_settings() {
+			
+			$twitter 		= false;
+			$facebook		= false;
+			$googlebuzz 	= false;
+			$linkedin 		= false;
+			$friendfeed		= false;
+			$post_types 	= array('post');
+			
+			$options = array( 	$this->twitter 		=> $twitter,
+								$this->facebook 	=> $facebook,
+								$this->googlebuzz 	=> $googlebuzz,
+								$this->linkedin 	=> $linkedin,
+								$this->friendfeed 	=> $friendfeed,
+								$this->post_types	=> $post_types	);
+		
+			$leenkme_settings = get_option( $this->options_name );
+			if ( !empty( $leenkme_settings ) ) {
+				
+				foreach ( $leenkme_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
+				}
+			
+			}
+			
+			return $options;
+			
+		}
+	
+		function get_user_settings( $user_id = false ) {
+			
+			$leenkme_API = '';
+			
+			$options = array( $this->leenkme_API => $leenkme_API );
+	
+			$user_settings = get_user_option( $this->options_name, $user_id );
+			if ( !empty( $user_settings ) ) {
+				
+				foreach ( $user_settings as $key => $option ) {
+					
+					$options[$key] = $option;
+					
 				}
 				
-				if ( isset( $_POST['facebook'] ) ) {
-					$leenkme_settings[$this->facebook] = true;
-				} else {
-					$leenkme_settings[$this->facebook] = false;
+			}
+			
+			return $options;
+			
+		}
+		
+		function leenkme_print_scripts( $pagenow ) {
+			
+			global $pagenow;
+
+			if ( $pagenow == 'admin.php' && isset( $_GET['page'] ) && in_array( $_GET['page'], $this->adminpages ) ) {
+				
+				wp_enqueue_script( 'postbox' );
+				wp_enqueue_script( 'dashboard' );
+				wp_enqueue_script( 'thickbox' );
+				
+			}
+			
+		}
+		
+		function leenkme_print_styles( $pagenow ) {
+			
+			global $pagenow;
+
+			if ( $pagenow == 'admin.php' && isset( $_GET['page'] ) && in_array( $_GET['page'], $this->adminpages ) ) {
+				
+				wp_enqueue_style('global');
+				wp_enqueue_style('dashboard');
+				wp_enqueue_style('thickbox');
+				wp_enqueue_style('wp-admin');
+				
+			}
+			
+		}
+		
+		function leenkme_settings_page() {
+			
+			global $current_user;
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+			// Get the user options
+			$user_settings = $this->get_user_settings( $user_id );
+			$leenkme_settings = $this->get_leenkme_settings();
+			
+			if ( isset( $_POST['update_leenkme_settings'] ) ) {
+				
+				if ( isset( $_POST['leenkme_API'] ) )
+					$user_settings[$this->leenkme_API] = $_POST['leenkme_API'];
+					
+				update_user_option( $user_id, $this->options_name, $user_settings );
+				
+				if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
+				
+					if ( isset( $_POST['twitter'] ) )
+						$leenkme_settings[$this->twitter] = true;
+					else
+						$leenkme_settings[$this->twitter] = false;
+					
+					if ( isset( $_POST['facebook'] ) )
+						$leenkme_settings[$this->facebook] = true;
+					else
+						$leenkme_settings[$this->facebook] = false;
+					
+					if ( isset( $_POST['googlebuzz'] ) )
+						$leenkme_settings[$this->googlebuzz] = true;
+					else
+						$leenkme_settings[$this->googlebuzz] = false;
+					
+					if ( isset( $_POST['linkedin'] ) )
+						$leenkme_settings[$this->linkedin] = true;
+					else
+						$leenkme_settings[$this->linkedin] = false;
+					
+					if ( isset( $_POST['friendfeed'] ) )
+						$leenkme_settings[$this->friendfeed] = true;
+					else
+						$leenkme_settings[$this->friendfeed] = false;
+					
+					if ( isset( $_POST['post_types'] ) )
+						$leenkme_settings[$this->post_types] = $_POST['post_types'];
+					
+					update_option( $this->options_name, $leenkme_settings );
+					
+					// It's not pretty, but the easiest way to get the menu to refresh after save...
+					?>
+						<script type="text/javascript">
+						<!--
+						window.location = "<?php echo $_SERVER['PHP_SELF'] .'?page=leenkme&settings_saved'; ?>"
+						//-->
+						</script>
+					<?php
+					
 				}
 				
-				if ( isset( $_POST['googlebuzz'] ) ) {
-					$leenkme_settings[$this->googlebuzz] = true;
-				} else {
-					$leenkme_settings[$this->googlebuzz] = false;
-				}
+			}
+			
+			if ( isset( $_POST['update_leenkme_settings'] ) || isset( $_GET['settings_saved'] ) ) {
 				
-				if ( isset( $_POST['linkedin'] ) ) {
-					$leenkme_settings[$this->linkedin] = true;
-				} else {
-					$leenkme_settings[$this->linkedin] = false;
-				}
-				
-				if ( isset( $_POST['friendfeed'] ) ) {
-					$leenkme_settings[$this->friendfeed] = true;
-				} else {
-					$leenkme_settings[$this->friendfeed] = false;
-				}
-				
-				if ( isset( $_POST['post_types'] ) ) {
-					$leenkme_settings[$this->post_types] = $_POST['post_types'];
-				}
-				
-				update_option( $this->options_name, $leenkme_settings );
-				
-				// It's not pretty, but the easiest way to get the menu to refresh after save...
-				?>
-					<script type="text/javascript">
-					<!--
-					window.location = "<?php echo $_SERVER['PHP_SELF'] .'?page=leenkme&settings_saved'; ?>"
-					//-->
-					</script>
+				// update settings notification ?>
+				<div class="updated"><p><strong><?php _e( "leenk.me Settings Updated.", "leenkme" );?></strong></p></div>
 				<?php
+				
 			}
-		}
-		
-		if ( isset( $_POST['update_leenkme_settings'] ) || isset( $_GET['settings_saved'] ) ) {
-			// update settings notification ?>
-			<div class="updated"><p><strong><?php _e( "leenk.me Settings Updated.", "leenkme" );?></strong></p></div>
+			
+			// Display HTML form for the options below
+			?>
+			<div class=wrap>
+            <div style="width:70%;" class="postbox-container">
+            <div class="metabox-holder">	
+            <div class="meta-box-sortables ui-sortable">
+                <form id="leenkme" method="post" action="">
+                    <h2 style='margin-bottom: 10px;' ><img src='<?php echo $this->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> leenk.me General Settings</h2>
+                    
+                    <div id="api-key" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        
+                        <h3 class="hndle"><span><?php _e( 'leenk.me API Key' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        <p>
+                        <?php _e( 'leenk.me API Key' ); ?>: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php echo htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ); ?>" />
+                        <input type="button" class="button" name="verify_leenkme_api" id="verify" value="<?php _e( 'Verify leenk.me API', 'leenkme' ) ?>" />
+                        <?php wp_nonce_field( 'verify', 'leenkme_verify_wpnonce' ); ?>
+                        </p>
+                        
+                        <?php if ( empty( $user_settings[$this->leenkme_API] ) ) { ?>
+                        
+                            <p>
+                            <a href="<?php echo apply_filters( 'leenkme_url', 'http://leenk.me/' ); ?>">Click here to subscribe to leenk.me and generate an API key</a>
+                            </p>
+                        
+                        <?php } ?>
+                                                  
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
+                        </p>
+                        
+                        </div>
+                        
+                    </div>
+                    
+                    <?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) {?>
+                    <div id="modules" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        
+                        <h3 class="hndle"><span><?php _e( 'leenk.me Social Networks Modules' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        
+                        <table id="leenkme_leenkme_manage_all_settings">
+                            <tr><td id="leenkme_plugin_name">Twitter: </td>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td></tr>
+                            <tr><td id="leenkme_plugin_name">Facebook: </td>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td></tr>
+                            <tr><td id="leenkme_plugin_name">Google Buzz: </td>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td></tr>
+                            <tr><td id="leenkme_plugin_name">LinkedIn: </td>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td></tr>
+                            <tr><td id="leenkme_plugin_name">FriendFeed: </td>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td></tr>
+                        </table>
+                                                  
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
+                        </p>
+                        
+                        </div>
+                        
+                    </div>
+                    
+                    <div id="post-types" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        <h3 class="hndle"><span><?php _e( 'Post Types to Publish' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        
+                        <table id="leenkme_leenkme_manage_all_settings">
+                        
+                        <tr>
+                            <td id="leenkme_plugin_name">Post: </td>
+                            <td id="post_type">
+                                <input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
+                                <input type="hidden" value="post" name="post_types[]" />
+                            </td>
+                        </tr>
+                        
+                        <?php if ( version_compare( $this->wp_version, '2.9', '>' ) ) {
+                            
+                            $hidden_post_types = array( 'post', 'attachment', 'revision', 'nav_menu_item' );
+                            
+                            foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
+                                
+                                if ( in_array( $post_type->name, $hidden_post_types ) ) 
+                                    continue;
+                                ?>
+                                
+                                <tr><td id="leenkme_plugin_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
+                                <td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php checked( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ); ?> /></td></tr>
+                                
+                                <?php } ?>
+                        </table>
+                        
+                        <?php } else { ?>
+                        
+                        </table>
+                        <p>To take advantage of publishing to Pages and Custom Post Types, please upgrade to the latest version of WordPress.</p>
+                        
+                        <?php } ?>  
+                                                  
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
+                        </p>
+
+                        </div>
+                        
+                    </div>
+                    <?php } ?>
+                </form>
+            </div>
+            </div>
+            </div>
+			</div>
 			<?php
-		}
-		// Display HTML form for the options below
-		?>
-		<div class=wrap>
-			<form id="leenkme" method="post" action="">
-				<h2>leenk.me Settings</h2>
-				<p>leenk.me API Key: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php _e( htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ), 'leenkme') ?>" />
-				<input type="button" class="button" name="verify_leenkme_api" id="verify" value="<?php _e( 'Verify leenk.me API', 'leenkme' ) ?>" />
-				<?php wp_nonce_field( 'verify', 'leenkme_verify_wpnonce' ); ?>
-				</p>
-                <?php if ( empty( $user_settings[$this->leenkme_API] ) ) { ?>
-                <p>
-                <a href="<?php echo apply_filters( 'leenkme_url', 'http://leenk.me/' ); ?>">Click here to subscribe to leenk.me and generate an API key</a>
-                </p>
-                <?php } ?>
-				<?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) {?>
-                <h3>Modules</h3>
-                <table id="leenkme_leenkme_manage_all_settings">
-                    <tr><td id="leenkme_plugin_name">Twitter: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td></tr>
-                    <tr><td id="leenkme_plugin_name">Facebook: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td></tr>
-                    <tr><td id="leenkme_plugin_name">Google Buzz: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td></tr>
-                    <tr><td id="leenkme_plugin_name">LinkedIn: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td></tr>
-                    <tr><td id="leenkme_plugin_name">FriendFeed: </td>
-                    <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td></tr>
-                </table>
-                
-                <h3>Post Types to Publish</h3>
-                <table id="leenkme_leenkme_manage_all_settings">
-				<tr><td id="leenkme_plugin_name">Post: </td>
-                <td id="post_type">
-                	<input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
-                    <input type="hidden" value="post" name="post_types[]" />
-                </td></tr>
-                <?php 
-				if ( version_compare( $this->wp_version, '2.9', '>' ) ) {
-					$hidden_post_types = array( 'post', 'attachment', 'revision', 'nav_menu_item' );
-					foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
-						if ( in_array( $post_type->name, $hidden_post_types ) ) continue;
-						?>
-						<tr><td id="leenkme_plugin_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
-						<td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php checked( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ); ?> /></td></tr>
-						<?php
-					} ?>
-                </table>
-                <?php
-				} else {
-				?>
-                </table>
-                <p>To take advantage of publishing to Pages and Custom Post Types, please upgrade to the latest version of WordPress.</p>
-                <?php
-				}
-				?>
-                <?php } ?>
-				<p class="submit">
-					<input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
-				</p>
-			</form>
-		</div>
-		<?php
-	}
-	
-	function leenkme_add_wpnonce() {
-		wp_nonce_field( 'leenkme', 'leenkme_wpnonce' );
-	}
-	
-	function plugin_enabled( $plugin ) {
-		$leenkme_settings = $this->get_leenkme_settings();
-		return $leenkme_settings[$plugin];
-	}
-	
-	function upgrade() {
-		$leenkme_settings = $this->get_leenkme_settings();
-		
-		if ( isset( $leenkme_settings['version'] ) ) {
-			$old_version = $leenkme_settings['version'];
-		} else {
-			$old_version = 0;
-		}
-		
-		if ( version_compare( $old_version, '1.2.3', '<' ) ) {
-			$this->upgrade_to_1_2_3();
-		}
-		
-		if ( version_compare( $old_version, '1.3.0', '<' ) ) {
-			$this->upgrade_to_1_3_0();
-		}
-		
-		$leenkme_settings['version'] = LEENKME_VERSION;
-		update_option( $this->options_name, $leenkme_settings );
-	}
-	
-	function upgrade_to_1_2_3() {
-		$role = get_role('administrator');
-		if ($role !== NULL)
-			$role->add_cap('leenkme_manage_all_settings');
-			$role->add_cap('leenkme_edit_user_settings');
-
-		$role = get_role('editor');
-		if ($role !== NULL)
-			$role->add_cap('leenkme_edit_user_settings');
-
-		$role = get_role('author');
-		if ($role !== NULL)
-			$role->add_cap('leenkme_edit_user_settings');
-
-		$role = get_role('contributor');
-		if ($role !== NULL)
-			$role->add_cap('leenkme_edit_user_settings');
-	}
-	
-	function upgrade_to_1_3_0() {
-		global $wpdb;
-		
-		$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
-		
-		foreach ( (array)$user_ids as $user_id ) {
 			
-			if ( !user_can( $user_id, 'leenkme_edit_user_settings' ) ) {
+		}
+		
+		function leenkme_add_wpnonce() {
+			
+			wp_nonce_field( 'leenkme', 'leenkme_wpnonce' );
+			
+		}
+		
+		function plugin_enabled( $plugin ) {
+			
+			$leenkme_settings = $this->get_leenkme_settings();
+			return $leenkme_settings[$plugin];
+			
+		}
+		
+		function upgrade() {
+			$leenkme_settings = $this->get_leenkme_settings();
+			
+			if ( isset( $leenkme_settings['version'] ) )
+				$old_version = $leenkme_settings['version'];
+			else
+				$old_version = 0;
+			
+			if ( version_compare( $old_version, '1.2.3', '<' ) )
+				$this->upgrade_to_1_2_3();
+			
+			if ( version_compare( $old_version, '1.3.0', '<' ) )
+				$this->upgrade_to_1_3_0();
+			
+			$leenkme_settings['version'] = LEENKME_VERSION;
+			update_option( $this->options_name, $leenkme_settings );
+			
+		}
+		
+		function upgrade_to_1_2_3() {
+			
+			$role = get_role('administrator');
+			if ($role !== NULL)
+				$role->add_cap('leenkme_manage_all_settings');
+				$role->add_cap('leenkme_edit_user_settings');
+	
+			$role = get_role('editor');
+			if ($role !== NULL)
+				$role->add_cap('leenkme_edit_user_settings');
+	
+			$role = get_role('author');
+			if ($role !== NULL)
+				$role->add_cap('leenkme_edit_user_settings');
+	
+			$role = get_role('contributor');
+			if ($role !== NULL)
+				$role->add_cap('leenkme_edit_user_settings');
+				
+		}
+		
+		function upgrade_to_1_3_0() {
+			
+			global $wpdb;
+			
+			$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
+			
+			foreach ( (array)$user_ids as $user_id ) {
+				
+				if ( !user_can( $user_id, 'leenkme_edit_user_settings' ) ) {
+					
+					clean_user_cache( $user_id );
+					continue;
+					
+				}
+				
+				$tw_user_settings = get_user_option( 'leenkme_twitter', $user_id );
+				if ( !empty( $tw_user_settings )
+						&& isset( $tw_user_settings['tweetcats'] ) && !empty( $tw_user_settings['tweetcats'] ) ) {
+				
+					$new_tweetcats = $this->convert_old_categories( $tw_user_settings['tweetcats'] );
+					if ( !empty( $new_tweetcats ) ) {
+						
+						$tw_user_settings['clude'] = array_shift( $new_tweetcats );
+						$tw_user_settings['tweetcats'] = $new_tweetcats;
+						update_user_option( $user_id, 'leenkme_twitter', $tw_user_settings );
+						
+					} 
+				
+				}
+				
+				$fb_user_settings = get_user_option( 'leenkme_facebook', $user_id );
+				if ( !empty( $fb_user_settings ) 
+						&& isset( $fb_user_settings['publish_cats'] ) && !empty( $fb_user_settings['publish_cats'] ) ) {
+				
+					$new_publish_cats = $this->convert_old_categories( $fb_user_settings['publish_cats'] );
+					
+					if ( !empty( $new_publish_cats ) ) {
+						
+						$fb_user_settings['clude'] = array_shift( $new_publish_cats );
+						$fb_user_settings['publish_cats'] = $new_publish_cats;
+						update_user_option( $user_id, 'leenkme_facebook', $fb_user_settings );
+						
+					} 
+				
+				}
+	
+				$gb_user_settings = get_user_option( 'leenkme_googlebuzz', $user_id );
+				if ( !empty( $gb_user_settings )
+						&& isset( $gb_user_settings['buzz_cats'] ) && !empty( $gb_user_settings['buzz_cats'] ) ) {
+				
+					$new_buzz_cats = $this->convert_old_categories( $gb_user_settings['buzz_cats'] );
+					
+					if ( !empty( $new_buzz_cats ) ) {
+						
+						$gb_user_settings['clude'] = array_shift( $new_buzz_cats );
+						$gb_user_settings['buzz_cats'] = $new_buzz_cats;
+						update_user_option( $user_id, 'leenkme_googlebuzz', $gb_user_settings );
+						
+					}
+				
+				}
+				
+				$li_user_settings = get_user_option( 'leenkme_linkedin', $user_id );
+				if ( !empty( $li_user_settings )
+						&&isset( $li_user_settings['share_cats'] ) && !empty( $li_user_settings['share_cats'] ) ) {
+				
+					$new_share_cats = $this->convert_old_categories( $li_user_settings['share_cats'] );
+					
+					if ( !empty( $new_share_cats ) ) {
+						
+						$li_user_settings['clude'] = array_shift( $new_share_cats );
+						$li_user_settings['share_cats'] = $new_share_cats;
+						update_user_option( $user_id, 'leenkme_linkedin', $li_user_settings );
+						
+					}
+					
+				}
+				
 				clean_user_cache( $user_id );
-				continue;
-			}
-			
-			$tw_user_settings = get_user_option( 'leenkme_twitter', $user_id );
-			if ( !empty( $tw_user_settings )
-					&& isset( $tw_user_settings['tweetcats'] ) && !empty( $tw_user_settings['tweetcats'] ) ) {
-			
-				$new_tweetcats = $this->convert_old_categories( $tw_user_settings['tweetcats'] );
-				if ( !empty( $new_tweetcats ) ) {
-					
-					$tw_user_settings['clude'] = array_shift( $new_tweetcats );
-					$tw_user_settings['tweetcats'] = $new_tweetcats;
-					update_user_option( $user_id, 'leenkme_twitter', $tw_user_settings );
-					
-				} 
-			
-			}
-			
-			$fb_user_settings = get_user_option( 'leenkme_facebook', $user_id );
-			if ( !empty( $fb_user_settings ) 
-					&& isset( $fb_user_settings['publish_cats'] ) && !empty( $fb_user_settings['publish_cats'] ) ) {
-			
-				$new_publish_cats = $this->convert_old_categories( $fb_user_settings['publish_cats'] );
 				
-				if ( !empty( $new_publish_cats ) ) {
-					
-					$fb_user_settings['clude'] = array_shift( $new_publish_cats );
-					$fb_user_settings['publish_cats'] = $new_publish_cats;
-					update_user_option( $user_id, 'leenkme_facebook', $fb_user_settings );
-					
-				} 
-			
-			}
-
-			$gb_user_settings = get_user_option( 'leenkme_googlebuzz', $user_id );
-			if ( !empty( $gb_user_settings )
-					&& isset( $gb_user_settings['buzz_cats'] ) && !empty( $gb_user_settings['buzz_cats'] ) ) {
-			
-				$new_buzz_cats = $this->convert_old_categories( $gb_user_settings['buzz_cats'] );
-				
-				if ( !empty( $new_buzz_cats ) ) {
-					
-					$gb_user_settings['clude'] = array_shift( $new_buzz_cats );
-					$gb_user_settings['buzz_cats'] = $new_buzz_cats;
-					update_user_option( $user_id, 'leenkme_googlebuzz', $gb_user_settings );
-					
-				}
-			
 			}
 			
-			$li_user_settings = get_user_option( 'leenkme_linkedin', $user_id );
-			if ( !empty( $li_user_settings )
-					&&isset( $li_user_settings['share_cats'] ) && !empty( $li_user_settings['share_cats'] ) ) {
+		}
+		
+		function convert_old_categories( $categories ) {
+	
+			$cats = split( ",", $categories );
 			
-				$new_share_cats = $this->convert_old_categories( $li_user_settings['share_cats'] );
+			foreach ( (array)$cats as $cat ) {
 				
-				if ( !empty( $new_share_cats ) ) {
+				if ( preg_match( '/^-\d+/', $cat ) ) {
 					
-					$li_user_settings['clude'] = array_shift( $new_share_cats );
-					$li_user_settings['share_cats'] = $new_share_cats;
-					update_user_option( $user_id, 'leenkme_linkedin', $li_user_settings );
+					$exclude[] = (int)preg_replace( '/^-/', '', $cat );
+					
+				} else if ( preg_match( '/\d+/', $cat ) ) {
+					
+					$include[] = (int)$cat;
 					
 				}
 				
 			}
 			
-			clean_user_cache( $user_id );
+			if ( !empty( $include ) ) {
 			
-		}
-		
-	}
+				array_unshift( $include, 'in' );
+				return $include;
+				
+			} else if ( !empty( $exclude ) ) {
+			
+				array_unshift( $exclude, 'ex' );
+				return $exclude;
+				
+			} else {
 	
-	function convert_old_categories( $categories ) {
-
-		$cats = split( ",", $categories );
-		
-		foreach ( (array)$cats as $cat ) {
-			
-			if ( preg_match( '/^-\d+/', $cat ) ) {
-				
-				$exclude[] = (int)preg_replace( '/^-/', '', $cat );
-				
-			} else if ( preg_match( '/\d+/', $cat ) ) {
-				
-				$include[] = (int)$cat;
+				return array( 'in', '0' ); // Default to include all categories
 				
 			}
 			
 		}
 		
-		if ( !empty( $include ) ) {
-		
-			array_unshift( $include, 'in' );
-			return $include;
-			
-		} else if ( !empty( $exclude ) ) {
-		
-			array_unshift( $exclude, 'ex' );
-			return $exclude;
-			
-		} else {
-
-			return array( 'in', '0' ); // Default to include all categories
-			
-		}
-		
 	}
-	
+
 }
 
 // Instantiate the class
@@ -573,14 +693,13 @@ function leenkme_connect( $post ) {
 			$body['host'] = $_SERVER['SERVER_NAME'];
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
-			$request = new WP_Http;
-			$result = $request->request( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
-											array( 	'method' => 'POST', 
-													'body' => $body, 
-													'headers' => $headers,
-													'sslverify' => false,
-													'httpversion' => '1.1',
-													'timeout' => $dl_pluginleenkme->timeout ) );
+													
+			$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
+										array( 	'body' => $body, 
+												'headers' => $headers,
+												'sslverify' => false,
+												'httpversion' => '1.1',
+												'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
 				return $result;
@@ -599,14 +718,13 @@ function leenkme_ajax_connect( $connect_arr ) {
 			$body['host'] = $_SERVER['SERVER_NAME'];
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
-			$request = new WP_Http;
-			$result = $request->request( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
-											array( 	'method' => 'POST', 
-													'body' => $body, 
-													'headers' => $headers,
-													'sslverify' => false,
-													'httpversion' => '1.1',
-													'timeout' => $dl_pluginleenkme->timeout ) );
+													
+			$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
+										array( 	'body' => $body, 
+												'headers' => $headers,
+												'sslverify' => false,
+												'httpversion' => '1.1',
+												'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
 				return $result;

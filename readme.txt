@@ -3,7 +3,7 @@ Contributors: layotte
 Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 Requires at least: 2.8
 Tested up to: 3.1.0
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 
 leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, Google Buzz, LinkedIn, & FriendFeed accounts automatically.
 
@@ -95,6 +95,13 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
+= 1.3.3 =
+* Changed how the meta boxes are displayed, switched to the native WordPress meta box functions
+* Changed how leenk.me uses the Http class, by using the built-in wp_remote_* functions
+* Fixed bug for getting shorturl from WordPress if permalinks are turned off (and website cannot contact TinyURL), also submitted patch to core to ultimately fix this problem
+* Updated leenk.me settings pages
+* Updated leenk.me icon
+
 = 1.3.2 =
 * Added user_can() function for backwards compatibility for WP3.0 and below
 * Added clean_user_cache() function for backwards compatibility for WP2.9 and below
