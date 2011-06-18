@@ -532,7 +532,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 								array_pop( $split_cat_str );
 								
 								$cat_str = join( ' ', (array)$split_cat_str );
-								$calLen = strlen( utf8_decode( $cat_str ) );
+								$catLen = strlen( utf8_decode( $cat_str ) );
 							}
 						}
 						
