@@ -476,8 +476,12 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = fal
 				
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
 				
-				if ( empty( $user_settings['leenkme_API'] ) )
+				if ( empty( $user_settings['leenkme_API'] ) ) {
+					
+					clean_user_cache( $user_id );
 					continue;	//Skip user if they do not have an API key set
+					
+				}
 				
 				$api_key = $user_settings['leenkme_API'];
 
@@ -490,6 +494,7 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = fal
 						if ( 'ex' == $options['clude'] && in_array( '0', $options['buzz_cats'] ) ) {
 							
 							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> set to Exclude All Categories.</p>";
+							clean_user_cache( $user_id );
 							continue;
 							
 						}
@@ -511,23 +516,26 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = fal
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
 							
 							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
 							continue;
 							
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
 							
 							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_googlebuzz'>Leenk.me Google Buzz settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
 							continue;
 							
 							
 						}
 					}
 					
-					
 					$connect_arr[$api_key]['googlebuzz_message'] = $message;
 					$connect_arr[$api_key]['googlebuzz_link'] = $url;
 					$connect_arr[$api_key]['googlebuzz_title'] = $title;
 					
 				}
+				
+				clean_user_cache( $user_id );
 				
 			}
 			

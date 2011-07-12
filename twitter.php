@@ -403,17 +403,16 @@ function retweet_row_action( $actions, $post ) {
 
 	return $actions;
 }
-									
-// Add function to pubslih to twitter
+
+// Add function to publish to twitter
 function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
 	$maxLen = 140;
 	
-	if ( get_post_meta( $post->ID, 'twitter_exclude', true ) ) {
+	if ( get_post_meta( $post->ID, 'twitter_exclude', true ) )
 		$exclude_twitter = true;
-	} else {
+	else
 		$exclude_twitter = false;
-	}
 	
 	if ( !$exclude_twitter ) {
 		// I've made an assumption that most users will include the %URL% text
@@ -426,15 +425,24 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 			$options = get_option( 'leenkme_twitter' );
 			
 			if ( $options['leenkme_tweetallusers'] ) {
+				
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM ' . $wpdb->users ) );
+				
 			} else {
+				
 				$user_ids[] = $post->post_author;
+				
 			}
 			
 			foreach ( $user_ids as $user_id ) {
+				
 				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+				
 				if ( empty( $user_settings['leenkme_API'] ) ) {
+					
+					clean_user_cache( $user_id );
 					continue; 	//Skip user if they do not have an API key set
+					
 				}
 				
 				$api_key = $user_settings['leenkme_API'];
@@ -447,8 +455,11 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 							&& !( 'in' == $options['clude'] && in_array( '0', $options['tweetcats'] ) ) ) {
 						
 						if ( 'ex' == $options['clude'] && in_array( '0', (array)$options['tweetcats'] ) ) {
+							
 							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> set to Exclude All Categories.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						}
 						
 						$match = false;
@@ -466,11 +477,17 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						}
 						
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							
 							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							
 							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						}
 					}
 					
@@ -479,43 +496,60 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 					
 					// If META tweet format is not set, use the default tweetformat set in options page(s)
 					if ( !isset( $tweet ) || empty( $tweet ) ) {
+						
 						$tweet = htmlspecialchars( stripcslashes( $options['leenkme_tweetformat'] ) );
+						
 					}
 					
 					if ( preg_match( '/%URL%/i', $tweet ) ) {
+						
 						$urlLen = strlen( $url );
 						$tweetLen = strlen( utf8_decode( $tweet ) );
 						$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
 						
 						if ( $totalLen <= $maxLen ) {
+							
 							$tweet = str_ireplace( "%URL%", $url, $tweet );
+							
 						} else {
+							
 							$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
+							
 						}
+						
 					}
 					
 					if ( preg_match( '/%TITLE%/i', $tweet ) ) {
+						
 						$title = $post->post_title;
 						$titleLen = strlen( utf8_decode( $title ) ); 
 						$tweetLen = strlen( utf8_decode( $tweet ) );
 						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
 						
 						if ( $totalLen <= $maxLen ) {
+							
 							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
+							
 						} else {
+							
 							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
 							$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
 							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
+							
 						}
+						
 					}
 					
 					if ( preg_match( '/%CATS%/i', $tweet ) ) {
+						
 						$post_categories = wp_get_post_categories( $post->ID );
 						
 						$cat_str = "";
 						foreach($post_categories as $c){
+							
 							$cat = get_category( $c );
 							$cat_str .= "#" . preg_replace( '/\W/', '', $cat->name ) . " ";
+							
 						}
 						$cat_str = trim( $cat_str );
 					
@@ -524,28 +558,36 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						$totalLen = $catLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 						
 						if ( $totalLen > $maxLen ) {
+							
 							$diff = $totalLen - $maxLen;
 							
 							$split_cat_str = preg_split( '/\s/', $cat_str );
 							
 							while ( $diff < $catLen ) {
+								
 								array_pop( $split_cat_str );
 								
 								$cat_str = join( ' ', (array)$split_cat_str );
 								$catLen = strlen( utf8_decode( $cat_str ) );
+
 							}
+							
 						}
 						
 						$tweet = str_ireplace( "%CATS%", $cat_str, $tweet );
+						
 					}
 					
 					if ( preg_match( '/%TAGS%/i', $tweet ) ) {
+						
 						$post_tags = wp_get_post_tags( $post->ID );
 						
 						$tag_str = "";
 						foreach($post_tags as $t){
+							
 							$tag = get_tag( $t );
 							$tag_str .= "#" . preg_replace( '/\W/', '', $tag->name ) . " ";
+							
 						}
 						$tag_str = trim( $tag_str );
 					
@@ -554,35 +596,332 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						$totalLen = $tagLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 						
 						if ( $totalLen > $maxLen ) {
+							
 							$diff = $totalLen - $maxLen;
 							
 							$split_tag_str = preg_split( '/\s/', $tag_str );
 							
 							while ( $diff < $tagLen ) {
+								
 								array_pop( $split_tag_str );
 								
 								$tag_str = join( " ", (array)$split_tag_str );
 								$tagLen = strlen( utf8_decode( $tag_str ) );
+								
 							}
+							
 						}
 						
 						$tweet = str_ireplace( "%TAGS%", $tag_str, $tweet );
+						
 					}
 
 					if ( strlen( utf8_decode( $tweet ) ) <= $maxLen ) {
+						
 						$connect_arr[$api_key]['twitter_status'] = $tweet;
+						
 					}
+					
 				}
+				
+				clean_user_cache( $user_id );
+				
 			}
+			
 		}
+		
 		$wpdb->flush();
+		
 	}
 		
 	return $connect_arr;
+	
 }
 
+/*
+// Add function to publish comments to twitter
+function leenkme_comment_to_twitter( $connect_arr = array(), $comment, $debug = false ) {
+	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
+	$maxLen = 140;
+	
+	$post = get_post( $comment->comment_post_ID );
+	
+	if ( empty( $post ) )
+		return $connect_arr;
+	
+	if ( get_post_meta( $post->ID, 'twitter_exclude', true ) )
+		$exclude_twitter = true;
+	else
+		$exclude_twitter = false;
+	
+	if ( !$exclude_twitter ) {
+		// I've made an assumption that most users will include the %URL% text
+		// So, instead of trying to get the link several times for multi-user setups
+		// I'm getting the URL once and using it later --- for the sake of efficiency
+		$url = leenkme_get_shortened_url( get_comment_link( $comment->comment_ID ) ); //else use TinyURL's URL shortening service.
+		
+		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+			
+			$options = get_option( 'leenkme_twitter' );
+			
+			if ( $options['leenkme_tweetallusers'] )
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM ' . $wpdb->users ) );
+			else
+				$user_ids[] = $post->post_author;
+			
+			foreach ( $user_ids as $user_id ) {
+				
+				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+				if ( empty( $user_settings['leenkme_API'] ) ) {
+					
+					clean_user_cache( $user_id );
+					continue; 	//Skip user if they do not have an API key set
+					
+				}
+				
+				$api_key = $user_settings['leenkme_API'];
+				
+				$options = $dl_pluginleenkmeTwitter->get_user_settings( $user_id );
+				
+				if ( !empty( $options ) ) {	
+					
+					if ( ( !empty( $options['tweetcats'] ) && isset( $options['clude'] ) )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['tweetcats'] ) ) ) {
+						
+						if ( 'ex' == $options['clude'] && in_array( '0', (array)$options['tweetcats'] ) ) {
+							
+							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> set to Exclude All Categories.</p>";
+							clean_user_cache( $user_id );
+							continue;
+							
+						}
+						
+						$match = false;
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						foreach ( $post_categories as $cat ) {
+						
+							if ( in_array( (int)$cat, $options['tweetcats'] ) ) {
+							
+								$match = true;
+								
+							}
+							
+						}
+						
+						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							
+							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
+							continue;
+							
+						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							
+							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_twitter'>Leenk.me Twitter settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
+							continue;
+							
+						}
+						
+					}
+					
+					// Get META tweet format
+					$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet_comment', true ) ) );
+					$tweet = "%AUTHOR% said %COMMENT% on %TITLE% at %URL%";
+					
+					// If META tweet format is not set, use the default tweetformat set in options page(s)
+					if ( !isset( $tweet ) || empty( $tweet ) ) {
+						
+						$tweet = htmlspecialchars( stripcslashes( $options['leenkme_tweetformat'] ) );
+						
+					}
+					
+					if ( preg_match( '/%URL%/i', $tweet ) ) {
+						
+						$urlLen = strlen( $url );
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
+						
+						if ( $totalLen <= $maxLen ) {
+							
+							$tweet = str_ireplace( "%URL%", $url, $tweet );
+							
+						} else {
+							
+							$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
+							
+						}
+						
+					}
+					
+					if ( preg_match( '/%AUTHOR%/i', $tweet ) ) {
+						
+						$author = $comment->comment_author;
+						$authorLen = strlen( utf8_decode( $author ) ); 
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$totalLen = $authorLen + $tweetLen - 8;	// subtract 7 for "%AUTHOR%".
+						
+						if ( $totalLen <= $maxLen ) {
+							
+							$tweet = str_ireplace( "%AUTHOR%", $author, $tweet );
+							
+						} else {
+							
+							$tweet = str_ireplace( "%AUTHOR%", "", $tweet );
+							
+						}
+						
+					}
+					
+					if ( preg_match( '/%COMMENT%/i', $tweet ) ) {
+						
+						$content = $comment->comment_content;
+						$contentLen = strlen( utf8_decode( $content ) ); 
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$totalLen = $contentLen + $tweetLen - 9;	// subtract 9 for "%COMMENT%".
+						
+						if ( $totalLen <= $maxLen ) {
+							
+							$tweet = str_ireplace( "%COMMENT%", $content, $tweet );
+							
+						} else {
+							
+							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
+							$newComment = substr( $content, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+							$tweet = str_ireplace( "%COMMENT%", $newComment . "...", $tweet );
+							
+						}
+						
+					}
+					
+					if ( preg_match( '/%TITLE%/i', $tweet ) ) {
+						
+						$title = $post->post_title;
+						$titleLen = strlen( utf8_decode( $title ) ); 
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
+						
+						if ( $totalLen <= $maxLen ) {
+							
+							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
+							
+						} else {
+							
+							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
+							$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
+							
+						}
+						
+					}
+					
+					if ( preg_match( '/%CATS%/i', $tweet ) ) {
+						
+						$post_categories = wp_get_post_categories( $post->ID );
+						
+						$cat_str = "";
+						
+						foreach($post_categories as $c){
+							
+							$cat = get_category( $c );
+							$cat_str .= "#" . preg_replace( '/\W/', '', $cat->name ) . " ";
+							
+						}
+						
+						$cat_str = trim( $cat_str );
+					
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$catLen = strlen( utf8_decode( $cat_str ) );
+						$totalLen = $catLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
+						
+						if ( $totalLen > $maxLen ) {
+							
+							$diff = $totalLen - $maxLen;
+							
+							$split_cat_str = preg_split( '/\s/', $cat_str );
+							
+							while ( $diff < $catLen ) {
+								
+								array_pop( $split_cat_str );
+								
+								$cat_str = join( ' ', (array)$split_cat_str );
+								$catLen = strlen( utf8_decode( $cat_str ) );
+								
+							}
+							
+						}
+						
+						$tweet = str_ireplace( "%CATS%", $cat_str, $tweet );
+						
+					}
+					
+					if ( preg_match( '/%TAGS%/i', $tweet ) ) {
+						
+						$post_tags = wp_get_post_tags( $post->ID );
+						
+						$tag_str = "";
+						
+						foreach($post_tags as $t){
+							
+							$tag = get_tag( $t );
+							$tag_str .= "#" . preg_replace( '/\W/', '', $tag->name ) . " ";
+							
+						}
+						
+						$tag_str = trim( $tag_str );
+					
+						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$tagLen = strlen( utf8_decode( $tag_str ) );
+						$totalLen = $tagLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
+						
+						if ( $totalLen > $maxLen ) {
+							
+							$diff = $totalLen - $maxLen;
+							
+							$split_tag_str = preg_split( '/\s/', $tag_str );
+							
+							while ( $diff < $tagLen ) {
+								
+								array_pop( $split_tag_str );
+								
+								$tag_str = join( " ", (array)$split_tag_str );
+								$tagLen = strlen( utf8_decode( $tag_str ) );
+								
+							}
+							
+						}
+						
+						$tweet = str_ireplace( "%TAGS%", $tag_str, $tweet );
+						
+					}
+
+					if ( strlen( utf8_decode( $tweet ) ) <= $maxLen ) {
+						
+						$connect_arr[$api_key]['twitter_status'] = $tweet;
+						
+					}
+					
+				}
+				
+				clean_user_cache( $user_id );
+				
+			}
+			
+		}
+		
+		$wpdb->flush();
+		
+	}
+		
+	return $connect_arr;
+	
+}
+*/
+
 // Example followed from http://planetozh.com/blog/2009/08/how-to-make-http-requests-with-wordpress/
-function leenkme_get_shortened_url( $url, $post_id ) { 
+function leenkme_get_shortened_url( $url, $post_id = null ) { 
 
 	$plugins = get_option( 'active_plugins' );
 	$required_plugin = 'twitter-friendly-links/twitter-friendly-links.php';
@@ -594,9 +933,9 @@ function leenkme_get_shortened_url( $url, $post_id ) {
 		
 	} else {
 													
-		$result = wp_remote_request( apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . $url, $url ) );
+		$result = wp_remote_request( apply_filters( 'leenkme_url_shortener', 'http://tinyurl.com/api-create.php?url=' . urlencode( $url ), $url ) );
 		
-		if ( is_wp_error( $result ) ) { //if we get an error just us the normal permalink URL
+		if ( is_wp_error( $result ) && !is_null( $post_id ) ) { //if we get an error just us the normal permalink URL
 		
 			return home_url( '?p=' . $post_id );
 		
@@ -616,7 +955,8 @@ if ( isset( $dl_pluginleenkmeTwitter ) ) {
 	add_action( 'save_post', array( $dl_pluginleenkmeTwitter, 'leenkme_twitter_meta_tags' ) );
 	
 	// Whenever you publish a post, post to twitter
-	add_filter('leenkme_connect', 'leenkme_publish_to_twitter', 10, 2);
+	add_filter( 'leenkme_connect', 'leenkme_publish_to_twitter', 10, 2 );
+	//add_filter( 'leenkme_comment_connect', 'leenkme_comment_to_twitter', 10, 2 );
 		  
 	// Add jQuery & AJAX for leenk.me Test
 	add_action( 'admin_head-leenk-me_page_leenkme_twitter', 'leenkme_js' );

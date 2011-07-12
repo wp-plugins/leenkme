@@ -489,15 +489,17 @@ function leenkme_ajax_fb() {
 		$connect_arr[$api_key]['facebook_picture'] = $picture;
 		$connect_arr[$api_key]['facebook_description'] = $description;
 						
-		if ( isset( $_POST['facebook_profile'] ) && 'true' === $_POST['facebook_profile'] )
+		if ( isset( $_POST['facebook_profile'] ) 
+				&& ( 'true' === $_POST['facebook_profile'] || 'checked' === $_POST['facebook_profile'] ) )
 			$connect_arr[$api_key]['facebook_profile'] = true;
 		
-		if ( isset( $_POST['facebook_page'] ) && 'true' === $_POST['facebook_page'] )
+		if ( isset( $_POST['facebook_page'] ) 
+				&& ( 'true' === $_POST['facebook_page'] || 'checked' === $_POST['facebook_page'] ) )
 			$connect_arr[$api_key]['facebook_page'] = true;
 		
-		if ( isset( $_POST['facebook_group'] ) && 'true' === $_POST['facebook_group'] )
-			$connect_arr[$api_key]['facebook_group'] = true;
-		
+		if ( isset( $_POST['facebook_group'] ) 
+				&& ( 'true' === $_POST['facebook_group'] || 'checked' === $_POST['facebook_group'] ) )
+			$connect_arr[$api_key]['facebook_group'] = true;		
 		$result = leenkme_ajax_connect($connect_arr);
 		
 		if ( isset( $result ) ) {
@@ -642,8 +644,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 				
 				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
 				
-				if ( empty( $user_settings['leenkme_API'] ) )
+				if ( empty( $user_settings['leenkme_API'] ) ) {
+										
+					clean_user_cache( $user_id );
 					continue;	//Skip user if they do not have an API key set
+					
+				}
 				
 				$api_key = $user_settings['leenkme_API'];
 				
@@ -677,19 +683,25 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
 							
 							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_facebook'>Leenk.me Facebook settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
 							continue;
 							
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
 							
 							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_facebook'>Leenk.me Facebook settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
 							continue;
 							
 						}
 						
 					}
 						
-					if ( !$options['facebook_profile'] && !$options['facebook_page']  && !$options['facebook_group'])
+					if ( !$options['facebook_profile'] && !$options['facebook_page']  && !$options['facebook_group']) {
+					
+						clean_user_cache( $user_id );
 						continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
+					
+					}
 	
 					// Added facebook profile to connection array if enabled
 					if ( $options['facebook_profile'] )
@@ -814,6 +826,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 					$connect_arr[$api_key]['facebook_description'] = $description;
 					
 				}
+			
+				clean_user_cache( $user_id );
 				
 			}
 			

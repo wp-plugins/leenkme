@@ -469,22 +469,23 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeLinkedIn;
 	$maxLen = 400;	//LinkedIn has a 400 character limit for descriptions
 	
-	if ( get_post_meta( $post->ID, 'linkedin_exclude', true ) ) {
+	if ( get_post_meta( $post->ID, 'linkedin_exclude', true ) )
 		$linkedin_exclude = true;
-	} else {
+	else
 		$linkedin_exclude = false;
-	}
 	
 	if ( !$linkedin_exclude ) {
+		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+			
 			$options = get_option( 'leenkme_linkedin' );
 			
-			if ( $options['share_all_users'] ) {
+			if ( $options['share_all_users'] )
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
-			} else {
+			else
 				$user_ids[] = $post->post_author;
-			}
 			
 			$url = get_permalink( $post->ID );
 			$post_title = strip_tags( $post->post_title );
@@ -492,9 +493,14 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 			$wp_tagline = strip_tags( get_bloginfo( 'description' ) );
 			
 			foreach ( $user_ids as $user_id ) {
+				
 				$user_settings = $dl_pluginleenkme->get_user_settings($user_id);
+				
 				if ( empty( $user_settings['leenkme_API'] ) ) {
+					
+					clean_user_cache( $user_id );
 					continue;	//Skip user if they do not have an API key set
+					
 				}
 				
 				$api_key = $user_settings['leenkme_API'];
@@ -506,8 +512,11 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 							&& !( 'in' == $options['clude'] && in_array( '0', $options['share_cats'] ) ) ) {
 						
 						if ( 'ex' == $options['clude'] && in_array( '0', $options['share_cats'] ) ) {
+
 							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> set to Exclude All Categories.</p>";
+							clean_user_cache( $user_id );
 							continue;
+
 						}
 						
 						$match = false;
@@ -525,11 +534,17 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 						}
 						
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
+
 							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							
 							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_linkedin'>Leenk.me LinkedIn settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						}
 					}
 					
@@ -538,7 +553,9 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					
 					// If META LinkedIn comment is not set, use the default LinkedIn comment format set in options page(s)
 					if ( !isset( $comment ) || empty( $comment ) ) {
+						
 						$comment = htmlspecialchars( stripcslashes( $options['linkedin_comment'] ) );
+						
 					}
 					
 					$comment = str_ireplace( '%TITLE%', $post_title, $comment );
@@ -550,7 +567,9 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					
 					// If META LinkedIn link name is not set, use the default LinkedIn comment format set in options page
 					if ( !isset( $linktitle ) || empty( $linktitle ) ) {
+						
 						$linktitle = htmlspecialchars( stripcslashes( $options['linkedin_title'] ) );
+						
 					}
 					
 					$linktitle = str_ireplace( '%TITLE%', $post_title, $linktitle );
@@ -558,13 +577,19 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$linktitle = str_ireplace( '%WPTAGLINE%', $wp_tagline, $linktitle );
 					
 					if ( !$description = get_post_meta( $post->ID, 'linkedin_description', true ) ) {
+						
 						if ( !empty( $post->post_excerpt ) ) {
+							
 							//use the post_excerpt if available for the LinkedIn description
 							$description = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
+							
 						} else {
+							
 							//otherwise we'll pare down the description
 							$description = strip_tags( strip_shortcodes( $post->post_content ) ); 
+							
 						}
+						
 					}
 					
 					$description = str_ireplace( '%TITLE%', $post_title, $description );
@@ -574,26 +599,40 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$descLen = strlen( utf8_decode( $description ) );
 					
 					if ( $descLen >= $maxLen ) {
+						
 						$diff = $maxLen - $descLen;  // reversed because I need a negative number
 						$description = substr( $description, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						
 					}
 				
 					if ( !( $picture = apply_filters( 'linkedin_image', get_post_meta( $post->ID, 'linkedin_image', true ), $post->ID ) ) ) {
+						
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
+							
 							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
+							
 						} else if ( $images = get_children( 'post_parent=' . $post->ID . '&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
+							
 							foreach ( $images as $attachment_id => $attachment ) {
+								
 								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
 								break;
+								
 							}
+							
 						}  else if ( !empty( $options['default_image'] ) ) {
+							
 							$picture = $options['default_image'];
+							
 						}
+						
 					}	
 													
 					if ( isset( $picture ) && !empty( $picture ) ) {
+						
 						$connect_arr[$api_key]['li_image'] = $picture;
+						
 					}
 					
 					$connect_arr[$api_key]['li_comment'] = $comment;
@@ -601,13 +640,21 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$connect_arr[$api_key]['li_title'] = $linktitle;
 					$connect_arr[$api_key]['li_desc'] = $description;
 					$connect_arr[$api_key]['li_code'] = 'anyone';
+					
 				}
+				
+				clean_user_cache( $user_id );
+				
 			}
+			
 		}
+		
 		$wpdb->flush();
+		
 	}
 		
 	return $connect_arr;
+	
 }
 
 // Actions and filters	

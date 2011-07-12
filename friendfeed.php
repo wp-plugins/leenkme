@@ -423,13 +423,14 @@ function leenkme_ajax_ff() {
 		$connect_arr[$api_key]['friendfeed_link'] = $url;
 		$connect_arr[$api_key]['friendfeed_picture'] = $picture;
 						
-		if ( isset( $_POST['friendfeed_myfeed'] ) && 'true' === $_POST['friendfeed_myfeed'] ) {
+		if ( isset( $_POST['friendfeed_myfeed'] ) 
+				&& ( 'true' === $_POST['friendfeed_myfeed'] || 'checked' === $_POST['friendfeed_myfeed'] ) )
 			$connect_arr[$api_key]['friendfeed_myfeed'] = true;
-		}
 		
-		if ( isset( $_POST['friendfeed_group'] ) && 'true' === $_POST['friendfeed_group'] ) {
+		if ( isset( $_POST['friendfeed_group'] ) 
+				&& ( 'true' === $_POST['friendfeed_group'] || 'checked' === $_POST['friendfeed_group'] ) )
 			$connect_arr[$api_key]['friendfeed_group'] = true;
-		}
+
 		$result = leenkme_ajax_connect($connect_arr);
 		
 		if ( isset( $result ) ) {			
@@ -492,32 +493,37 @@ function refeed_row_action( $actions, $post ) {
 									
 // Add function to pubslih to friendfeed
 function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = false ) {
+	
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeFriendFeed;
 	$maxBodyLen = 420;
 	
-	if ( get_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true ) ) {
+	if ( get_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true ) )		
 		$exclude_myfeed = true;
-	} else {
+	else
 		$exclude_myfeed = false;
-	}
 	
-	if ( get_post_meta( $post->ID, 'friendfeed_exclude_group', true ) ) {
+	if ( get_post_meta( $post->ID, 'friendfeed_exclude_group', true ) )
 		$exclude_group = true;
-	} else {
+	else
 		$exclude_group = false;
-	}
 	
 	if ( !$exclude_myfeed && !$exclude_group ) {
+		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		$friendfeed_settings = $dl_pluginleenkmeFriendFeed->get_leenkme_friendfeed_settings();
 		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+			
 			$options = get_option( 'leenkme_friendfeed' );
 			
 			if ( $options['feed_all_users'] ) {
+				
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
+				
 			} else {
+				
 				$user_ids[] = $post->post_author;
+				
 			}
 			
 			$url = get_permalink( $post->ID );
@@ -526,22 +532,31 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 			$wp_tagline = strip_tags( get_bloginfo( 'description' ) );
 			
 			foreach ( $user_ids as $user_id ) {
+
 				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+
 				if ( empty( $user_settings['leenkme_API'] ) ) {
+
+					clean_user_cache( $user_id );
 					continue;	//Skip user if they do not have an API key set
+					
 				}
 				
 				$api_key = $user_settings['leenkme_API'];
 				
 				$options = $dl_pluginleenkmeFriendFeed->get_user_settings( $user_id );
+				
 				if ( !empty( $options ) ) {
 					
 					if ( !empty( $options['feed_cats'] ) && isset( $options['clude'] )
 							&& !( 'in' == $options['clude'] && in_array( '0', $options['feed_cats'] ) ) ) {
 						
 						if ( 'ex' == $options['clude'] && in_array( '0', $options['feed_cats'] ) ) {
+							
 							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> set to Exclude All Categories.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						}
 						
 						$match = false;
@@ -559,36 +574,55 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 						}
 						
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
+							
 							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> or remove the post from the excluded category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
+							
 							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> or add the post into the included category.</p>";
+							clean_user_cache( $user_id );
 							continue;
+							
 						}
 					}
 						
 					if ( !$options['friendfeed_myfeed'] && !$options['friendfeed_group']) {
+						
+						clean_user_cache( $user_id );
 						continue;	//Skip this user if they don't have Profile or Page checked in plugins FriendFeed Settings
+						
 					}
 	
 					// Added friendfeed profile to connection array if enabled
 					if ( $options['friendfeed_myfeed'] ) {
+						
 						$connect_arr[$api_key]['friendfeed_myfeed'] = true;
+						
 					}
 	
 					// Added friendfeed page to connection array if enabled
 					if ( $options['friendfeed_group'] ) {
+						
 						$connect_arr[$api_key]['friendfeed_group'] = true;
+						
 					}
 					
 					if ( !$body = get_post_meta( $post->ID, 'friendfeed_body', true ) ) {
+						
 						if ( !empty( $post->post_excerpt ) ) {
+							
 							//use the post_excerpt if available for the friendfeed description
 							$body = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
+							
 						} else {
+							
 							//otherwise we'll pare down the description
 							$body = strip_tags( strip_shortcodes( $post->post_content ) ); 
+							
 						}
+						
 					}
 					
 					$body = str_ireplace( '%TITLE%', $post_title, $body );
@@ -597,38 +631,57 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 					$bodyLen = strlen( utf8_decode( $body ) );
 					
 					if ( $bodyLen > $maxBodyLen ) {
+						
 						$diff = $maxBodyLen - $bodyLen;  // reversed because I need a negative number
 						$body = substr( $body, 0, $diff ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						
 					}
 					
 					if ( !( $picture = apply_filters( 'friendfeed_image', get_post_meta( $post->ID, 'friendfeed_image', true ), $post->ID ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
+							
 							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
 							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
+							
 						} else if ( $images = get_children( 'post_parent=' . $post->ID . '&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
+							
 							foreach ( $images as $attachment_id => $attachment ) {
+								
 								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
 								break;
+								
 							}
+							
 						} else if ( !empty( $options['default_image'] ) ) {
+							
 							$picture = $options['default_image'];
+							
 						}
 					}	
 													
 					if ( isset( $picture ) && !empty( $picture ) ) {
+						
 						$connect_arr[$api_key]['friendfeed_picture'] = $picture;
+						
 					}
 					
 					$connect_arr[$api_key]['friendfeed_link'] = $url;
 					$connect_arr[$api_key]['friendfeed_body'] = $body;
 					
 				}
+				
+				clean_user_cache( $user_id );
+				
 			}
+			
 		}
+		
 		$wpdb->flush();
+		
 	}
 		
 	return $connect_arr;
+	
 }
 
 // Actions and filters	
