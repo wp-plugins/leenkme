@@ -330,8 +330,6 @@ function leenkme_ajax_gb() {
 		$connect_arr[$api_key]['googlebuzz_title'] = $title;
 
 		$results = leenkme_ajax_connect($connect_arr);
-	
-		if ( isset( $results ) ) {		
 			
 		if ( isset( $result ) ) {
 				
