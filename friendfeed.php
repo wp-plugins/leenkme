@@ -407,6 +407,7 @@ function leenkme_friendfeed_js() {
 }
 
 function leenkme_ajax_ff() {
+
 	check_ajax_referer( 'ff_publish' );
 	global $current_user;
 	get_currentuserinfo();
@@ -414,7 +415,9 @@ function leenkme_ajax_ff() {
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+
 	if ( $api_key = $user_settings['leenkme_API'] ) {
+
 		$body = "Testing leenk.me's FriendFeed Plugin for WordPress - A webapp that allows you to publicize your WordPress posts automatically.";
 		$url = 'http://leenk.me/';
 		$picture = 'http://leenk.me/leenkme.png';
@@ -439,43 +442,76 @@ function leenkme_ajax_ff() {
 			} else if ( isset( $result['response']['code'] ) ) {
 				die( $result['body'] );
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 			}
 		} else {
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+			
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 		}
+		
 	} else {
-		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
+		
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
+	
 	}
+
 }
 
 function leenkme_ajax_refeed() {
+
 	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
+
 		if ( get_post_meta( $_POST['id'], 'friendfeed_exclude_myfeed', true ) 
 				&& get_post_meta( $_POST['id'], 'friendfeed_exclude_group', true ) ) {
+
 			die( 'You have excluded this post from feeding to your FriendFeed MyFeed and Group. If you would like to feed it, edit the post and remove the appropriate exclude check boxes.' );
+
 		} else {
+
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_publish_to_friendfeed( array(), $post, true ) );
-			
-			if ( isset( $result ) ) {			
-				if ( is_wp_error( $result ) ) {
-					die( $result->get_error_message() );	
-				} else if ( isset( $result["response"]["code"] ) ) {
-					die( $result["body"] );
-				} else {
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+			$connection_array = leenkme_publish_to_friendfeed( array(), $post, true );
+			$results = leenkme_ajax_connect( $connection_array );
+		
+			if ( isset( $results ) ) {		
+				
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$out[] = "<p>" . $result['body'] . "</p>";
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_friendfeed">Friendfeed settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+		
+					}
+		
 				}
+				
+				die( join( $out ) );
+				
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+	
 			}
+			
 		}
+		
 	} else {
+		
 		die( 'ERROR: Unable to determine Post ID.' );
+	
 	}
+
 }
 
 function refeed_row_action( $actions, $post ) {
@@ -507,7 +543,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 	else
 		$exclude_group = false;
 	
-	if ( !$exclude_myfeed && !$exclude_group ) {
+	if ( !( $exclude_myfeed && $exclude_group ) ) {
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		$friendfeed_settings = $dl_pluginleenkmeFriendFeed->get_leenkme_friendfeed_settings();
@@ -596,14 +632,14 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 					}
 	
 					// Added friendfeed profile to connection array if enabled
-					if ( $options['friendfeed_myfeed'] ) {
+					if ( $options['friendfeed_myfeed'] && !$exclude_myfeed ) {
 						
 						$connect_arr[$api_key]['friendfeed_myfeed'] = true;
 						
 					}
 	
 					// Added friendfeed page to connection array if enabled
-					if ( $options['friendfeed_group'] ) {
+					if ( $options['friendfeed_group'] && !$exclude_group ) {
 						
 						$connect_arr[$api_key]['friendfeed_group'] = true;
 						

@@ -353,42 +353,68 @@ function leenkme_ajax_tweet() {
 			} else if ( isset( $result['response']['code'] ) ) {
 				die( $result['body'] );
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 			}
 		} else {
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 		}
 	} else {
-		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
 	}
 }
 
 function leenkme_ajax_retweet() {
+	
 	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
+		
 		if ( get_post_meta( $_POST['id'], 'twitter_exclude', true ) ) {
+		
 			die( 'You have excluded this post from publishing to your Twitter account. If you would like to publish it, edit the post and remove the exclude check box in the post settings.' );
+		
 		} else {
+			
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post, true ) );
+			$results = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $post, true ) );
 			
-			if ( isset( $result ) ) {			
-				if ( is_wp_error( $result ) ) {
-					die( $result->get_error_message() );	
-				} else if ( isset( $result['response']['code'] ) ) {
-					die( $result['body'] );
-				} else {
-					die( '<p>Error received! Please check your <a href="admin.php?page=leenkme_twitter">Twitter settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.</p>' );
+			if ( isset( $results ) ) {		
+				
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$out[] = "<p>" . $result['body'] . "</p>";
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_twitter">Twitter settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+		
+					}
+		
 				}
+				
+				die( join( $out ) );
+				
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 			}
+			
 		}
+		
 	} else {
-		die( 'ERROR: Unable to determine Post ID.' );
+		
+		die( __( 'ERROR: Unable to determine Post ID.' ) );
+	
 	}
+
 }
 
 function retweet_row_action( $actions, $post ) {

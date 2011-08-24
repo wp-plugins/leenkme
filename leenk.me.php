@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.5
+Version: 1.3.6
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.3.5' );
+define( 'LEENKME_VERSION' , '1.3.6' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -245,15 +245,20 @@ if ( ! class_exists( 'leenkme' ) ) {
                         
                         <table id="leenkme_leenkme_manage_all_settings">
                             <tr><td id="leenkme_plugin_name">Twitter: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td></tr>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td>
+                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->twitter] ) { ?><a href="admin.php?page=leenkme_twitter">Twitter Settings</a><?php } ?></td></tr>
                             <tr><td id="leenkme_plugin_name">Facebook: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td></tr>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td>
+                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->facebook] ) { ?><a href="admin.php?page=leenkme_facebook">Facebook Settings</a><?php } ?></td></tr>
                             <tr><td id="leenkme_plugin_name">Google Buzz: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td></tr>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td>
+                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->googlebuzz] ) { ?><a href="admin.php?page=leenkme_googlebuzz">Google Buzz Settings</a><?php } ?></td></tr>
                             <tr><td id="leenkme_plugin_name">LinkedIn: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td></tr>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td>
+                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->linkedin] ) { ?><a href="admin.php?page=leenkme_linkedin">LinkedIn Settings</a><?php } ?></td></tr>
                             <tr><td id="leenkme_plugin_name">FriendFeed: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td></tr>
+                            <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td>
+                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->friendfeed] ) { ?><a href="admin.php?page=leenkme_friendfeed">Friendfeed Settings</a><?php } ?></td></tr>
                         </table>
                                                   
                         <p class="submit">
@@ -534,7 +539,7 @@ function leenkme_ap() {
 	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/leenkme-logo-16x16.png' );
 	
 	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9') {
-		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
+		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me Settings', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
@@ -659,37 +664,63 @@ function leenkme_js() {
 }
 
 function leenkme_ajax_verify() {
+
 	check_ajax_referer( 'verify' );
 	
 	if ( isset( $_POST['leenkme_API'] ) ) {
+
 		$api_key = $_POST['leenkme_API'];
 		$connect_arr[$api_key]['verify'] = true;
 		
-		$result = leenkme_ajax_connect( $connect_arr );
-		
-		if ( isset( $result ) ) {			
-			if ( is_wp_error( $result ) ) {
-				die( $result->get_error_message() );	
-			} else if ( isset( $result['response']['code'] ) ) {
-				die( $result['body'] );
-			} else {
-				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+		$results = leenkme_ajax_connect( $connect_arr );
+	
+		if ( isset( $results ) ) {		
+			
+			foreach( $results as $result ) {	
+	
+				if ( is_wp_error( $result ) ) {
+	
+					$out[] = "<p>" . $result->get_error_message() . "</p>";
+	
+				} else if ( isset( $result['response']['code'] ) ) {
+	
+					$out[] = "<p>" . $result['body'] . "</p>";
+	
+				} else {
+	
+					$out[] = "<p>" . __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+	
+				}
+	
 			}
+			
+			die( join( $out ) );
+		
 		} else {
+
 			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 		}
+
 	} else {
+
 		die( __( 'Please fill in your API key.' ) );
+
 	}
+
 }
 
 function leenkme_connect( $post ) {
+	
 	global $dl_pluginleenkme;
+	$out = "";
 	
 	$connect_arr = apply_filters( 'leenkme_connect', array(), $post );
 
 	if ( !empty( $connect_arr ) ) {
+		
 		foreach ( $connect_arr as $api_key => $body ) {
+			
 			$body['host'] = $_SERVER['SERVER_NAME'];
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
@@ -702,19 +733,32 @@ function leenkme_connect( $post ) {
 												'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
-				return $result;
+				
+				$out[] = $result;
+				
 			} else {
-				return __( 'Undefined error occurred, Please contact leenk.me support.' );
+				
+				$out[]=  "<p>" . $api_key . ": " . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
+				
 			}
+			
 		}
+		
+		return $out;
+		
 	}
+
 }
 
 function leenkme_ajax_connect( $connect_arr ) {
+	
 	global $dl_pluginleenkme;
+	$out = "";
 	
 	if ( !empty( $connect_arr ) ) {
+		
 		foreach ( $connect_arr as $api_key => $body ) {
+			
 			$body['host'] = $_SERVER['SERVER_NAME'];
 			$body['leenkme_API'] = $api_key;
 			$headers = array( 'Authorization' => 'None' );
@@ -727,14 +771,25 @@ function leenkme_ajax_connect( $connect_arr ) {
 												'timeout' => $dl_pluginleenkme->timeout ) );
 			
 			if ( isset( $result ) ) {
-				return $result;
+				
+				$out[] = $result;
+				
 			} else {
-				return __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' );
+				
+				$out[] =  "<p>" . $api_key . ": " . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
+				
 			}
+			
 		}
+		
+		return $out;
+		
 	} else {
+		
 			return __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' );
+	
 	}
+	
 }
 
 function leenkme_help_list( $contextual_help, $screen ) {
@@ -778,6 +833,7 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
 	
 	add_filter( 'contextual_help_list', 'leenkme_help_list', 10, 2);
+	
 
 } 
 

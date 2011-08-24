@@ -499,7 +499,8 @@ function leenkme_ajax_fb() {
 		
 		if ( isset( $_POST['facebook_group'] ) 
 				&& ( 'true' === $_POST['facebook_group'] || 'checked' === $_POST['facebook_group'] ) )
-			$connect_arr[$api_key]['facebook_group'] = true;		
+			$connect_arr[$api_key]['facebook_group'] = true;
+		
 		$result = leenkme_ajax_connect($connect_arr);
 		
 		if ( isset( $result ) ) {
@@ -520,13 +521,13 @@ function leenkme_ajax_fb() {
 			
 		} else {
 			
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
-			
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 		}
 		
 	} else {
 		
-		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
 		
 	}
 	
@@ -548,33 +549,42 @@ function leenkme_ajax_republish() {
 			
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $post, true ) );
-			
-			if ( isset( $result ) ) {		
+			$connection_array = leenkme_publish_to_facebook( array(), $post, true );
+			$results = leenkme_ajax_connect( $connection_array  );
+	
+			if ( isset( $results ) ) {		
 				
-				if ( is_wp_error( $result ) ) {
-					
-					die( $result->get_error_message() );	
-					
-				} else if ( isset( $result["response"]["code"] ) ) {
-					
-					die( $result["body"] );
-					
-				} else {
-					
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$out[] = "<p>" . $result['body'] . "</p>";
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_facebook">Facebook settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+		
+					}
+		
 				}
+				
+				die( join( $out ) );
 				
 			} else {
 				
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+	
 			}
 			
 		}
 		
 	} else {
 		
-		die( 'ERROR: Unable to determine Post ID.' );
+		die( __( 'ERROR: Unable to determine Post ID.' ) );
 		
 	}
 }
@@ -621,7 +631,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 	else
 		$exclude_group = false;
 	
-	if ( !$exclude_profile && !$exclude_page && !$exclude_group ) {
+	if ( !( $exclude_profile && $exclude_page && $exclude_group ) ) {
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		$facebook_settings = $dl_pluginleenkmeFacebook->get_leenkme_facebook_settings();
@@ -704,15 +714,15 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 					}
 	
 					// Added facebook profile to connection array if enabled
-					if ( $options['facebook_profile'] )
+					if ( $options['facebook_profile'] && !$exclude_profile )
 						$connect_arr[$api_key]['facebook_profile'] = true;
 	
 					// Added facebook page to connection array if enabled
-					if ( $options['facebook_page'] )
+					if ( $options['facebook_page'] && !$exclude_page )
 						$connect_arr[$api_key]['facebook_page'] = true;
 	
 					// Added facebook page to connection array if enabled
-					if ( $options['facebook_group'] )
+					if ( $options['facebook_group'] && !$exclude_group )
 						$connect_arr[$api_key]['facebook_group'] = true;
 
 					// Get META facebook message

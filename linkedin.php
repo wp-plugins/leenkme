@@ -383,14 +383,18 @@ function leenkme_linkedin_js() {
 }
 
 function leenkme_ajax_li() {
+
 	check_ajax_referer( 'li_share' );
+
 	global $current_user;
 	get_currentuserinfo();
 	$user_id = $current_user->ID;
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+
 	if ( $api_key = $user_settings['leenkme_API'] ) {
+
 		$comment = "Testing leenk.me's LinkedIn Plugin for WordPress";
 		$title = 'leenk.me test';
 		$url = 'http://leenk.me/';
@@ -413,42 +417,74 @@ function leenkme_ajax_li() {
 			} else if ( isset( $result['response']['code'] ) ) {
 				die( $result['body'] );
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 			}
 		} else {
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+			
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 		}
+		
 	} else {
-		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
+		
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
+	
 	}
+
 }
 
 function leenkme_ajax_reshare() {
+
 	check_ajax_referer( 'leenkme' );
 	
 	if ( isset( $_POST['id'] ) ) {
+
 		if ( get_post_meta( $_POST['id'], 'linkedin_exclude', true ) ) {
+
 			die( 'You have excluded this post from sharing to your LinkedIn profile. If you would like to share it, edit the post and remove the appropriate exclude check box.' );
+
 		} else {
+
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_share_to_linkedin( array(), $post, true ) );
-			
-			if ( isset( $result ) ) {			
-				if ( is_wp_error( $result ) ) {
-					die( $result->get_error_message() );	
-				} else if ( isset( $result["response"]["code"] ) ) {
-					die( $result["body"] );
-				} else {
-					die( '<p>Error received! Please check your <a href="admin.php?page=leenkme_linkedin">LinkedIn settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.</p>' );
+			$results = leenkme_ajax_connect( leenkme_share_to_linkedin( array(), $post, true ) );
+	
+			if ( isset( $results ) ) {		
+				
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$out[] = "<p>" . $result['body'] . "</p>";
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_linkedin">LinkedIn settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+		
+					}
+		
 				}
+				
+				die( join( $out ) );
+				
 			} else {
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+	
 			}
+			
 		}
+		
 	} else {
-		die( 'ERROR: Unable to determine Post ID.' );
+		
+		die( __( 'ERROR: Unable to determine Post ID.' ) );
+	
 	}
+
 }
 
 function reshare_row_action( $actions, $post ) {

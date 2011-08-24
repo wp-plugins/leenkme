@@ -328,8 +328,10 @@ function leenkme_ajax_gb() {
 		$connect_arr[$api_key]['googlebuzz_message'] = $message;
 		$connect_arr[$api_key]['googlebuzz_link'] = $url;
 		$connect_arr[$api_key]['googlebuzz_title'] = $title;
-		
-		$result = leenkme_ajax_connect( $connect_arr );
+
+		$results = leenkme_ajax_connect($connect_arr);
+	
+		if ( isset( $results ) ) {		
 			
 		if ( isset( $result ) ) {
 				
@@ -343,19 +345,19 @@ function leenkme_ajax_gb() {
 				
 			} else {
 				
-				die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
+				die( __( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 				
 			}
 			
 		} else {
 			
-			die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
-			
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
 		}
 		
 	} else {
 		
-		die( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' );
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
 		
 	}
 	
@@ -374,35 +376,41 @@ function leenkme_ajax_rebuzz() {
 		} else {
 			$post = get_post( $_POST['id'] );
 			
-			$result = leenkme_ajax_connect( leenkme_buzz_to_googlebuzz( array(), $post, true ) );
-			
-			if ( isset( $result ) ) {	
-			
-				if ( is_wp_error( $result ) ) {
-					
-					die( $result->get_error_message() );	
-					
-				} else if ( isset( $result['response']['code'] ) ) {
-					
-					die( $result['body'] );
-					
-				} else {
-					
-					die( 'ERROR: Received unknown result, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
-					
+			$results = leenkme_ajax_connect( leenkme_buzz_to_googlebuzz( array(), $post, true ) );
+		
+			if ( isset( $results ) ) {		
+				
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$out[] = "<p>" . $result['body'] . "</p>";
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_googlebuzz">Google Buzz settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+		
+					}
+		
 				}
+				
+				die( join( $out ) );
 				
 			} else {
 				
-				die( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' );
-				
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+	
 			}
 			
 		}
 		
 	} else {
 		
-		die( 'ERROR: Unable to determine Post ID.' );
+		die( __( 'ERROR: Unable to determine Post ID.' ) );
 		
 	}
 	
