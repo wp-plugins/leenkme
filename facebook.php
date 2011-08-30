@@ -503,15 +503,15 @@ function leenkme_ajax_fb() {
 		
 		$result = leenkme_ajax_connect($connect_arr);
 		
-		if ( isset( $result ) ) {
+		if ( isset( $result[0] ) ) {
 		
-			if ( is_wp_error( $result ) ) {
+			if ( is_wp_error( $result[0] ) ) {
 				
-				die( $result->get_error_message() );	
+				die( $result[0]->get_error_message() );	
 				
-			} else if ( isset( $result['response']['code'] ) ) {
+			} else if ( isset( $result[0]['response']['code'] ) ) {
 				
-				die( $result['body'] );
+				die( $result[0]['body'] );
 				
 			} else {
 				

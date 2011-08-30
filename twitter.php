@@ -206,7 +206,6 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
                         </p>
                         
                         </div>
-                        </div>
                     </div>
 				</form>
             </div>
@@ -333,6 +332,7 @@ function leenkme_twitter_js() {
 }
 
 function leenkme_ajax_tweet() {
+	
 	check_ajax_referer( 'tweet' );
 	global $current_user;
 	get_currentuserinfo();
@@ -340,27 +340,42 @@ function leenkme_ajax_tweet() {
 	
 	global $dl_pluginleenkme;
 	$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+	
 	if ( $api_key = $user_settings['leenkme_API'] ) {
+		
 		$tweet = "Testing @leenk_me's Twitter Plugin for #WordPress - http://leenk.me/ " . rand(10,99);
 	
 		$connect_arr[$api_key]['twitter_status'] = $tweet;
 		
 		$result = leenkme_ajax_connect( $connect_arr );
 		
-		if ( isset( $result ) ) {			
-			if ( is_wp_error( $result ) ) {
-				die( $result->get_error_message() );	
-			} else if ( isset( $result['response']['code'] ) ) {
-				die( $result['body'] );
+		if ( isset( $result[0] ) ) {			
+		
+			if ( is_wp_error( $result[0] ) ) {
+				
+				die( $result[0]->get_error_message() );	
+				
+			} else if ( isset( $result[0]['response']['code'] ) ) {
+				
+				die( $result[0]['body'] );
+				
 			} else {
+				
 				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
 			}
+			
 		} else {
+			
 			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+		
 		}
+		
 	} else {
+		
 		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
+		
 	}
+	
 }
 
 function leenkme_ajax_retweet() {

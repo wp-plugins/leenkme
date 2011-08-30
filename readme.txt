@@ -95,6 +95,10 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
+= 1.3.6.2 =
+* Fixed bug when testing settings caused by multi-author publishing fix from 1.3.6
+* Fixed UI  markup in Twitter Settings
+
 = 1.3.6.1 =
 * Merge bug in 1.3.6 with Google Buzz
 

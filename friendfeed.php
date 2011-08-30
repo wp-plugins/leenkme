@@ -436,14 +436,22 @@ function leenkme_ajax_ff() {
 
 		$result = leenkme_ajax_connect($connect_arr);
 		
-		if ( isset( $result ) ) {			
-			if ( is_wp_error( $result ) ) {
-				die( $result->get_error_message() );	
-			} else if ( isset( $result['response']['code'] ) ) {
-				die( $result['body'] );
+		if ( isset( $result[0] ) ) {
+				
+			if ( is_wp_error( $result[0] ) ) {
+				
+				die( $result[0]->get_error_message() );	
+				
+			} else if ( isset( $result[0]['response']['code'] ) ) {
+				
+				die( $result[0]['body'] );
+				
 			} else {
+				
 				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+			
 			}
+			
 		} else {
 			
 			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
