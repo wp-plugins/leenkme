@@ -600,16 +600,15 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						
 						if ( $totalLen > $maxLen ) {
 							
-							$diff = $totalLen - $maxLen;
-							
 							$split_cat_str = preg_split( '/\s/', $cat_str );
 							
-							while ( $diff < $catLen ) {
+							while ( $totalLen > $maxLen ) {
 								
 								array_pop( $split_cat_str );
 								
 								$cat_str = join( ' ', (array)$split_cat_str );
 								$catLen = strlen( utf8_decode( $cat_str ) );
+								$totalLen = $catLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 
 							}
 							
@@ -638,16 +637,15 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						
 						if ( $totalLen > $maxLen ) {
 							
-							$diff = $totalLen - $maxLen;
-							
 							$split_tag_str = preg_split( '/\s/', $tag_str );
 							
-							while ( $diff < $tagLen ) {
+							while ( $totalLen > $maxLen ) {
 								
 								array_pop( $split_tag_str );
 								
 								$tag_str = join( " ", (array)$split_tag_str );
 								$tagLen = strlen( utf8_decode( $tag_str ) );
+								$totalLen = $tagLen + $tweetLen - 6;	// subtract 5 for "%CATS%".
 								
 							}
 							
