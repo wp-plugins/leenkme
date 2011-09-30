@@ -510,8 +510,10 @@ function reshare_row_action( $actions, $post ) {
 									
 // Add function to share on LinkedIn
 function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = false ) {
+	// https://developer.linkedin.com/documents/share-api
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeLinkedIn;
-	$maxLen = 400;	//LinkedIn has a 400 character limit for descriptions
+	$maxDescLen = 256;	//LinkedIn has a 256 character limit for descriptions
+	$maxTitleLen = 200; // MLinkedIn has a 200 character limit for titles
 	
 	if ( get_post_meta( $post->ID, 'linkedin_exclude', true ) )
 		$linkedin_exclude = true;
@@ -620,6 +622,15 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$linktitle = str_ireplace( '%WPSITENAME%', $wp_sitename, $linktitle );
 					$linktitle = str_ireplace( '%WPTAGLINE%', $wp_tagline, $linktitle );
 					
+					$titleLen = strlen( utf8_decode( $linktitle ) );
+					
+					if ( $titleLen >= $maxTitleLen ) {
+						
+						$diff = $maxTitleLen - $titleLen;  // reversed because I need a negative number
+						$linktitle = substr( $linktitle, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						
+					}
+					
 					if ( !$description = get_post_meta( $post->ID, 'linkedin_description', true ) ) {
 						
 						if ( !empty( $post->post_excerpt ) ) {
@@ -642,9 +653,9 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					
 					$descLen = strlen( utf8_decode( $description ) );
 					
-					if ( $descLen >= $maxLen ) {
+					if ( $descLen >= $maxDescLen ) {
 						
-						$diff = $maxLen - $descLen;  // reversed because I need a negative number
+						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
 						$description = substr( $description, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
 						
 					}
