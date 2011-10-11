@@ -658,12 +658,12 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 						if ( !empty( $post->post_excerpt ) ) {
 							
 							//use the post_excerpt if available for the friendfeed description
-							$body = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
+							$body = $post->post_excerpt; 
 							
 						} else {
 							
 							//otherwise we'll pare down the description
-							$body = strip_tags( strip_shortcodes( $post->post_content ) ); 
+							$body = $post->post_content; 
 							
 						}
 						
@@ -672,14 +672,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 					$body = str_ireplace( '%TITLE%', $post_title, $body );
 					$body = str_ireplace( '%WPSITENAME%', $wp_sitename, $body );
 					$body = str_ireplace( '%WPTAGLINE%', $wp_tagline, $body );
-					$bodyLen = strlen( utf8_decode( $body ) );
-					
-					if ( $bodyLen > $maxBodyLen ) {
-						
-						$diff = $maxBodyLen - $bodyLen;  // reversed because I need a negative number
-						$body =  utf8_encode( substr( utf8_decode( $body ), 0, $diff ) );
-						
-					}
+					$body = leenkme_trim_words( $body, $maxBodyLen );
 					
 					if ( !( $picture = apply_filters( 'friendfeed_image', get_post_meta( $post->ID, 'friendfeed_image', true ), $post->ID ) ) ) {
 						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {

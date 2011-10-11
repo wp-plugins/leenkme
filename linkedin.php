@@ -621,15 +621,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$linktitle = str_ireplace( '%TITLE%', $post_title, $linktitle );
 					$linktitle = str_ireplace( '%WPSITENAME%', $wp_sitename, $linktitle );
 					$linktitle = str_ireplace( '%WPTAGLINE%', $wp_tagline, $linktitle );
-					
-					$titleLen = strlen( utf8_decode( $linktitle ) );
-					
-					if ( $titleLen >= $maxTitleLen ) {
-						
-						$diff = $maxTitleLen - $titleLen;  // reversed because I need a negative number
-						$linktitle =  utf8_encode( substr( utf8_decode( $linktitle ), 0, $diff ) );
-						
-					}
+					$linktitle = leenkme_trim_words( $linktitle, $maxTitleLen );
 					
 					if ( !$description = get_post_meta( $post->ID, 'linkedin_description', true ) ) {
 						
@@ -650,15 +642,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					$description = str_ireplace( '%TITLE%', $post_title, $description );
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
-					
-					$descLen = strlen( utf8_decode( $description ) );
-					
-					if ( $descLen >= $maxDescLen ) {
-						
-						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
-						$description =  utf8_encode( substr( utf8_decode( $description ), 0, $diff ) );
-						
-					}
+					$description = leenkme_trim_words( $description, $maxDescLen );
 				
 					if ( !( $picture = apply_filters( 'linkedin_image', get_post_meta( $post->ID, 'linkedin_image', true ), $post->ID ) ) ) {
 						

@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.9
+Version: 1.3.10
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.3.9' );
+define( 'LEENKME_VERSION' , '1.3.10' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -942,6 +942,63 @@ if ( !function_exists( 'clean_user_cache' ) ) {
 		wp_cache_delete($user->user_email, 'useremail');
 		wp_cache_delete($user->user_nicename, 'userslugs');
 		wp_cache_delete('blogs_of_user-' . $id, 'users');
+	}
+
+}
+
+if ( !function_exists( 'wp_strip_all_tags' ) ) {
+	/**
+	 * Properly strip all HTML tags including script and style
+	 *
+	 * @since 2.9.0
+	 *
+	 * @param string $string String containing HTML tags
+	 * @param bool $remove_breaks optional Whether to remove left over line breaks and white space chars
+	 * @return string The processed string.
+	 */
+	function wp_strip_all_tags($string, $remove_breaks = false) {
+		$string = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $string );
+		$string = strip_tags($string);
+	
+		if ( $remove_breaks )
+			$string = preg_replace('/[\r\n\t ]+/', ' ', $string);
+	
+		return trim($string);
+	}
+}
+
+if ( !function_exists( 'leenkme_trim_characters' ) ) {
+
+	/**
+	 * Clean all user caches
+	 *
+	 * @since 1.3.10
+	 *
+	 * @param int $id User ID
+	 */
+	function leenkme_trim_words( $string, $maxChar ) {
+		
+		$num_words = 55;
+		$more = "...";
+	
+		$original_string = $string;
+		$string = strip_shortcodes( $string );
+		$string = wp_strip_all_tags( $string );
+		$words_array = preg_split( "/[\n\r\t ]+/", $string, $num_words + 1, PREG_SPLIT_NO_EMPTY );
+		$length = strlen( utf8_decode( $string ) );
+		
+		while ( $length > $maxChar ) {
+		
+			array_pop( $words_array );
+			$string = implode( ' ', $words_array );
+			$string = $string . $more;
+			
+			$length = strlen( utf8_decode( $string ) );
+			
+		}
+		
+		return $string;
+		
 	}
 
 }

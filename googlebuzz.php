@@ -461,20 +461,14 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = fal
 				
 				if ( !empty( $post->post_excerpt ) )
 					//use the post_excerpt if available for the message
-					$message = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
+					$message = $post->post_excerpt; 
 				else
 					//otherwise we'll use the post_content for the message
-					$message = strip_tags( strip_shortcodes( $post->post_content ) );
+					$message = $post->post_content;
 					
 			}
-			$messageLen = strlen( utf8_decode( $message ) );
 			
-			if ( $messageLen > $maxMessageLen ) {
-				
-				$diff = $maxMessageLen - $messageLen;
-				$message =  utf8_encode( substr( utf8_decode( $message ), 0, $diff ) );
-				
-			}
+			$message = leenkme_trim_words( $message, $maxMessageLen );
 					
 			$title = strip_tags( $post->post_title );
 			

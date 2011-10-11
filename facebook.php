@@ -738,14 +738,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 					$message = str_ireplace( '%TITLE%', $post_title, $message );
 					$message = str_ireplace( '%WPSITENAME%', $wp_sitename, $message );
 					$message = str_ireplace( '%WPTAGLINE%', $wp_tagline, $message );
-					$messageLen = strlen( utf8_decode( $message ) );
-					
-					if ( $messageLen > $maxMessageLen ) {
-						
-						$diff = $maxMessageLen - $messageLen;  // reversed because I need a negative number
-						$message =  utf8_encode( substr( utf8_decode( $message ), 0, $diff ) );
-						
-					}
+					$message = leenkme_trim_words( $message, $maxMessageLen );
 		
 					// Get META facebook link name
 					$linkname = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'facebook_linkname', true ) ) );
@@ -780,12 +773,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 						if ( !empty( $post->post_excerpt ) ) {
 							
 							//use the post_excerpt if available for the facebook description
-							$description = strip_tags( strip_shortcodes( $post->post_excerpt ) ); 
+							$description = $post->post_excerpt; 
 							
 						} else {
 							
 							//otherwise we'll pare down the description
-							$description = strip_tags( strip_shortcodes( $post->post_content ) ); 
+							$description = $post->post_content; 
 							
 						}
 						
@@ -794,14 +787,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 					$description = str_ireplace( '%TITLE%', $post_title, $description );
 					$description = str_ireplace( '%WPSITENAME%', $wp_sitename, $description );
 					$description = str_ireplace( '%WPTAGLINE%', $wp_tagline, $description );
-					$descLen = strlen( utf8_decode( $description ) );
 					
-					if ( $descLen > $maxDescLen ) {
-						
-						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
-						$description =  utf8_encode( substr( utf8_decode( $description ), 0, $diff ) );
-						
-					}
+					$description = leenkme_trim_words( $description, $maxDescLen );
 					
 					if ( !( $picture = apply_filters( 'facebook_image', get_post_meta( $post->ID, 'facebook_image', true ), $post->ID ) ) ) {
 						

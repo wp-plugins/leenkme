@@ -565,19 +565,16 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						$title = $post->post_title;
 						$titleLen = strlen( utf8_decode( $title ) ); 
 						$tweetLen = strlen( utf8_decode( $tweet ) );
+						$diffLen = $maxLen - $tweetLen;
 						$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
 						
-						if ( $totalLen <= $maxLen ) {
+						if ( $titleLen > $diffLen ) {
 							
-							$tweet = str_ireplace( "%TITLE%", $title, $tweet );
-							
-						} else {
-							
-							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
-							$newTitle =  utf8_encode( substr( utf8_decode( $newTitle ), 0, $diff ) );
-							$tweet = str_ireplace( "%TITLE%", $newTitle, $tweet );
+							$title = leenkme_trim_words( $title, $diffLen );
 							
 						}
+					
+						$tweet = str_ireplace( "%TITLE%", $title, $tweet );
 						
 					}
 					
