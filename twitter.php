@@ -574,8 +574,8 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 						} else {
 							
 							$diff = $maxLen - $totalLen;  // reversed because I need a negative number
-							$newTitle = substr( $title, 0, $diff - 4 ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
-							$tweet = str_ireplace( "%TITLE%", $newTitle . "...", $tweet );
+							$newTitle =  utf8_encode( substr( utf8_decode( $newTitle ), 0, $diff ) );
+							$tweet = str_ireplace( "%TITLE%", $newTitle, $tweet );
 							
 						}
 						

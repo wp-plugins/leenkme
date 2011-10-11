@@ -677,7 +677,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 					if ( $bodyLen > $maxBodyLen ) {
 						
 						$diff = $maxBodyLen - $bodyLen;  // reversed because I need a negative number
-						$body = substr( $body, 0, $diff ); // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						$body =  utf8_encode( substr( utf8_decode( $body ), 0, $diff ) );
 						
 					}
 					

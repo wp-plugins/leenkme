@@ -627,7 +627,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					if ( $titleLen >= $maxTitleLen ) {
 						
 						$diff = $maxTitleLen - $titleLen;  // reversed because I need a negative number
-						$linktitle = substr( $linktitle, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						$linktitle =  utf8_encode( substr( utf8_decode( $linktitle ), 0, $diff ) );
 						
 					}
 					
@@ -656,7 +656,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 					if ( $descLen >= $maxDescLen ) {
 						
 						$diff = $maxDescLen - $descLen;  // reversed because I need a negative number
-						$description = substr( $description, 0, $diff - 4 ) . "..."; // subtract 1 for 0 based array and 3 more for adding an ellipsis
+						$description =  utf8_encode( substr( utf8_decode( $description ), 0, $diff ) );
 						
 					}
 				

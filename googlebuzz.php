@@ -472,7 +472,7 @@ function leenkme_buzz_to_googlebuzz( $connect_arr = array(), $post, $debug = fal
 			if ( $messageLen > $maxMessageLen ) {
 				
 				$diff = $maxMessageLen - $messageLen;
-				$message = substr( $message, 0, $diff - 4 ) . '...';
+				$message =  utf8_encode( substr( utf8_decode( $message ), 0, $diff ) );
 				
 			}
 					
