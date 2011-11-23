@@ -2,14 +2,14 @@
 /*
 Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
-Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, Google Buzz, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
+Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.10
+Version: 1.3.11
 Author URI: http://leenk.me/about/
-Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
+Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 */
 
-define( 'LEENKME_VERSION' , '1.3.10' );
+define( 'LEENKME_VERSION' , '1.3.11' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -21,14 +21,13 @@ if ( ! class_exists( 'leenkme' ) ) {
 		var $version				= 'version';
 		var $twitter				= 'twitter';
 		var $facebook				= 'facebook';
-		var $googlebuzz				= 'googlebuzz';
 		var $linkedin				= 'linkedin';
 		var $friendfeed				= 'friendfeed';
 		var $base_url 				= 'base_url';
 		var $api_url				= 'api_url';
 		var $timeout				= 'timeout';
 		var $post_types				= 'post_types';
-		var $adminpages 			= array( 'leenkme', 'leenkme_twitter', 'leenkme_facebook', 'leenkme_googlebuzz', 'leenkme_linkedin', 'leenkme_friendfeed' );
+		var $adminpages 			= array( 'leenkme', 'leenkme_twitter', 'leenkme_facebook', 'leenkme_linkedin', 'leenkme_friendfeed' );
 		
 		function leenkme() {
 			
@@ -49,14 +48,12 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 			$twitter 		= false;
 			$facebook		= false;
-			$googlebuzz 	= false;
 			$linkedin 		= false;
 			$friendfeed		= false;
 			$post_types 	= array('post');
 			
 			$options = array( 	$this->twitter 		=> $twitter,
 								$this->facebook 	=> $facebook,
-								$this->googlebuzz 	=> $googlebuzz,
 								$this->linkedin 	=> $linkedin,
 								$this->friendfeed 	=> $friendfeed,
 								$this->post_types	=> $post_types	);
@@ -155,11 +152,6 @@ if ( ! class_exists( 'leenkme' ) ) {
 					else
 						$leenkme_settings[$this->facebook] = false;
 					
-					if ( isset( $_POST['googlebuzz'] ) )
-						$leenkme_settings[$this->googlebuzz] = true;
-					else
-						$leenkme_settings[$this->googlebuzz] = false;
-					
 					if ( isset( $_POST['linkedin'] ) )
 						$leenkme_settings[$this->linkedin] = true;
 					else
@@ -250,9 +242,7 @@ if ( ! class_exists( 'leenkme' ) ) {
                             <tr><td id="leenkme_plugin_name">Facebook: </td>
                             <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td>
                             <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->facebook] ) { ?><a href="admin.php?page=leenkme_facebook">Facebook Settings</a><?php } ?></td></tr>
-                            <tr><td id="leenkme_plugin_name">Google Buzz: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="googlebuzz" <?php checked( $leenkme_settings[$this->googlebuzz] ); ?> /></td>
-                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->googlebuzz] ) { ?><a href="admin.php?page=leenkme_googlebuzz">Google Buzz Settings</a><?php } ?></td></tr>
+                            
                             <tr><td id="leenkme_plugin_name">LinkedIn: </td>
                             <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td>
                             <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->linkedin] ) { ?><a href="admin.php?page=leenkme_linkedin">LinkedIn Settings</a><?php } ?></td></tr>
@@ -424,22 +414,6 @@ if ( ! class_exists( 'leenkme' ) ) {
 					} 
 				
 				}
-	
-				$gb_user_settings = get_user_option( 'leenkme_googlebuzz', $user_id );
-				if ( !empty( $gb_user_settings )
-						&& isset( $gb_user_settings['buzz_cats'] ) && !empty( $gb_user_settings['buzz_cats'] ) ) {
-				
-					$new_buzz_cats = $this->convert_old_categories( $gb_user_settings['buzz_cats'] );
-					
-					if ( !empty( $new_buzz_cats ) ) {
-						
-						$gb_user_settings['clude'] = array_shift( $new_buzz_cats );
-						$gb_user_settings['buzz_cats'] = $new_buzz_cats;
-						update_user_option( $user_id, 'leenkme_googlebuzz', $gb_user_settings );
-						
-					}
-				
-				}
 				
 				$li_user_settings = get_user_option( 'leenkme_linkedin', $user_id );
 				if ( !empty( $li_user_settings )
@@ -515,10 +489,6 @@ if ( class_exists( 'leenkme' ) ) {
 		require_once( 'facebook.php' );
 	}
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
-		require_once( 'googlebuzz.php' );
-	}
-	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
 		require_once( 'linkedin.php' );
 	}
@@ -550,11 +520,6 @@ function leenkme_ap() {
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		global $dl_pluginleenkmeFacebook;
 		add_submenu_page( 'leenkme', __( 'Facebook Settings', 'leenkme' ), __( 'Facebook', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_facebook', array( &$dl_pluginleenkmeFacebook, 'print_facebook_settings_page' ) );
-	}
-	
-	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
-		global $dl_pluginleenkmeGoogleBuzz;
-		add_submenu_page( 'leenkme', __( 'Google Buzz Settings', 'leenkme' ), __( 'Google Buzz', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_googlebuzz', array( &$dl_pluginleenkmeGoogleBuzz, 'print_googlebuzz_settings_page' ) );
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
@@ -601,10 +566,6 @@ function leenkme_js() {
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
 		leenkme_facebook_js();
-	}
-	
-	if ( $dl_pluginleenkme->plugin_enabled( 'googlebuzz' ) ) {
-		leenkme_googlebuzz_js();
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
@@ -797,7 +758,6 @@ function leenkme_help_list( $contextual_help, $screen ) {
 		$contextual_help[$screen->id] = __( '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | ' .
 '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | ' .
-'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/" target="_blank">Google Buzz</a> | ' .
 '<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a> | ' .
 '<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>' );
 	}

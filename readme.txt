@@ -1,15 +1,15 @@
 === leenk.me ===
 Contributors: layotte
-Tags: twitter, facebook, face, book, googlebuzz, google, buzz, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
+Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp
 Requires at least: 2.8
 Tested up to: 3.2
 Stable tag: 1.3.10
 
-leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, Google Buzz, LinkedIn, & FriendFeed accounts automatically.
+leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, LinkedIn, & FriendFeed accounts automatically.
 
 == Description ==
 
-leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/fan page/group walls, a buzz to your Google Buzz profile, a share on your LinkedIn profile, and an entry on your FriendFeed profile/group whenever you publish a new post in your WordPress website.
+leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/fan page/group walls, a share on your LinkedIn profile, and an entry on your FriendFeed profile/group whenever you publish a new post in your WordPress website.
 
 What can you do with leenk.me?
 
@@ -24,7 +24,6 @@ What can you do with leenk.me?
 * Customize your Tweet format with the custom variables %TITLE%, %URL%, %CATS%, and %TAGS%.
 * Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL or WordPress's default short URL.
 * Add a filter to [use your own custom URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/), like bit.ly
-* Customize your Buzz message for individual posts.
 * Customize your Facebook post for individual posts.
 * Customize your LinkedIn shares for individual posts.
 * Customize your FriendFeed entries for individual posts.
@@ -60,7 +59,7 @@ Yes, the leenk.me plugin hooks into the schedule-to-publish action that WordPres
 
 = Does leenk.me work with multiple authors? =
 
-Yes, just be sure to check the box to Tweet/Publish/Buzz all authors in the leenk.me plugins.
+Yes, just be sure to check the box to Tweet/Publish all authors in the leenk.me plugins.
 
 = Can I add multiple Twitter/Facebook/Buzz accounts to a single leenk.me account? =
 
@@ -73,10 +72,6 @@ http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/
 = How to use the leenk.me Facebook plugin =
 
 http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/
-
-= How to use the leenk.me Google Buzz plugin =
-
-http://leenk.me/2010/09/05/how-to-use-the-leenk-me-google-buzz-plugin-for-wordpress/
 
 = How to use the leenk.me LinkedIn plugin =
 
@@ -95,6 +90,9 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
+= 1.3.11 =
+* Removed Google Buzz... Google has killed the Buzz API.
+
 = 1.3.10 =
 * The last fix for Portuguese characters broke Cyrillic characters. Completely rethought the whole process and added new code.
 
