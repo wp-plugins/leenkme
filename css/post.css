@@ -137,7 +137,7 @@ div#lm_facebook_box, div#lm_linkedin_box, div#lm_friendfeed_box {
 	margin-left: auto;
 	margin-right: auto;	
 }
-textarea#lm_fb_message, textarea#lm_li_comment, textarea#lm_ff_body {
+textarea#leenkme_tweet, textarea#lm_fb_message, textarea#lm_li_comment, textarea#lm_ff_body {
 	padding-top: 5px;
 	min-height: 48px;
 	width: 99%;
