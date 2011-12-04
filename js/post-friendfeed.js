@@ -8,7 +8,7 @@ $lm_post_friendfeed_jquery(document).ready(function($) {
 		
 	});
 	
-	$( 'textarea#lm_ff_body, input#lm_ff_linkname, input#lm_ff_caption, textarea#lm_ff_description' ).live('click', function() {
+	$( 'textarea#lm_ff_body, input#lm_ff_linkname, input#lm_ff_caption, textarea#lm_ff_description' ).live('mousedown', function() {
 		
 		$( 'input[name=lm_friendfeed_type]' ).val( 1 );
 		$( 'span.ff_default_format' ).hide();

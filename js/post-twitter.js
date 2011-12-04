@@ -8,7 +8,7 @@ $lm_post_twitter_jquery(document).ready(function($) {
 		
 	});
 	
-	$( 'textarea#leenkme_tweet' ).live('click', function() {
+	$( 'textarea#leenkme_tweet' ).live('mousedown', function() {
 		
 		$( 'input[name=lm_tweet_type]' ).val( 1 );
 		$( 'span.tw_default_format' ).hide();

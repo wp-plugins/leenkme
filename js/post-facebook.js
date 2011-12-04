@@ -8,7 +8,7 @@ $lm_post_facebook_jquery(document).ready(function($) {
 		
 	});
 	
-	$( 'textarea#lm_fb_message, input#lm_fb_linkname, input#lm_fb_caption, textarea#lm_fb_description' ).live('click', function() {
+	$( 'textarea#lm_fb_message, input#lm_fb_linkname, input#lm_fb_caption, textarea#lm_fb_description' ).live('mousedown', function() {
 		
 		$( 'input[name=lm_facebook_type]' ).val( 1 );
 		$( 'span.fb_default_format' ).hide();

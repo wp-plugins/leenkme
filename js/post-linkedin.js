@@ -8,7 +8,7 @@ $lm_post_linkedin_jquery(document).ready(function($) {
 		
 	});
 	
-	$( 'textarea#lm_li_comment, input#lm_li_linktitle, textarea#lm_li_description' ).live('click', function() {
+	$( 'textarea#lm_li_comment, input#lm_li_linktitle, textarea#lm_li_description' ).live('mousedown', function() {
 		
 		$( 'input[name=lm_linkedin_type]' ).val( 1 );
 		$( 'span.li_default_format' ).hide();
