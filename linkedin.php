@@ -7,6 +7,8 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 		
 		// Class members		
 		var $options_name				= 'leenkme_linkedin';
+		var $linkedin_profile			= 'linkedin_profile';
+		var $linkedin_group				= 'linkedin_group';
 		var $linkedin_comment			= 'linkedin_comment';
 		var $linkedin_title				= 'linkedin_title';
 		var $default_image				= 'default_image';
@@ -55,6 +57,8 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 		function get_user_settings( $user_id ) {
 			
 			// Default values for the options
+			$linkedin_profile		= true;
+			$linkedin_group			= false;
 			$linkedin_comment		= '%TITLE%';
 			$linkedin_title			= '%WPSITENAME%';
 			$default_image			= '';
@@ -62,6 +66,8 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 			$clude					= 'in';
 			
 			$options = array(
+								 $this->linkedin_profile 		=> $linkedin_profile,
+								 $this->linkedin_group 			=> $linkedin_group,
 								 $this->linkedin_comment		=> $linkedin_comment,
 								 $this->linkedin_title			=> $linkedin_title,
 								 $this->default_image 			=> $default_image,
@@ -100,6 +106,16 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 			$linkedin_settings = $this->get_leenkme_linkedin_settings();
 			
 			if ( isset( $_POST['update_linkedin_settings'] ) ) {
+				
+				if ( isset( $_POST['linkedin_profile'] ) )
+					$user_settings[$this->linkedin_profile] = true;
+				else
+					$user_settings[$this->linkedin_profile] = false;
+				
+				if ( isset( $_POST['linkedin_group'] ) )
+					$user_settings[$this->linkedin_group] = true;
+				else
+					$user_settings[$this->linkedin_group] = false;
 				
 				if ( isset( $_POST['linkedin_comment'] ) )
 					$user_settings[$this->linkedin_comment] = $_POST['linkedin_comment'];
@@ -148,6 +164,26 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 			<div class="meta-box-sortables ui-sortable">
 				<form id="leenkme" method="post" action="">
 					<h2 style='margin-bottom: 10px;' ><img src='<?php echo $dl_pluginleenkme->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> LinkedIn Settings (<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">help</a>)</h2>
+					<div id="post-types" class="postbox">
+					
+						<div class="handlediv" title="Click to toggle"><br /></div>
+						<h3 class="hndle"><span><?php _e( 'Social Settings' ); ?></span></h3>
+						
+						<div class="inside">
+						
+							<p>Share to Personal Profile? <input type="checkbox" id="linkedin_profile" name="linkedin_profile" <?php checked( $user_settings[$this->linkedin_profile] ); ?> /></p>
+							<p>Share to Group? <input type="checkbox" id="linkedin_group" name="linkedin_group" <?php checked( $user_settings[$this->linkedin_group] ); ?> /></p>
+                        
+                            <p>
+                                <input type="button" class="button" name="verify_linkedin_connect" id="li_share" value="<?php _e( 'Share a Test Message', 'leenkme_LinkedIn' ) ?>" />
+                                <?php wp_nonce_field( 'li_share', 'li_share_wpnonce' ); ?>
+                            
+                                <input class="button-primary" type="submit" name="update_linkedin_settings" value="<?php _e( 'Save Settings', 'leenkme_LinkedIn' ) ?>" />
+                            </p>
+							
+						</div>
+					
+					</div>
                     
 					<div id="post-types" class="postbox">
 					
@@ -166,13 +202,6 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 						</ul>
 						</div>
 						<p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e( $user_settings[$this->default_image], 'leenkme_LinkedIn' ) ?>" /></p>
-                        
-						<p>
-                        	<input type="button" class="button" name="verify_linkedin_connect" id="li_share" value="<?php _e( 'Share a Test Message', 'leenkme_LinkedIn' ) ?>" />
-							<?php wp_nonce_field( 'li_share', 'li_share_wpnonce' ); ?>
-                        
-                            <input class="button-primary" type="submit" name="update_linkedin_settings" value="<?php _e( 'Save Settings', 'leenkme_LinkedIn' ) ?>" />
-                        </p>
                     
                         </div>
                     
@@ -242,6 +271,16 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 				
 			if ( isset( $_REQUEST['_inline_edit'] ) )
 				return;
+	
+			if ( isset( $_POST['linkedin_exclude'] ) )
+				update_post_meta( $post_id, 'linkedin_exclude', $_POST['linkedin_exclude'] );
+			else
+				delete_post_meta( $post_id, 'linkedin_exclude' );
+	
+			if ( isset( $_POST["linkedin_exclude_group"] ) )
+				update_post_meta( $post_id, 'linkedin_exclude_group', $_POST["linkedin_exclude_group"] );
+			else
+				delete_post_meta( $post_id, 'linkedin_exclude_group' );
 			
 			if ( isset( $_POST['linkedin_comment'] ) && !empty( $_POST['linkedin_comment'] ) )
 				update_post_meta( $post_id, 'linkedin_comment', $_POST['linkedin_comment'] );
@@ -295,6 +334,7 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 			$user_id = $current_user->ID;
 			
 			$linkedin_exclude = get_post_meta( $post->ID, 'linkedin_exclude', true );
+			$linkedin_exclude_group = get_post_meta( $post->ID, 'linkedin_exclude_group', true ); 
 			$linkedin_comment = get_post_meta( $post->ID, 'linkedin_comment', true );
 			$linkedin_title = get_post_meta( $post->ID, 'linkedin_title', true );
 			$linkedin_description = get_post_meta( $post->ID, 'linkedin_description', true );
@@ -321,9 +361,16 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 				  <td style="vertical-align:top; width:80px;">
 					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
 				</td></tr>
-				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from LinkedIn:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php checked( $linkedin_exclude ); ?> />
+                <?php if ( $user_settings['linkedin_exclude'] ) { ?>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
+				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php checked( $linkedin_exclude || "on" == $linkedin_exclude ); ?> />
 				</td></tr>
+				<?php } ?>
+				<?php if ( $user_settings['linkedin_group'] ) { ?>
+				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Group:', 'leenkme' ) ?></td>
+				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude_group" <?php checked( $exclude_group || "on" == $linkedin_exclude_group ); ?> />
+				</td></tr>
+				<?php } ?>
                 
 				<?php // Only show ReShare button if the post is "published"
 				if ( 'publish' === $post->post_status ) { ?>
@@ -352,8 +399,13 @@ function leenkme_linkedin_js() {
 ?>
 
 		$('input#li_share').live('click', function() {
+			var linkedin_profile = $('input#linkedin_profile').attr('checked')
+			var linkedin_group = $('input#linkedin_group').attr('checked')
+            
 			var data = {
 				action:		'li_share',
+				linkedin_profile:	linkedin_profile,
+				linkedin_group:		linkedin_group,
 				_wpnonce:	$('input#li_share_wpnonce').val()
 			};
 			
@@ -361,8 +413,13 @@ function leenkme_linkedin_js() {
 		});
 
 		$('input#reshare_button').live('click', function() {
+			var linkedin_profile = $('input#linkedin_profile').attr('checked')
+			var linkedin_group = $('input#linkedin_group').attr('checked')
+            
 			var data = {
 				action: 	'reshare',
+				linkedin_profile:	linkedin_profile,
+				linkedin_group:		linkedin_group,
 				id:  		$('input#post_ID').val(),
 				_wpnonce: 	$('input#leenkme_wpnonce').val()
 			};
@@ -408,6 +465,14 @@ function leenkme_ajax_li() {
 		$connect_arr[$api_key]['li_image'] = $picture;
 		$connect_arr[$api_key]['li_desc'] = $description;
 		$connect_arr[$api_key]['li_code'] = $code;
+						
+		if ( isset( $_POST['linkedin_profile'] ) 
+				&& ( 'true' === $_POST['linkedin_profile'] || 'checked' === $_POST['linkedin_profile'] ) )
+			$connect_arr[$api_key]['linkedin_profile'] = true;
+		
+		if ( isset( $_POST['linkedin_group'] ) 
+				&& ( 'true' === $_POST['linkedin_group'] || 'checked' === $_POST['linkedin_group'] ) )
+			$connect_arr[$api_key]['linkedin_group'] = true;
 		
 		$result = leenkme_ajax_connect($connect_arr);
 		
@@ -447,9 +512,10 @@ function leenkme_ajax_reshare() {
 	
 	if ( isset( $_POST['id'] ) ) {
 
-		if ( get_post_meta( $_POST['id'], 'linkedin_exclude', true ) ) {
+		if ( get_post_meta( $_POST['id'], 'linkedin_exclude', true )
+				&& get_post_meta( $_POST['id'], 'linkedin_exclude_group', true ) ) {
 
-			die( 'You have excluded this post from sharing to your LinkedIn profile. If you would like to share it, edit the post and remove the appropriate exclude check box.' );
+			die( 'You have excluded this post from sharing to your LinkedIn profile and group. If you would like to share it, edit the post and remove the appropriate exclude check box.' );
 
 		} else {
 
@@ -520,7 +586,12 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 	else
 		$linkedin_exclude = false;
 	
-	if ( !$linkedin_exclude ) {
+	if ( get_post_meta( $post->ID, 'linkedin_exclude_group', true ) )
+		$linkedin_exclude_group = true;
+	else
+		$linkedin_exclude_group = false;
+	
+	if ( !( $linkedin_exclude && $linkedin_exclude_group ) ) {
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		
@@ -593,6 +664,21 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 							
 						}
 					}
+						
+					if ( !$options['linkedin_profile'] && !$options['linkedin_group']) {
+					
+						clean_user_cache( $user_id );
+						continue;	//Skip this user if they don't have Profile or Page checked in plugins Facebook Settings
+					
+					}
+	
+					// Added facebook profile to connection array if enabled
+					if ( $options['linkedin_profile'] && !$exclude_profile )
+						$connect_arr[$api_key]['linkedin_profile'] = true;
+	
+					// Added facebook page to connection array if enabled
+					if ( $options['linkedin_group'] && !$linkedin_exclude_group )
+						$connect_arr[$api_key]['linkedin_group'] = true;
 					
 					// Get META LinkedIn comment
 					$comment = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'linkedin_comment', true ) ) );
