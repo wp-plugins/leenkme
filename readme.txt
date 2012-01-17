@@ -96,6 +96,18 @@ Yes, there is not a GUI interface for this yet, but if your URL shortener has a 
 * Added URL Shorteners to GUI
 * Major update to leenk.me post meta boxes
 
+= 1.3.12=
+* Added LinkedIn Groups to service and plugin.
+
+= 1.3.11 =
+* Removed Google Buzz... Google has killed the Buzz API.
+
+= 1.3.10 =
+* The last fix for Portuguese characters broke Cyrillic characters. Completely rethought the whole process and added new code.
+
+= 1.3.9 =
+* Fixed bug that causes certain non-UTF8 strings to trim too long and be rejected by a social network.
+
 = 1.3.8 =
 * Updates LinkedIn TITLE and DESCRIPTION character limits, per their latest API notes
 
