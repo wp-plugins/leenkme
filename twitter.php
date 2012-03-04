@@ -465,15 +465,10 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $debug = fal
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			$options = get_option( 'leenkme_twitter' );
 			
-			if ( $options['leenkme_tweetallusers'] ) {
-				
-				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM ' . $wpdb->users ) );
-				
-			} else {
-				
+			if ( $options['leenkme_tweetallusers'] )
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );
+			else
 				$user_ids[] = $post->post_author;
-				
-			}
 			
 			foreach ( $user_ids as $user_id ) {
 				

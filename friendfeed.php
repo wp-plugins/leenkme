@@ -560,15 +560,11 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 			
 			$options = get_option( 'leenkme_friendfeed' );
 			
-			if ( $options['feed_all_users'] ) {
-				
-				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
-				
-			} else {
-				
+			if ( $options['feed_all_users'] )
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );
+			else
 				$user_ids[] = $post->post_author;
 				
-			}
 			
 			$url = get_permalink( $post->ID );
 			$post_title = strip_tags( $post->post_title );

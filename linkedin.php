@@ -600,7 +600,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 			$options = get_option( 'leenkme_linkedin' );
 			
 			if ( $options['share_all_users'] )
-				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT ID FROM '. $wpdb->users ) );
+				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );
 			else
 				$user_ids[] = $post->post_author;
 			
