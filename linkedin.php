@@ -597,7 +597,7 @@ function leenkme_share_to_linkedin( $connect_arr = array(), $post, $debug = fals
 		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			
-			$options = get_option( 'leenkme_linkedin' );
+			$options = $dl_pluginleenkmeLinkedIn->get_leenkme_linkedin_settings();
 			
 			if ( $options['share_all_users'] )
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );

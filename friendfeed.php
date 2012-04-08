@@ -558,7 +558,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			
-			$options = get_option( 'leenkme_friendfeed' );
+			$options = $dl_pluginleenkmeFriendFeed->get_leenkme_friendfeed_settings();
 			
 			if ( $options['feed_all_users'] )
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );

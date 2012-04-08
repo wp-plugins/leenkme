@@ -638,7 +638,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $debug = fa
 		
 		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
 			
-			$options = get_option( 'leenkme_facebook' );
+			$options = $dl_pluginleenkmeFacebook->get_leenkme_facebook_settings();
 			
 			if ( $options['publish_all_users'] )
 				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );
