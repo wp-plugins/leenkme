@@ -361,7 +361,7 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 				  <td style="vertical-align:top; width:80px;">
 					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
 				</td></tr>
-                <?php if ( $user_settings['linkedin_exclude'] ) { ?>
+                <?php if ( $user_settings['linkedin_profile'] ) { ?>
 				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Profile:', 'leenkme' ) ?></td>
 				  <td><input style="margin-top: 5px;" type="checkbox" name="linkedin_exclude" <?php checked( $linkedin_exclude || "on" == $linkedin_exclude ); ?> />
 				</td></tr>
