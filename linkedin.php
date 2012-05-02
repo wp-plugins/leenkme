@@ -474,17 +474,18 @@ function leenkme_ajax_li() {
 				&& ( 'true' === $_POST['linkedin_group'] || 'checked' === $_POST['linkedin_group'] ) )
 			$connect_arr[$api_key]['linkedin_group'] = true;
 		
-		$result = leenkme_ajax_connect($connect_arr);
+		$result = leenkme_ajax_connect( $connect_arr );
 		
-		if ( isset( $result[0] ) ) {	
+		if ( isset( $result[$api_key] ) ) {	
 				
-			if ( is_wp_error( $result[0] ) ) {
+			if ( is_wp_error( $result[$api_key] ) ) {
 				
-				die( $result[0]->get_error_message() );	
+				die( $result[$api_key]->get_error_message() );	
 				
-			} else if ( isset( $result[0]['response']['code'] ) ) {
-				
-				die( $result[0]['body'] );
+			} else if ( isset( $result[$api_key]['response']['code'] ) ) {
+
+				$response = json_decode( $result[$api_key]['body'] );
+				die( $response[1] );
 				
 			} else {
 				
@@ -532,8 +533,9 @@ function leenkme_ajax_reshare() {
 						$out[] = "<p>" . $result->get_error_message() . "</p>";
 		
 					} else if ( isset( $result['response']['code'] ) ) {
-		
-						$out[] = "<p>" . $result['body'] . "</p>";
+				
+						$response = json_decode( $result['body'] );
+						$out[] = $response[1];
 		
 					} else {
 		
@@ -543,7 +545,7 @@ function leenkme_ajax_reshare() {
 		
 				}
 				
-				die( join( $out ) );
+				die( join( (array)$out ) );
 				
 			} else {
 				

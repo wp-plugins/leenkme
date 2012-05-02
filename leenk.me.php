@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.3.14.1
+Version: 1.4.0
 Author URI: http://leenk.me/about/
 Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, social network, social media, social media tools
 */
 
-define( 'LEENKME_VERSION' , '1.3.14.1' );
+define( 'LEENKME_VERSION' , '1.4.0' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -35,7 +35,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 			$this->wp_version = $wp_version;
 			$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
-			$this->api_url	= 'https://leenk.me/api/1.1/';
+			$this->api_url	= 'https://leenk.me/api/1.2/';
 			$this->timeout	= '5000';		// in miliseconds
 		
 			add_action( 'init', array( &$this, 'upgrade' ) );
@@ -330,6 +330,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 		}
 		
 		function upgrade() {
+			
 			$leenkme_settings = $this->get_leenkme_settings();
 			
 			if ( isset( $leenkme_settings['version'] ) )
@@ -342,6 +343,12 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 			if ( version_compare( $old_version, '1.3.0', '<' ) )
 				$this->upgrade_to_1_3_0();
+			
+			if ( isset( $_REQUEST['hide_admin_notice'] ) )
+				update_option( 'show_leenkme_notice', LEENKME_VERSION );
+			
+			if ( version_compare( get_option( 'show_leenkme_notice' ), '1.4.0', '<' ) ) //Only need for 1.4.0 right now
+				add_action( 'admin_notices', array( $this, 'leenkme_notices' ) );
 			
 			$leenkme_settings['version'] = LEENKME_VERSION;
 			update_option( $this->options_name, $leenkme_settings );
@@ -435,6 +442,12 @@ if ( ! class_exists( 'leenkme' ) ) {
 				
 			}
 			
+		}
+		
+		function leenkme_notices() {
+		
+			echo "<div class='update-nag'>" . sprintf( __( "<p>Due to some changes Facebook has made to their system, you will need to update your leenk.me account settings.<br />Please log into <a href='http://leenk.me/' target='_blank'>http://leenk.me/</a> and follow the instructions for updating your settings.</p><p><a href='%s'>hide this notice</a></p>" ), add_query_arg( 'hide_admin_notice', 'yes' ) ) . "</div>";
+		
 		}
 		
 		function convert_old_categories( $categories ) {
@@ -641,21 +654,22 @@ function leenkme_ajax_verify() {
 	
 				if ( is_wp_error( $result ) ) {
 	
-					$out[] = "<p>" . $result->get_error_message() . "</p>";
+					$out[$api_key] = "<p>" . $result->get_error_message() . "</p>";
 	
 				} else if ( isset( $result['response']['code'] ) ) {
-	
-					$out[] = "<p>" . $result['body'] . "</p>";
+			
+					$response = json_decode( $result['body'] );
+					$out[$api_key] = $response[1];
 	
 				} else {
 	
-					$out[] = "<p>" . __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+					$out[$api_key] = "<p>" . __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
 	
 				}
 	
 			}
 			
-			die( join( $out ) );
+			die( join( (array)$out ) );
 		
 		} else {
 
@@ -733,11 +747,11 @@ function leenkme_ajax_connect( $connect_arr ) {
 			
 			if ( isset( $result ) ) {
 				
-				$out[] = $result;
+				$out[$api_key] = $result;
 				
 			} else {
 				
-				$out[] =  "<p>" . $api_key . ": " . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
+				$out[$api_key] =  "<p>" . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
 				
 			}
 			
@@ -793,7 +807,6 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
 	
 	add_filter( 'contextual_help_list', 'leenkme_help_list', 10, 2);
-	
 
 } 
 
