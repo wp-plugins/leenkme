@@ -37,7 +37,7 @@ What sets leenk.me apart from others?
 * You authorize which applications are connected to your leenk.me account.
 * leenk.me is instant, no need to wait for an RSS reader to get your latest posts... publishing sends your content to leenk.me automatically.
 
-You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The leenk.me subscription is 99 cents a month with a one month free trial. Cancel anytime before your trial ends and you won't be charged. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
+You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The leenk.me personal subscription is 5 dollars a year with a one month free trial. Cancel anytime before your trial ends and you won't be charged. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
 
 Have questions? Contact me through the leenk.me [support](http://leenk.me/contact) form.
 
