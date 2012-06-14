@@ -2,7 +2,7 @@
 Contributors: layotte
 Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, social network, social media, social media tools
 Requires at least: 2.8
-Tested up to: 3.3
+Tested up to: 3.4
 Stable tag: 1.4.0
 
 leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, LinkedIn, & FriendFeed accounts automatically.
