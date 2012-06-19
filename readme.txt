@@ -97,6 +97,7 @@ Yes, there is not a GUI interface for this yet, but if your URL shortener has a 
 * Added Open Graph Meta tags for resharing in Facebook and LinkedIn (and other social networks)
 * Updated User Query to make compatibly with WordPress Multisite
 * Fixed substring bug in jQuery call for users with a lot of pictures
+* Now leenk.me is i18n Translation Ready
 
 = 2.0.0b5 =
 * Using leenk.me API version 1.2
