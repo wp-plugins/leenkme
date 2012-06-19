@@ -4,30 +4,19 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 1.4.0
+Version: 2.0.0
 Author URI: http://leenk.me/about/
-Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, social network, social media, social media tools
+Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
 */
 
-define( 'LEENKME_VERSION' , '1.4.0' );
+define( 'LEENKME_VERSION' , '2.0.0' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
 	class leenkme {
 		
-		// Class members	
-		var $options_name			= 'leenkme';
-		var $leenkme_API			= 'leenkme_API';
-		var $version				= 'version';
-		var $twitter				= 'twitter';
-		var $facebook				= 'facebook';
-		var $linkedin				= 'linkedin';
-		var $friendfeed				= 'friendfeed';
-		var $base_url 				= 'base_url';
-		var $api_url				= 'api_url';
-		var $timeout				= 'timeout';
-		var $post_types				= 'post_types';
-		var $adminpages 			= array( 'leenkme', 'leenkme_twitter', 'leenkme_facebook', 'leenkme_linkedin', 'leenkme_friendfeed' );
+		// Class members
+		var $adminpages = array( 'leenkme', 'leenkme_twitter', 'leenkme_facebook', 'leenkme_linkedin', 'leenkme_friendfeed' );
 		
 		function leenkme() {
 			
@@ -37,28 +26,43 @@ if ( ! class_exists( 'leenkme' ) ) {
 			$this->base_url = plugins_url() . '/' . dirname( plugin_basename( __FILE__ ) ) . '/';
 			$this->api_url	= 'https://leenk.me/api/1.2/';
 			$this->timeout	= '5000';		// in miliseconds
+			
+			add_image_size( 'leenkme_thumbnail', 150, 150 );
 		
 			add_action( 'init', array( &$this, 'upgrade' ) );
-			add_action( 'admin_print_scripts', array( &$this, 'leenkme_print_scripts' ) );
-			add_action( 'admin_print_styles', array( &$this, 'leenkme_print_styles' ) );
+			add_action( 'admin_enqueue_scripts', 				array( &$this, 'leenkme_admin_enqueue_scripts' ) );
+			add_action( 'wp_ajax_show_lm_shortener_options', 	array( &$this, 'show_lm_shortener_options' ) );
+			add_filter( 'get_shortlink', 'leenkme_get_shortlink_handler', 1, 4 );
+			
+			$leenkme_settings = $this->get_leenkme_settings();
+			
+			if ( $leenkme_settings['use_og_meta_tags'] )
+				add_action( 'wp_head', array( &$this, 'output_leenkme_og_meta_tags' ) );
 	
 		}
 		
 		function get_leenkme_settings() {
 			
-			$twitter 		= false;
-			$facebook		= false;
-			$linkedin 		= false;
-			$friendfeed		= false;
-			$post_types 	= array('post');
-			
-			$options = array( 	$this->twitter 		=> $twitter,
-								$this->facebook 	=> $facebook,
-								$this->linkedin 	=> $linkedin,
-								$this->friendfeed 	=> $friendfeed,
-								$this->post_types	=> $post_types	);
+			$options = array( 	'twitter' 					=> false,
+								'facebook' 					=> false,
+								'linkedin' 					=> false,
+								'friendfeed '				=> false,
+								'post_types'				=> array( 'post' ),
+								'url_shortener'				=> 'tinyurl',
+								'use_og_meta_tags'			=> false,
+								'og_type'					=> 'website',
+								'og_sitename'				=> '%WPSITENAME%',
+								'og_description'			=> '%WPTAGLINE%',
+								'og_image'					=> '',
+								'use_single_og_meta_tags'	=> false,
+								'og_single_title'			=> '%TITLE%',
+								'og_single_sitename'		=> '%WPSITENAME%',
+								'og_single_description'		=> '%EXCERPT%',
+								'og_single_image'			=> '',
+								'force_og_image'			=> false
+							);
 		
-			$leenkme_settings = get_option( $this->options_name );
+			$leenkme_settings = get_option( 'leenkme' );
 			if ( !empty( $leenkme_settings ) ) {
 				
 				foreach ( $leenkme_settings as $key => $option ) {
@@ -75,11 +79,9 @@ if ( ! class_exists( 'leenkme' ) ) {
 	
 		function get_user_settings( $user_id = false ) {
 			
-			$leenkme_API = '';
-			
-			$options = array( $this->leenkme_API => $leenkme_API );
+			$options = array( 'leenkme_API' => '' );
 	
-			$user_settings = get_user_option( $this->options_name, $user_id );
+			$user_settings = get_user_option( 'leenkme', $user_id );
 			if ( !empty( $user_settings ) ) {
 				
 				foreach ( $user_settings as $key => $option ) {
@@ -94,31 +96,65 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 		}
 		
-		function leenkme_print_scripts( $pagenow ) {
+		function leenkme_admin_enqueue_scripts( $hook_suffix ) {
 			
-			global $pagenow;
-
-			if ( $pagenow == 'admin.php' && isset( $_GET['page'] ) && in_array( $_GET['page'], $this->adminpages ) ) {
+			$leenkme_general_pages 		= array( 
+											'post.php', 
+											'edit.php',
+											'post-new.php'
+										);
+			
+			$leenkme_settings_pages 	= array( 
+											'toplevel_page_leenkme', 
+											'leenk-me_page_leenkme_twitter', 
+											'leenk-me_page_leenkme_facebook', 
+											'leenk-me_page_leenkme_friendfeed', 
+											'leenk-me_page_leenkme_linkedin' 
+										);
+										
+			if ( in_array( $hook_suffix, array_merge( $leenkme_general_pages, $leenkme_settings_pages ) ) ) {
+			
+				wp_enqueue_script( 'leenkme_js', $this->base_url . 'js/leenkme.js', array( 'jquery' ), '1.0.0' );
+			
+			}
+			
+			if ( in_array( $hook_suffix, $leenkme_settings_pages ) ) {	
+				
+				wp_enqueue_style( 'global' );
+				wp_enqueue_style( 'dashboard' );
+				wp_enqueue_style( 'thickbox' );
+				wp_enqueue_style( 'wp-admin' );
+				wp_enqueue_style( 'leenkme_plugin_css', $this->base_url . 'css/leenkme.css' );
 				
 				wp_enqueue_script( 'postbox' );
 				wp_enqueue_script( 'dashboard' );
 				wp_enqueue_script( 'thickbox' );
-				
+			
 			}
 			
-		}
-		
-		function leenkme_print_styles( $pagenow ) {
+			$leenkme_post_pages 		= array( 
+											'post.php', 
+											'post-new.php'
+										);
 			
-			global $pagenow;
-
-			if ( $pagenow == 'admin.php' && isset( $_GET['page'] ) && in_array( $_GET['page'], $this->adminpages ) ) {
+			if ( in_array( $hook_suffix, $leenkme_post_pages ) ) {
 				
-				wp_enqueue_style('global');
-				wp_enqueue_style('dashboard');
-				wp_enqueue_style('thickbox');
-				wp_enqueue_style('wp-admin');
+				wp_enqueue_style( 'leenkme_post_css', $this->base_url . 'css/post.css' );
 				
+				wp_enqueue_script( 'leenkme_post_js', $this->base_url . 'js/post.js', array( 'jquery' ), '1.0.0' );
+			
+				if ( $this->plugin_enabled( 'twitter' ) )
+					wp_enqueue_script( 'leenkme_twitter_post_js', $this->base_url . 'js/post-twitter.js', array( 'leenkme_post_js' ), '1.0.0' );
+				
+				if ( $this->plugin_enabled( 'facebook' ) )
+					wp_enqueue_script( 'leenkme_facebook_post_js', $this->base_url . 'js/post-facebook.js', array( 'leenkme_post_js' ), '1.0.0' );
+				
+				if ( $this->plugin_enabled( 'linkedin' ) )
+					wp_enqueue_script( 'leenkme_linkedin_post_js', $this->base_url . 'js/post-linkedin.js', array( 'leenkme_post_js' ), '1.0.0' );
+				
+				if ( $this->plugin_enabled( 'friendfeed' ) )
+					wp_enqueue_script( 'leenkme_friendfeed_post_js', $this->base_url . 'js/post-friendfeed.js', array( 'leenkme_post_js' ), '1.0.0' );
+					
 			}
 			
 		}
@@ -133,39 +169,111 @@ if ( ! class_exists( 'leenkme' ) ) {
 			$user_settings = $this->get_user_settings( $user_id );
 			$leenkme_settings = $this->get_leenkme_settings();
 			
-			if ( isset( $_POST['update_leenkme_settings'] ) ) {
+			if ( isset( $_REQUEST['update_leenkme_settings'] ) ) {
 				
-				if ( isset( $_POST['leenkme_API'] ) )
-					$user_settings[$this->leenkme_API] = $_POST['leenkme_API'];
+				if ( isset( $_REQUEST['leenkme_API'] ) )
+					$user_settings['leenkme_API'] = $_REQUEST['leenkme_API'];
 					
-				update_user_option( $user_id, $this->options_name, $user_settings );
+				update_user_option( $user_id, 'leenkme', $user_settings );
 				
 				if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
 				
-					if ( isset( $_POST['twitter'] ) )
-						$leenkme_settings[$this->twitter] = true;
+					if ( isset( $_REQUEST['twitter'] ) )
+						$leenkme_settings['twitter'] = true;
 					else
-						$leenkme_settings[$this->twitter] = false;
+						$leenkme_settings['twitter'] = false;
 					
-					if ( isset( $_POST['facebook'] ) )
-						$leenkme_settings[$this->facebook] = true;
+					if ( isset( $_REQUEST['facebook'] ) )
+						$leenkme_settings['facebook'] = true;
 					else
-						$leenkme_settings[$this->facebook] = false;
+						$leenkme_settings['facebook'] = false;
 					
-					if ( isset( $_POST['linkedin'] ) )
-						$leenkme_settings[$this->linkedin] = true;
+					if ( isset( $_REQUEST['linkedin'] ) )
+						$leenkme_settings['linkedin'] = true;
 					else
-						$leenkme_settings[$this->linkedin] = false;
+						$leenkme_settings['linkedin'] = false;
 					
-					if ( isset( $_POST['friendfeed'] ) )
-						$leenkme_settings[$this->friendfeed] = true;
+					if ( isset( $_REQUEST['friendfeed'] ) )
+						$leenkme_settings['friendfeed'] = true;
 					else
-						$leenkme_settings[$this->friendfeed] = false;
+						$leenkme_settings['friendfeed'] = false;
 					
-					if ( isset( $_POST['post_types'] ) )
-						$leenkme_settings[$this->post_types] = $_POST['post_types'];
+					if ( isset( $_REQUEST['post_types'] ) )
+						$leenkme_settings['post_types'] = $_REQUEST['post_types'];
 					
-					update_option( $this->options_name, $leenkme_settings );
+					if ( isset( $_REQUEST['url_shortener'] ) )
+						$leenkme_settings['url_shortener'] = $_REQUEST['url_shortener'];
+					
+					if ( isset( $_REQUEST['supr_shortner_type'] ) )
+						$leenkme_settings['supr_shortner_type'] = $_REQUEST['supr_shortner_type'];
+					
+					if ( isset( $_REQUEST['supr_username'] ) )
+						$leenkme_settings['supr_username'] = $_REQUEST['supr_username'];
+					
+					if ( isset( $_REQUEST['supr_apikey'] ) )
+						$leenkme_settings['supr_apikey'] = $_REQUEST['supr_apikey'];
+					
+					if ( isset( $_REQUEST['bitly_username'] ) )
+						$leenkme_settings['bitly_username'] = $_REQUEST['bitly_username'];
+					
+					if ( isset( $_REQUEST['bitly_apikey'] ) )
+						$leenkme_settings['bitly_apikey'] = $_REQUEST['bitly_apikey'];
+					
+					if ( isset( $_REQUEST['yourls_auth_type'] ) )
+						$leenkme_settings['yourls_auth_type'] = $_REQUEST['yourls_auth_type'];
+					
+					if ( isset( $_REQUEST['yourls_api_url'] ) )
+						$leenkme_settings['yourls_api_url'] = $_REQUEST['yourls_api_url'];
+					
+					if ( isset( $_REQUEST['yourls_username'] ) )
+						$leenkme_settings['yourls_username'] = $_REQUEST['yourls_username'];
+					
+					if ( isset( $_REQUEST['yourls_password'] ) )
+						$leenkme_settings['yourls_password'] = $_REQUEST['yourls_password'];
+					
+					if ( isset( $_REQUEST['yourls_signature'] ) )
+						$leenkme_settings['yourls_signature'] = $_REQUEST['yourls_signature'];
+					
+					if ( isset( $_REQUEST['use_og_meta_tags'] ) )
+						$leenkme_settings['use_og_meta_tags'] = true;
+					else
+						$leenkme_settings['use_og_meta_tags'] = false;
+					
+					if ( isset( $_REQUEST['og_type'] ) )
+						$leenkme_settings['og_type'] = $_REQUEST['og_type'];
+					
+					if ( isset( $_REQUEST['og_sitename'] ) )
+						$leenkme_settings['og_sitename'] = $_REQUEST['og_sitename'];
+					
+					if ( isset( $_REQUEST['og_description'] ) )
+						$leenkme_settings['og_description'] = $_REQUEST['og_description'];
+					
+					if ( isset( $_REQUEST['og_image'] ) )
+						$leenkme_settings['og_image'] = $_REQUEST['og_image'];
+					
+					if ( isset( $_REQUEST['use_single_og_meta_tags'] ) )
+						$leenkme_settings['use_single_og_meta_tags'] = true;
+					else
+						$leenkme_settings['use_single_og_meta_tags'] = false;
+					
+					if ( isset( $_REQUEST['og_single_title'] ) )
+						$leenkme_settings['og_single_title'] = $_REQUEST['og_single_title'];
+					
+					if ( isset( $_REQUEST['og_single_sitename'] ) )
+						$leenkme_settings['og_single_sitename'] = $_REQUEST['og_single_sitename'];
+					
+					if ( isset( $_REQUEST['og_single_description'] ) )
+						$leenkme_settings['og_single_description'] = $_REQUEST['og_single_description'];
+					
+					if ( isset( $_REQUEST['og_single_image'] ) )
+						$leenkme_settings['og_single_image'] = $_REQUEST['og_single_image'];
+					
+					if ( isset( $_REQUEST['force_og_image'] ) )
+						$leenkme_settings['force_og_image'] = true;
+					else
+						$leenkme_settings['force_og_image'] = false;
+					
+					update_option( 'leenkme', $leenkme_settings );
 					
 					// It's not pretty, but the easiest way to get the menu to refresh after save...
 					?>
@@ -180,7 +288,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 				
 			}
 			
-			if ( isset( $_POST['update_leenkme_settings'] ) || isset( $_GET['settings_saved'] ) ) {
+			if ( isset( $_REQUEST['update_leenkme_settings'] ) || isset( $_GET['settings_saved'] ) ) {
 				
 				// update settings notification ?>
 				<div class="updated"><p><strong><?php _e( "leenk.me Settings Updated.", "leenkme" );?></strong></p></div>
@@ -193,30 +301,33 @@ if ( ! class_exists( 'leenkme' ) ) {
 			<div class=wrap>
             <div style="width:70%;" class="postbox-container">
             <div class="metabox-holder">	
-            <div class="meta-box-sortables ui-sortable">
+            <div class="meta-box-sortables ui-droppable">
+            
                 <form id="leenkme" method="post" action="">
-                    <h2 style='margin-bottom: 10px;' ><img src='<?php echo $this->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> leenk.me General Settings</h2>
+                    <h2 style='margin-bottom: 10px;' ><img src='<?php echo $this->base_url; ?>/images/leenkme-logo-32x32.png' style='vertical-align: top;' /> <?php _e( 'leenk.me General Settings', 'leenkme' ); ?></h2>
                     
                     <div id="api-key" class="postbox">
                     
                         <div class="handlediv" title="Click to toggle"><br /></div>
                         
-                        <h3 class="hndle"><span><?php _e( 'leenk.me API Key' ); ?></span></h3>
+                        <h3 class="hndle"><span><?php _e( 'leenk.me API Key', 'leenkme' ); ?></span></h3>
                         
                         <div class="inside">
                         <p>
-                        <?php _e( 'leenk.me API Key' ); ?>: <input id="api" type="text" name="leenkme_API" style="width: 25%;" value="<?php echo htmlspecialchars( stripcslashes( $user_settings[$this->leenkme_API] ) ); ?>" />
+                        <?php _e( 'leenk.me API Key', 'leenkme' ); ?>: <input type="text" id="api" class="regular-text" name="leenkme_API" value="<?php echo htmlspecialchars( stripcslashes( $user_settings['leenkme_API'] ) ); ?>" />
                         <input type="button" class="button" name="verify_leenkme_api" id="verify" value="<?php _e( 'Verify leenk.me API', 'leenkme' ) ?>" />
                         <?php wp_nonce_field( 'verify', 'leenkme_verify_wpnonce' ); ?>
                         </p>
                         
-                        <?php if ( empty( $user_settings[$this->leenkme_API] ) ) { ?>
+                        <?php if ( empty( $user_settings['leenkme_API'] ) ) { ?>
                         
                             <p>
-                            <a href="<?php echo apply_filters( 'leenkme_url', 'http://leenk.me/' ); ?>">Click here to subscribe to leenk.me and generate an API key</a>
+                            <a href="<?php echo apply_filters( 'leenkme_url', 'http://leenk.me/' ); ?>"><?php _e( 'Click here to subscribe to leenk.me and generate an API key', 'leenkme' ); ?></a>
                             </p>
                         
                         <?php } ?>
+                            
+                        <?php wp_nonce_field( 'leenkme_general_options', 'leenkme_general_options_nonce' ); ?>
                                                   
                         <p class="submit">
                             <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
@@ -226,68 +337,74 @@ if ( ! class_exists( 'leenkme' ) ) {
                         
                     </div>
                     
-                    <?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) {?>
+                    <?php if ( current_user_can( 'leenkme_manage_all_settings' ) ) { ?>
+                  
                     <div id="modules" class="postbox">
                     
                         <div class="handlediv" title="Click to toggle"><br /></div>
                         
-                        <h3 class="hndle"><span><?php _e( 'leenk.me Social Networks Modules' ); ?></span></h3>
+                        <h3 class="hndle"><span><?php _e( 'Administrator Options', 'leenkme' ); ?></span></h3>
                         
                         <div class="inside">
                         
-                        <table id="leenkme_leenkme_manage_all_settings">
-                            <tr><td id="leenkme_plugin_name">Twitter: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings[$this->twitter] ); ?> /></td>
-                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->twitter] ) { ?><a href="admin.php?page=leenkme_twitter">Twitter Settings</a><?php } ?></td></tr>
-                            <tr><td id="leenkme_plugin_name">Facebook: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings[$this->facebook] ); ?> /></td>
-                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->facebook] ) { ?><a href="admin.php?page=leenkme_facebook">Facebook Settings</a><?php } ?></td></tr>
-                            
-                            <tr><td id="leenkme_plugin_name">LinkedIn: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings[$this->linkedin] ); ?> /></td>
-                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->linkedin] ) { ?><a href="admin.php?page=leenkme_linkedin">LinkedIn Settings</a><?php } ?></td></tr>
-                            <tr><td id="leenkme_plugin_name">FriendFeed: </td>
-                            <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings[$this->friendfeed] ); ?> /></td>
-                            <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings[$this->friendfeed] ) { ?><a href="admin.php?page=leenkme_friendfeed">Friendfeed Settings</a><?php } ?></td></tr>
+                        <table id="leenkme_leenkme_social_network_modules">
+                        	<tr>
+                                <th rowspan="1"><?php _e( 'Enable Your Social Network Modules', 'leenkme' ); ?></th>
+                                <td class="leenkme_plugin_name">Twitter: </td>
+                                <td class="leenkme_plugin_button"><input type="checkbox" name="twitter" <?php checked( $leenkme_settings['twitter'] ); ?> /></td>
+                                <td class="leenkme_plugin_settings"> <?php if ( $leenkme_settings['twitter'] ) { ?><a href="admin.php?page=leenkme_twitter">Twitter Settings</a><?php } ?></td>
+                            </tr>
+                            <tr>
+                                <td rowspan="4" id="leenkme_social_network_description"><?php  _e( 'Choose which social network modules you want to enable for this site.', 'leenkme' ); ?></td>
+                                <td class="leenkme_plugin_name">Facebook: </td>
+                                <td class="leenkme_plugin_button"><input type="checkbox" name="facebook" <?php checked( $leenkme_settings['facebook'] ); ?> /></td>
+                                <td class="leenkme_plugin_settings"> <?php if ( $leenkme_settings['facebook'] ) { ?><a href="admin.php?page=leenkme_facebook">Facebook Settings</a><?php } ?></td>
+                            </tr>
+                            <tr>
+                                <td class="leenkme_plugin_name">LinkedIn: </td>
+                                <td class="leenkme_plugin_button"><input type="checkbox" name="linkedin" <?php checked( $leenkme_settings['linkedin'] ); ?> /></td>
+                                <td class="leenkme_plugin_settings"> <?php if ( $leenkme_settings['linkedin'] ) { ?><a href="admin.php?page=leenkme_linkedin">LinkedIn Settings</a><?php } ?></td>
+                            </tr>
+                            <tr>
+                                <td id="leenkme_plugin_name">FriendFeed: </td>
+                                <td id="leenkme_plugin_button"><input type="checkbox" name="friendfeed" <?php checked( $leenkme_settings['friendfeed'] ); ?> /></td>
+                                <td id="leenkme_plugin_settings"> <?php if ( $leenkme_settings['friendfeed'] ) { ?><a href="admin.php?page=leenkme_friendfeed">Friendfeed Settings</a><?php } ?></td>
+                            </tr>
                         </table>
-                                                  
-                        <p class="submit">
-                            <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
-                        </p>
                         
-                        </div>
-                        
-                    </div>
-                    
-                    <div id="post-types" class="postbox">
-                    
-                        <div class="handlediv" title="Click to toggle"><br /></div>
-                        <h3 class="hndle"><span><?php _e( 'Post Types to Publish' ); ?></span></h3>
-                        
-                        <div class="inside">
-                        
-                        <table id="leenkme_leenkme_manage_all_settings">
+                        <table id="leenkme_leenkme_post_type_to_publish">
                         
                         <tr>
-                            <td id="leenkme_plugin_name">Post: </td>
-                            <td id="post_type">
+                            <th rowspan="1"><?php _e( 'Select Your Post Types', 'leenkme' ); ?></th>
+                            <td class="leenkme_post_type_name"><?php _e( 'Post:', 'leenkme' ); ?></td>
+                            <td class="leenkme_module_checkbox">
                                 <input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
                                 <input type="hidden" value="post" name="post_types[]" />
                             </td>
                         </tr>
-                        
                         <?php if ( version_compare( $this->wp_version, '2.9', '>' ) ) {
                             
                             $hidden_post_types = array( 'post', 'attachment', 'revision', 'nav_menu_item' );
-                            
-                            foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
+                            $post_types = get_post_types( array(), 'objects' );
+							$post_types_num = count( $post_types );
+							$first = true;
+							
+							echo '<tr>';
+							echo '	<td rowspan="' . ( $post_types_num - 4 ) . '">' . __( 'Choose which post types you want leenk.me to automatically publish to your social networks.', 'leenkme' ) . '</td>';
+							 
+                            foreach ( $post_types as $post_type ) {
                                 
                                 if ( in_array( $post_type->name, $hidden_post_types ) ) 
                                     continue;
+									
+								if ( !$first )
+									echo "<tr>";
+									
+								$first = false;
                                 ?>
                                 
-                                <tr><td id="leenkme_plugin_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
-                                <td id="post_type"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php checked( in_array( $post_type->name, $leenkme_settings[$this->post_types] ) ); ?> /></td></tr>
+                                <td class="leenkme_post_type_name"><?php echo ucfirst( $post_type->name ); ?>: </td>
+                                <td class="post_type_checkbox"><input type="checkbox" value="<?php echo $post_type->name; ?>" name="post_types[]" <?php checked( in_array( $post_type->name, $leenkme_settings['post_types'] ) ); ?> /></td></tr>
                                 
                                 <?php } ?>
                         </table>
@@ -295,9 +412,60 @@ if ( ! class_exists( 'leenkme' ) ) {
                         <?php } else { ?>
                         
                         </table>
-                        <p>To take advantage of publishing to Pages and Custom Post Types, please upgrade to the latest version of WordPress.</p>
+                        <p><?php _e( 'To take advantage of publishing to Pages and Custom Post Types, please upgrade to the latest version of WordPress.', 'leenkme' ); ?></p>
                         
-                        <?php } ?>  
+                        <?php } ?>
+                        
+                        <table id="leenkme_leenkme_url_shortener">
+                        
+                        <tr>
+                        	<th rowspan="1"><?php _e( 'Select Your Default URL Shortner', 'leenkme' ); ?></th>
+                            <td class="leenkme_url_shortener">
+                            	<select id="leenkme_url_shortener_select" name="url_shortener"> 
+                                	<option value="supr" <?php selected( 'supr', $leenkme_settings['url_shortener'] ); ?>>su.pr</option>
+                                	<option value="bitly" <?php selected( 'bitly', $leenkme_settings['url_shortener'] ); ?>>bit.ly</option>
+                                    <option value="yourls" <?php selected( 'yourls', $leenkme_settings['url_shortener'] ); ?>>YOURLS</option>
+                                    <option value="isgd" <?php selected( 'isgd', $leenkme_settings['url_shortener'] ); ?>>is.gd</option>
+                                    <option value="wpme" <?php selected( 'wpme', $leenkme_settings['url_shortener'] ); ?>>wp.me</option>
+                                    <option value="owly" <?php selected( 'owly', $leenkme_settings['url_shortener'] ); ?>>ow.ly</option>
+                                    <option value="tinyurl" <?php selected( 'tinyurl', $leenkme_settings['url_shortener'] ); ?>>TinyURL</option>
+                                    <option value="tflp" <?php selected( 'tflp', $leenkme_settings['url_shortener'] ); ?>>Twitter Friendly Links Plugin</option>
+                                    <option value="wppostid" <?php selected( 'wppostid', $leenkme_settings['url_shortener'] ); ?>>WordPress Post ID</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                        	<td></td>
+                            <td class='url_shortener_options'>
+                            	<?php
+									switch( $leenkme_settings['url_shortener'] ) {
+									
+										case 'supr' :
+											leenkme_show_supr_options();
+											break;
+										
+										case 'bitly' :
+											leenkme_show_bitly_options();
+											break;
+										
+										case 'yourls' :
+											leenkme_show_yourls_options();
+											break;
+										
+										case 'wpme' :
+											leenkme_show_wpme_options();
+											break;
+										
+										case 'tflp' :
+											leenkme_show_tflp_options();
+											break;
+										
+									}
+								?>
+                            </td>
+                        </tr>
+                        
+                        </table>
                                                   
                         <p class="submit">
                             <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
@@ -306,8 +474,109 @@ if ( ! class_exists( 'leenkme' ) ) {
                         </div>
                         
                     </div>
+                    
+                    <div id="modules" class="postbox">
+                    
+                        <div class="handlediv" title="Click to toggle"><br /></div>
+                        
+                        <h3 class="hndle"><span><?php _e( 'Open Graph Meta Tag Options', 'leenkme' ); ?></span></h3>
+                        
+                        <div class="inside">
+                        
+                        <table id="leenkme_site_og_meta_tags">
+                        	<tr>
+                                <th><?php _e( 'Enable OG Meta Tags on Home/Front Page', 'leenkme' ); ?></th>
+                                <td><input type="checkbox" name="use_og_meta_tags" <?php checked( $leenkme_settings['use_og_meta_tags'] ); ?> /></td>
+                            </tr>
+                        
+                            <tr>
+                                <td><?php _e( 'Select Site Type', 'leenkme' ); ?></td>
+                                <td class="leenkme_url_shortener">
+                                    <select id="og_type" name="og_type"> 
+                                        <option value="website" <?php selected( 'website', $leenkme_settings['og_type'] ); ?>>Website</option>
+                                        <option value="blog" <?php selected( 'blog', $leenkme_settings['og_type'] ); ?>>Blog</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td><?php _e( 'Site Name:', 'leenkme' ); ?></td>
+                                <td><input name="og_sitename" type="text" style="width: 500px;" value="<?php echo $leenkme_settings['og_sitename']; ?>"  maxlength="100"/></td>
+                            </tr>
+                            <tr>
+                                <td style='vertical-align: top; padding-top: 5px;'><?php _e( 'Site Description:', 'leenkme' ); ?></td>
+                                <td><textarea name="og_description" style="width: 500px;" maxlength="300"><?php echo $leenkme_settings['og_description']; ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="facebook-format" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li>%WPSITENAME% - <?php _e( 'Displays the WordPress site name (found in Settings -> General).', 'leenkme' ); ?></li>
+                                            <li>%WPTAGLINE% - <?php _e( 'Displays the WordPress TagLine (found in Settings -> General).', 'leenkme' ); ?></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><?php _e( 'Site Image URL:', 'leenkme' ); ?></td>
+                                <td>
+                                    <input name="og_image" type="text" style="width: 500px;" value="<?php _e(  $leenkme_settings['og_image'], 'leenkme' ) ?>" />
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <table id="leenkme_single_og_meta_tags">
+                        	<tr>
+                                <th><?php _e( 'Enable OG Meta Tags on Posts', 'leenkme' ); ?></th>
+                                <td><input type="checkbox" name="use_single_og_meta_tags" <?php checked( $leenkme_settings['use_single_og_meta_tags'] ); ?> /></td>
+                            </tr>
+                            <tr>
+                                <td><?php _e( 'Post Title:', 'leenkme' ); ?></td>
+                                <td><input name="og_single_title" type="text" style="width: 500px;" value="<?php echo $leenkme_settings['og_single_title']; ?>"  maxlength="100"/></td>
+                            </tr>
+                            <tr>
+                                <td><?php _e( 'Post Site Name:', 'leenkme' ); ?></td>
+                                <td><input name="og_single_sitename" type="text" style="width: 500px;" value="<?php echo $leenkme_settings['og_single_sitename']; ?>"  maxlength="100"/></td>
+                            </tr>
+                            <tr>
+                                <td style='vertical-align: top; padding-top: 5px;'><?php _e( 'Post Description:', 'leenkme' ); ?></td>
+                                <td><textarea name="og_single_description" style="width: 500px;" maxlength="300"><?php echo $leenkme_settings['og_single_description']; ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="facebook-format" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li>%TITLE% - <?php _e( 'Displays the post title.', 'leenkme' ); ?></li>
+                                            <li>%WPSITENAME% - <?php _e( 'Displays the WordPress site name (found in Settings -> General).', 'leenkme' ); ?></li>
+                                            <li>%WPTAGLINE% - <?php _e( 'Displays the WordPress TagLine (found in Settings -> General).', 'leenkme' ); ?></li>
+                                            <li>%EXCERPT% - <?php _e( 'Displays the WordPress Post Excerpt (only used with Description Field).', 'leenkme' ); ?></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><?php _e( 'Default Post Image URL:', 'leenkme' ); ?></td>
+                                <td>
+                                    <input name="og_single_image" type="text" style="width: 500px;" value="<?php _e(  $leenkme_settings['og_single_image'], 'leenkme' ) ?>" />
+                                    <input type="checkbox" id="force_og_image" name="force_og_image" <?php checked( $user_settings['force_og_image'] ); ?> /> <?php _e( 'Always Use', 'leenkme' ); ?>
+                                </td>
+                            </tr>
+                        </table>
+                                                  
+                        <p class="submit">
+                            <input class="button-primary" type="submit" name="update_leenkme_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
+                        </p>
+
+                        </div>
+                        
+                    </div>
+                    
                     <?php } ?>
+                    
                 </form>
+                
             </div>
             </div>
             </div>
@@ -347,11 +616,18 @@ if ( ! class_exists( 'leenkme' ) ) {
 			if ( isset( $_REQUEST['hide_admin_notice'] ) )
 				update_option( 'show_leenkme_notice', LEENKME_VERSION );
 			
-			if ( version_compare( get_option( 'show_leenkme_notice' ), '1.4.0', '<' ) ) //Only need for 1.4.0 right now
-				add_action( 'admin_notices', array( $this, 'leenkme_notices' ) );
+			if ( version_compare( get_option( 'show_leenkme_notice' ), '1.4.0', '<' ) ) {
+				
+				//add_action( 'admin_notices', array( $this, 'leenkme_notices' ) );
+				
+			} else {
+				
+				update_option( 'show_leenkme_notice', LEENKME_VERSION );
+			
+			}
 			
 			$leenkme_settings['version'] = LEENKME_VERSION;
-			update_option( $this->options_name, $leenkme_settings );
+			update_option( 'leenkme', $leenkme_settings );
 			
 		}
 		
@@ -486,164 +762,308 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 		}
 		
+		function leenkme_add_meta_tag_options() {
+			
+			global $dl_pluginleenkme;
+			
+			$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
+			foreach ( $leenkme_settings['post_types'] as $post_type ) {
+				
+				add_meta_box( 
+					'leenkme',
+					__( 'leenk.me', 'leenkme' ),
+					array( $this, 'leenkme_meta_box' ),
+					$post_type 
+				);
+				
+			}
+			
+		}
+		
+		function leenkme_meta_box() {
+			
+			global $dl_pluginleenkme, $post, $current_user;
+			
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+	
+			echo '<div id="leenkme_meta_box">';
+			
+				echo '<ul class="leenkme_tabs">';
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
+					
+					echo '<li><a href="#leenkme_twitter_meta_content"><img src="' . $this->base_url . '/images/twitter-16x16.png" alt="Twitter" /></a></li>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
+					
+					echo '<li><a href="#leenkme_facebook_meta_content"><img src="' . $this->base_url . '/images/facebook-16x16.png" alt="Facebook" /></a></li>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
+					
+					echo '<li><a href="#leenkme_linkedin_meta_content"><img src="' . $this->base_url . '/images/linkedin-16x16.png" alt="LinkedIn" /></a></li>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+					
+					echo '<li><a href="#leenkme_friendfeed_meta_content"><img src="' . $this->base_url . '/images/friendfeed-16x16.png" alt="FriendFeed" /></a></li>';
+					
+				}
+				
+				echo '</ul>';
+				
+				echo '<div class="leenkme_tab_container">';
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
+					
+					echo '<div id="leenkme_twitter_meta_content" class="leenkme_tab_content">';
+					
+					global $dl_pluginleenkmeTwitter;
+					echo $dl_pluginleenkmeTwitter->leenkme_twitter_meta_box();
+					
+					echo '</div>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
+					
+					echo '<div id="leenkme_facebook_meta_content" class="leenkme_tab_content">';
+					
+					global $dl_pluginleenkmeFacebook;
+					echo $dl_pluginleenkmeFacebook->leenkme_facebook_meta_box();
+					
+					echo '</div>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
+					
+					echo '<div id="leenkme_linkedin_meta_content" class="leenkme_tab_content">';
+					
+					global $dl_pluginleenkmeLinkedIn;
+					echo $dl_pluginleenkmeLinkedIn->leenkme_linkedin_meta_box();
+					
+					echo '</div>';
+					
+				}
+				
+				if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+					
+					echo '<div id="leenkme_friendfeed_meta_content" class="leenkme_tab_content">';
+					
+					global $dl_pluginleenkmeFriendFeed;
+					echo $dl_pluginleenkmeFriendFeed->leenkme_friendfeed_meta_box();
+					
+					echo '</div>';
+					
+				}
+				
+				echo '</div>';
+				
+				echo "<div style='clear: both;'></div>";
+				
+			echo '</div>';
+
+		}
+		
+		/**
+		 * Save the data via AJAX
+		 *
+		 * @TODO clean params
+		 * @since 0.3
+		 */
+		function show_lm_shortener_options() {
+			
+			check_ajax_referer( 'leenkme_general_options' );
+			
+			if ( isset( $_REQUEST['selected'] ) ) {
+				
+				switch( $_REQUEST['selected'] ) {
+				
+					case 'supr' :
+						die( leenkme_show_supr_options() );
+						break;
+					
+					case 'bitly' :
+						die( leenkme_show_bitly_options() );
+						break;
+					
+					case 'yourls' :
+						die( leenkme_show_yourls_options() );
+						break;
+					
+					case 'wpme' :
+						die( leenkme_show_wpme_options() );
+						break;
+					
+					case 'tflp' :
+						die( leenkme_show_tflp_options() );
+						break;
+						
+					default :
+						die();
+						break;
+						
+				}	
+				
+			} else {
+				
+				die();	
+				
+			}
+			
+		}
+		
+		
+		/**
+		 * Output Open Graph Meta Tags - http://ogp.me/
+		 *
+		 * @since 2.0.0
+		 */
+		function output_leenkme_og_meta_tags() {
+			
+			global $post;
+			
+			$leenkme_settings = $this->get_leenkme_settings();
+			
+			if ( is_single() && $leenkme_settings['use_single_og_meta_tags'] ) {
+				
+				$post_title = get_the_title();
+				$post = get_post( $post_id );
+		
+				if ( !empty( $post->post_excerpt ) ) {
+					
+					//use the post_excerpt if available for the facebook description
+					$excerpt = $post->post_excerpt; 
+					
+				} else {
+					
+					//otherwise we'll pare down the description
+					$excerpt = $post->post_content; 
+					
+				}
+				
+				$og_array['og_title'] 		= leenkme_replacements_args( $leenkme_settings['og_single_title'], $post_title, $excerpt );
+				$og_array['og_sitename'] 	= leenkme_replacements_args( $leenkme_settings['og_single_sitename'], $post_title, $excerpt );
+				$og_array['og_description'] = leenkme_trim_words( leenkme_replacements_args( $leenkme_settings['og_single_description'], $post_title, $excerpt ), 300 );
+				
+				$og_array['og_image'] 		= leenkme_get_picture( $leenkme_settings, $post_id, 'og' );
+				
+				if ( isset( $og_array['og_image'] ) && empty( $og_array['og_image'] ) 
+					&& isset( $leenkme_settings['og_image'] ) && !empty( $leenkme_settings['og_image'] ) )
+					$og_array['og_image'] 	= $leenkme_settings['og_image'];
+			
+				?>
+                
+                <meta property="og:url"			content="<?php echo get_permalink(); ?>">
+                <meta property="og:type"		content="article"> 
+                <meta property="og:title"		content="<?php echo htmlentities( $og_array['og_title'] ); ?>">
+                <meta property="og:site_name"	content="<?php echo htmlentities( $og_array['og_sitename'] ); ?>"/>
+                <meta property="og:description"	content="<?php echo htmlentities( $og_array['og_description'] ); ?>">
+                
+                <?php if ( isset( $og_array['og_image'] ) && !empty( $og_array['og_image'] ) ) ?>
+                <meta property="og:image"		content="<?php echo $og_array['og_image']; ?>">
+                
+                <?
+				
+			} else if ( ( is_home() || is_front_page() ) && $leenkme_settings['use_og_meta_tags'] ) {
+				
+				?>
+                
+                <meta property="og:url"			content="<?php echo site_url(); ?>">
+                <meta property="og:type"		content="<?php echo $leenkme_settings['og_type']; ?>"> 
+                <meta property="og:title"		content="<?php echo htmlentities( leenkme_replacements_args( $leenkme_settings['og_sitename'], '', '' ) ); ?>">
+                <meta property="og:description"	content="<?php echo htmlentities( leenkme_trim_words( leenkme_replacements_args( $leenkme_settings['og_description'], '', '' ), 300 ) ); ?>">
+                
+                <?php if ( isset( $leenkme_settings['og_image'] ) && !empty( $leenkme_settings['og_image'] ) ) ?>
+                <meta property="og:image"		content="<?php echo $leenkme_settings['og_image']; ?>">
+                
+                <?
+				
+			}
+			
+			
+		}
+	
 	}
 
 }
 
 // Instantiate the class
 if ( class_exists( 'leenkme' ) ) {
+	
+	require_once( 'includes/functions.php' );
+	require_once( 'includes/url-shortener.php' );
+	
 	$dl_pluginleenkme = new leenkme();
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
+	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) )
 		require_once( 'twitter.php' );
-	}
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
+	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) )
 		require_once( 'facebook.php' );
-	}
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
+	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) )
 		require_once( 'linkedin.php' );
-	}
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) )
 		require_once( 'friendfeed.php' );
-	}
 }
 
 // Initialize the admin panel if the plugin has been activated
 function leenkme_ap() {
+	
 	global $dl_pluginleenkme;
 	
-	if ( !isset( $dl_pluginleenkme ) ) {
+	if ( !isset( $dl_pluginleenkme ) )
 		return;
-	}
 	
-	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/leenkme-logo-16x16.png' );
+	add_menu_page( __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ), $dl_pluginleenkme->base_url . '/images/leenkme-logo-16x16.png' );
 	
-	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9') {
+	if (substr($dl_pluginleenkme->wp_version, 0, 3) >= '2.9')
 		add_submenu_page( 'leenkme', __( 'leenk.me Settings', 'leenkme' ), __( 'leenk.me Settings', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme', array( &$dl_pluginleenkme, 'leenkme_settings_page' ) );
-	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
+		
 		global $dl_pluginleenkmeTwitter;
 		add_submenu_page( 'leenkme', __( 'Twitter Settings', 'leenkme' ), __( 'Twitter', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_twitter', array( &$dl_pluginleenkmeTwitter, 'print_twitter_settings_page' ) );
+		
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
+		
 		global $dl_pluginleenkmeFacebook;
 		add_submenu_page( 'leenkme', __( 'Facebook Settings', 'leenkme' ), __( 'Facebook', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_facebook', array( &$dl_pluginleenkmeFacebook, 'print_facebook_settings_page' ) );
+		
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
+		
 		global $dl_pluginleenkmeLinkedIn;
 		add_submenu_page( 'leenkme', __( 'LinkedIn Settings', 'leenkme' ), __( 'LinkedIn', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_linkedin', array( &$dl_pluginleenkmeLinkedIn, 'print_linkedin_settings_page' ) );
+		
 	}
 	
 	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+		
 		global $dl_pluginleenkmeFriendFeed;
 		add_submenu_page( 'leenkme', __( 'FriendFeed Settings', 'leenkme' ), __( 'FriendFeed', 'leenkme' ), 'leenkme_edit_user_settings', 'leenkme_friendfeed', array( &$dl_pluginleenkmeFriendFeed, 'print_friendfeed_settings_page' ) );
-	}
-}
-
-// Example followed from http://codex.wordpress.org/AJAX_in_Plugins
-function leenkme_js() {
-	global $dl_pluginleenkme;
-?>
-<script type="text/javascript">
-	jQuery(document).ready(function($) {
-		$('input#api').live('click', function() {
-			$('input#api').css('background-color', 'white');
-		});
-	
-		$('input#verify').live('click', function() {
-			var leenkme_API = $('input#api').val();
-			var error = false;
-			if (leenkme_API == "") {
-				$('input#api').css('background-color', 'red');
-				return false;
-			}
 		
-			var data = {
-				action: 	'verify',
-				leenkme_API: leenkme_API,
-				_wpnonce: 	$('input#leenkme_verify_wpnonce').val()
-			};
-			
-			ajax_response(data);
-		});
-<?php 
-	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
-		leenkme_twitter_js();
 	}
-	
-	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
-		leenkme_facebook_js();
-	}
-	
-	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
-		leenkme_linkedin_js();
-	}
-	
-	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
-		leenkme_friendfeed_js();
-	}
-?>
-
-		function ajax_response(data) {
-			var style = "position: fixed; " +
-						"display: none; " +
-						"z-index: 1000; " +
-						"top: 50%; " +
-						"left: 50%; " +
-						"background-color: #E8E8E8; " +
-						"border: 1px solid #555; " +
-						"padding: 15px; " +
-						"width: 500px; " +
-						"min-height: 80px; " +
-						"margin-left: -250px; " + 
-						"margin-top: -150px;" +
-						"text-align: center;" +
-						"vertical-align: middle;";
-			$('body').append("<div id='results' style='" + style + "'></div>");
-			$('#results').html("<p>Sending data to leenk.me</p>" +
-									"<p><img src='/wp-includes/js/thickbox/loadingAnimation.gif' /></p>");
-			$('#results').show();
-			
-			// since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
-			jQuery.post(ajaxurl, data, function(response) {
-				$('#results').html('<p>' + response + '</p>' +
-										'<input type="button" class="button" name="results_ok_button" id="results_ok_button" value="OK" />');
-				$('#results_ok_button').click(remove_results);
-			});
-		}
-		
-		function remove_results() {
-			jQuery("#results_ok_button").unbind("click");
-			jQuery("#results").remove();
-			
-			if (typeof document.body.style.maxHeight == "undefined") {//if IE 6
-				jQuery("body","html").css({height: "auto", width: "auto"});
-				jQuery("html").css("overflow","");
-			}
-			
-			document.onkeydown = "";
-			document.onkeyup = "";
-			return false;
-		}
-	});
-</script>
-
-<?php
 }
 
 function leenkme_ajax_verify() {
 
 	check_ajax_referer( 'verify' );
 	
-	if ( isset( $_POST['leenkme_API'] ) ) {
+	if ( isset( $_REQUEST['leenkme_API'] ) ) {
 
-		$api_key = $_POST['leenkme_API'];
+		$api_key = $_REQUEST['leenkme_API'];
 		$connect_arr[$api_key]['verify'] = true;
 		
 		$results = leenkme_ajax_connect( $connect_arr );
@@ -663,7 +1083,7 @@ function leenkme_ajax_verify() {
 	
 				} else {
 	
-					$out[$api_key] = "<p>" . __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+					$out[$api_key] = "<p>" . __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) . "</p>";
 	
 				}
 	
@@ -673,16 +1093,136 @@ function leenkme_ajax_verify() {
 		
 		} else {
 
-			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) );
 
 		}
 
 	} else {
 
-		die( __( 'Please fill in your API key.' ) );
+		die( __( 'Please fill in your API key.', 'leenkme' ) );
 
 	}
 
+}
+
+function leenkme_ajax_leenkme_row_action() {
+	
+	global $dl_pluginleenkme;
+
+	if ( !isset( $_REQUEST['id'] ) )
+		die( __( 'Unable to determine Post ID.', 'leenkme' ) );
+
+	if ( !isset( $_REQUEST['colspan'] ) )
+		die( __( 'Unable to determine column size.', 'leenkme' ) );
+		
+	$out = '<td colspan="' . $_REQUEST['colspan'] . '">';
+	
+	$out .= '<h4>' . __( 'Choose the Social Networks that you want to ReLeenk and click the ReLeenk button.', 'leenkme' ) . '</h4>';
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
+		
+		$out .= '<label><input type="checkbox" class="lm_releenk_networks_' . $_REQUEST['id'] . '" name="lm_releenk[]" value="twitter" /> Twitter</label><br />';
+		
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) ) {
+		
+		$out .= '<label><input type="checkbox" class="lm_releenk_networks_' . $_REQUEST['id'] . '" name="lm_releenk[]" value="facebook" /> Facebook</label><br />';
+		
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) ) {
+		
+		$out .= '<label><input type="checkbox" class="lm_releenk_networks_' . $_REQUEST['id'] . '" name="lm_releenk[]" value="linkedin" /> LinkedIn</label><br />';
+		
+	}
+	
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) ) {
+		
+		$out .= '<label><input type="checkbox" class="lm_releenk_networks_' . $_REQUEST['id'] . '" name="lm_releenk[]" value="friendfeed" /> Friendfeed</label><br />';
+		
+	}
+	
+	$out .= '<p class="submit inline-leenkme">';
+	$out .= '<a class="button-secondary cancel alignleft inline-leenkme-cancel" title="Cancel" post_id="' . $_REQUEST['id'] .'" href="#inline-releenk">' . __( 'Cancel', 'leenkme' ) . '</a>';
+	$out .= '<a style="margin-left: 10px;" class="button-primary save alignleft inline-leenkme-releenk" title="ReLeenk" post_id="' . $_REQUEST['id'] .'" href="#inline-releenk">' . __( 'ReLeenk', 'leenkme' ) . '</a>';
+	$out .= '</p>';
+	
+	$out .= '</td>';
+		
+	die( $out );
+	
+}
+
+function leenkme_ajax_releenk() {
+	
+	if ( !isset( $_REQUEST['id'] ) )
+		die( __( 'Unable to determine Post ID.', 'leenkme' ) );
+	
+	if ( !isset( $_REQUEST['networks'] ) )
+		die( __( 'No Social Networks selected.', 'leenkme' ) );
+		
+	$connect_array = array();
+				
+	if ( in_array( 'twitter', $_REQUEST['networks'] ) ) {
+		
+		$connect_array = leenkme_publish_to_twitter( $connect_array, $_REQUEST['id'], false, true );
+		
+	}
+		
+	if ( in_array( 'facebook', $_REQUEST['networks'] ) ) {
+	
+		$connect_array = leenkme_publish_to_facebook( $connect_array, $_REQUEST['id'], false, true );
+		
+	}
+		
+	if ( in_array( 'linkedin', $_REQUEST['networks'] ) ) {
+	
+		$connect_array = leenkme_publish_to_linkedin( $connect_array, $_REQUEST['id'], false, true );
+		
+	}
+		
+	if ( in_array( 'friendfeed', $_REQUEST['networks'] ) ) {
+	
+		$connect_array = leenkme_publish_to_friendfeed( $connect_array, $_REQUEST['id'], false, true );
+		
+	}
+	
+	$results = leenkme_ajax_connect( $connect_array );
+	
+	echo "<pre style='text-align: left;'>";
+	//print_r( $results );
+	echo "</pre>";
+	
+	if ( isset( $results ) ) {		
+				
+		foreach( $results as $api_key => $result ) {	
+
+			if ( is_wp_error( $result ) ) {
+
+				$out[] = "<p>" . $result->get_error_message() . "</p>";
+
+			} else if ( isset( $result['response']['code'] ) ) {
+		
+				$response = json_decode( $result['body'] );
+				$out[] = $response[1];
+
+			} else {
+
+				$out[] = "<p>" . __( 'Error received! If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
+
+			}
+
+		}
+		
+		die( join( (array)$out ) );
+		
+	} else {
+		
+		die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+
+	}
+	
 }
 
 function leenkme_connect( $post ) {
@@ -690,94 +1230,185 @@ function leenkme_connect( $post ) {
 	global $dl_pluginleenkme;
 	$out = "";
 	
-	$connect_arr = apply_filters( 'leenkme_connect', array(), $post );
-
-	if ( !empty( $connect_arr ) ) {
-		
-		foreach ( $connect_arr as $api_key => $body ) {
+	if ( leenkme_rate_limit() ) {
+	
+		$connect_arr = apply_filters( 'leenkme_connect', array(), $post->ID );
+	
+		if ( !empty( $connect_arr ) ) {
 			
-			$body['host'] = $_SERVER['SERVER_NAME'];
-			$body['leenkme_API'] = $api_key;
-			$headers = array( 'Authorization' => 'None' );
-													
-			$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
-										array( 	'body' => $body, 
-												'headers' => $headers,
-												'sslverify' => false,
-												'httpversion' => '1.1',
-												'timeout' => $dl_pluginleenkme->timeout ) );
-			
-			if ( isset( $result ) ) {
+			foreach ( $connect_arr as $api_key => $body ) {
 				
-				$out[] = $result;
+				$body['host'] = $_SERVER['SERVER_NAME'];
+				$body['leenkme_API'] = $api_key;
+				$headers = array( 'Authorization' => 'None' );
+														
+				$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
+											array( 	'body' => $body, 
+													'headers' => $headers,
+													'sslverify' => false,
+													'httpversion' => '1.1',
+													'timeout' => $dl_pluginleenkme->timeout ) );
 				
-			} else {
-				
-				$out[]=  "<p>" . $api_key . ": " . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
+				if ( isset( $result ) ) {
+					
+					$out[$api_key] = $result;
+					
+				} else {
+					
+					$out[$api_key]=  "<p>" . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.', 'leenkme' ) . "</p>";
+					
+				}
 				
 			}
 			
 		}
+	
+	} else {
 		
-		return $out;
+		$out = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
 		
 	}
+	
+	return $out;
 
 }
 
 function leenkme_ajax_connect( $connect_arr ) {
 	
 	global $dl_pluginleenkme;
-	$out = "";
 	
-	if ( !empty( $connect_arr ) ) {
+	$out = array();
+	
+	if ( leenkme_rate_limit() ) {
 		
-		foreach ( $connect_arr as $api_key => $body ) {
+		if ( !empty( $connect_arr ) ) {
 			
-			$body['host'] = $_SERVER['SERVER_NAME'];
-			$body['leenkme_API'] = $api_key;
-			$headers = array( 'Authorization' => 'None' );
-													
-			$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
-										array( 	'body' => $body, 
-												'headers' => $headers,
-												'sslverify' => false,
-												'httpversion' => '1.1',
-												'timeout' => $dl_pluginleenkme->timeout ) );
-			
-			if ( isset( $result ) ) {
+			foreach ( $connect_arr as $api_key => $body ) {
 				
-				$out[$api_key] = $result;
+				$body['host'] = $_SERVER['SERVER_NAME'];
+				$body['leenkme_API'] = $api_key;
+				$headers = array( 'Authorization' => 'None' );
+														
+				$result = wp_remote_post( apply_filters( 'leenkme_api_url', $dl_pluginleenkme->api_url ), 
+											array( 	'body' => $body, 
+													'headers' => $headers,
+													'sslverify' => false,
+													'httpversion' => '1.1',
+													'timeout' => $dl_pluginleenkme->timeout ) );
 				
-			} else {
-				
-				$out[$api_key] =  "<p>" . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' ) . "</p>";
+				if ( isset( $result ) ) {
+					
+					$out[$api_key] = $result;
+					
+				} else {
+					
+					$out[$api_key] =  "<p>" . __( 'Undefined error occurred, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.', 'leenkme' ) . "</p>";
+					
+				}
 				
 			}
 			
-		}
+		} else {
+			
+				$out[$api_key] = __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.', 'leenkme' );
 		
-		return $out;
+		}
 		
 	} else {
 		
-			return __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.' );
-	
+		$out[$api_key] = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
+		
 	}
+	
+	return $out;
+	
+}
+
+function get_leenkme_expanded_post_ajax() {
+	
+	global $dl_pluginleenkme;
+	
+	$return_array = array();
+	
+	if ( isset( $_REQUEST['post_id'] ) )
+		$post_id = $_REQUEST['post_id'];
+	else
+		die( __( 'Error: Unable to determine post ID', 'leenkme' ) );
+	
+	if ( isset( $_REQUEST['title'] ) )
+		$title = $_REQUEST['title'];
+	
+	if ( isset( $_REQUEST['excerpt'] ) )
+		$excerpt = $_REQUEST['excerpt'];
+	
+	if ( isset( $_REQUEST['cats'] ) )
+		$cats = $_REQUEST['cats'];
+	else
+		$cats = false;
+	
+	if ( isset( $_REQUEST['tags'] ) )
+		$tags = $_REQUEST['tags'];
+	else
+		$tags = false;
+		
+	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) && isset( $_REQUEST['tweet'] ) )
+		$return_array['twitter'] = get_leenkme_expanded_tweet( $post_id, $_REQUEST['tweet'], $title, $cats, $tags );
+	else
+		$return_array['twitter'] = array();
+		
+	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) && isset( $_REQUEST['facebook_array'] ) )
+		$return_array['facebook'] = get_leenkme_expanded_fb_post( $post_id, $_REQUEST['facebook_array'], $title, $excerpt );
+	else
+		$return_array['facebook'] = array();
+		
+	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) && isset( $_REQUEST['linkedin_array'] ) )
+		$return_array['linkedin'] = get_leenkme_expanded_li_post( $post_id, $_REQUEST['linkedin_array'], $title, $excerpt );
+	else
+		$return_array['linkedin'] = array();
+		
+	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) && isset( $_REQUEST['friendfeed_array'] ) )
+		$return_array['friendfeed'] = get_leenkme_expanded_ff_post( $post_id, $_REQUEST['friendfeed_array'], $title, $excerpt );
+	else
+		$return_array['friendfeed'] = array();
+
+	die( json_encode( $return_array ) );
 	
 }
 
 function leenkme_help_list( $contextual_help, $screen ) {
+	
 	if ( 'leenkme' == $screen->parent_base ) {
-		$contextual_help[$screen->id] = __( '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>' .
-'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | ' .
-'<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | ' .
-'<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a> | ' .
-'<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>' );
+		
+		$contextual_help[$screen->id] = __( '<p>Need help working with the leenk.me plugin? Try these links for more information:</p>', 'leenkme' ) 
+			. '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-twitter-plugin-for-wordpress/" target="_blank">Twitter</a> | '
+			. '<a href="http://leenk.me/2010/09/04/how-to-use-the-leenk-me-facebook-plugin-for-wordpress/" target="_blank">Facebook</a> | '
+			. '<a href="http://leenk.me/2010/12/01/how-to-use-the-leenk-me-linkedin-plugin-for-wordpress/" target="_blank">LinkedIn</a> | '
+			. '<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">FriendFeed</a>';
+
 	}
 
 	return $contextual_help;
 
+}
+
+
+function releenk_row_action( $actions, $post ) {
+	
+	global $dl_pluginleenkme;
+	
+	$leenkme_options = $dl_pluginleenkme->get_leenkme_settings();
+	
+	if ( in_array( $post->post_type, $leenkme_options['post_types'] ) ) {
+		
+		// Only show leenk.me button if the post is "published"
+		if ( 'publish' === $post->post_status )
+			$actions['leenkme'] = '<a class="releenk_row_action" id="' . $post->ID . '" title="leenk.me" href="#">leenk.me</a>';
+		
+	}
+	
+
+	return $actions;
+	
 }
 
 // Actions and filters	
@@ -786,192 +1417,32 @@ if ( isset( $dl_pluginleenkme ) ) {
 	/*--------------------------------------------------------------------
 	    Actions
 	  --------------------------------------------------------------------*/
+	
+	add_action( 'admin_init', array( $dl_pluginleenkme, 'leenkme_add_meta_tag_options' ), 1 );
 
 	// Add the admin menu
 	add_action( 'admin_menu', 'leenkme_ap');
 	
 	// Whenever you publish a post, connect to leenk.me
-	add_action( 'new_to_publish', 'leenkme_connect', 5 );
-	add_action( 'draft_to_publish', 'leenkme_connect', 5 );
-	add_action( 'pending_to_publish', 'leenkme_connect', 5 );
-	add_action( 'future_to_publish', 'leenkme_connect', 5 );
+	add_action( 'new_to_publish', 'leenkme_connect', 20 );
+	add_action( 'draft_to_publish', 'leenkme_connect', 20 );
+	add_action( 'pending_to_publish', 'leenkme_connect', 20 );
+	add_action( 'future_to_publish', 'leenkme_connect', 20 );
 	
 	add_action( 'admin_footer', array( $dl_pluginleenkme, 'leenkme_add_wpnonce' ) );
 	
-	add_action( 'admin_head-toplevel_page_leenkme', 'leenkme_js' );
-	add_action( 'admin_head-edit.php', 'leenkme_js' );
-	add_action( 'admin_head-post.php', 'leenkme_js' );
-	add_action( 'admin_head-page.php', 'leenkme_js' ); 			// used for WP2.9.x
-	add_action( 'admin_head-edit-pages.php', 'leenkme_js' ); 	// used for WP2.9.x
-	add_action( 'wp_ajax_verify', 'leenkme_ajax_verify', 10, 1 );
-	add_action( 'wp_ajax_plugins', 'leenkme_ajax_plugins', 10, 1 );
+	add_action( 'wp_ajax_verify', 						'leenkme_ajax_verify' );
+	add_action( 'wp_ajax_plugins', 						'leenkme_ajax_plugins' );
+	add_action( 'wp_ajax_leenkme_row_action', 			'leenkme_ajax_leenkme_row_action' );
+	add_action( 'wp_ajax_releenk', 						'leenkme_ajax_releenk' );
+	add_action( 'wp_ajax_get_leenkme_expanded_post', 	'get_leenkme_expanded_post_ajax' );
 	
 	add_filter( 'contextual_help_list', 'leenkme_help_list', 10, 2);
-
-} 
-
-// From PHP_Compat-1.6.0a2 Compat/Function/str_ireplace.php for PHP4 Compatibility
-if ( !function_exists( 'str_ireplace' ) ) {
-
-    function str_ireplace( $search, $replace, $subject ) {
-		// Sanity check
-		if ( is_string( $search ) && is_array( $replace ) ) {
-			user_error( 'Array to string conversion', E_USER_NOTICE );
-			$replace = (string)$replace;
-		}
 	
-		// If search isn't an array, make it one
-		$search = (array)$search;
-		$length_search = count( $search );
+	// edit-post.php post row update
+	add_filter( 'post_row_actions', 'releenk_row_action', 10, 2 );
+	add_filter( 'page_row_actions', 'releenk_row_action', 10, 2 );
 	
-		// build the replace array
-		$replace = is_array( $replace )
-		? array_pad( $replace, $length_search, '' )
-		: array_pad( array(), $length_search, $replace );
+	load_plugin_textdomain( 'leenkme', false, basename( dirname( __FILE__ ) ) . '/i18n' );
 	
-		// If subject is not an array, make it one
-		$was_string = false;
-		if ( is_string( $subject ) ) {
-			$was_string = true;
-			$subject = array( $subject );
-		}
-	
-		// Prepare the search array
-		foreach ( $search as $search_key => $search_value ) {
-			$search[$search_key] = '/' . preg_quote( $search_value, '/' ) . '/i';
-		}
-		
-		// Prepare the replace array (escape backreferences)
-		$replace = str_replace( array( '\\', '$' ), array( '\\\\', '\$' ), $replace );
-	
-		$result = preg_replace( $search, $replace, $subject );
-		return $was_string ? $result[0] : $result;
-	}
-
-}
-// disabled() since 3.0, needed to maintain 2.8, and 2.9 backwards compatability
-if ( !function_exists( 'disabled' ) ) {
-
-	/**
-	 * Outputs the html disabled attribute.
-	 *
-	 * Compares the first two arguments and if identical marks as disabled
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param mixed $disabled One of the values to compare
-	 * @param mixed $current (true) The other value to compare if not just true
-	 * @param bool $echo Whether to echo or just return the string
-	 * @return string html attribute or empty string
-	 */
-	function disabled( $disabled, $current = true, $echo = true ) {
-		return __checked_selected_helper( $disabled, $current, $echo, 'disabled' );
-	}
-
-}
-
-// user_can() since 3.1, needed to maintain 2.8, 2.9, and 3.0 backwards compatability
-if ( !function_exists( 'user_can' ) ) {
-
-	/**
-	 * Whether a particular user has capability or role.
-	 *
-	 * @since 3.1.0
-	 *
-	 * @param int|object $user User ID or object.
-	 * @param string $capability Capability or role name.
-	 * @return bool
-	 */
-	function user_can( $user, $capability ) {
-		if ( ! is_object( $user ) )
-			$user = new WP_User( $user );
-	
-		if ( ! $user || ! $user->ID )
-			return false;
-	
-		$args = array_slice( func_get_args(), 2 );
-		$args = array_merge( array( $capability ), $args );
-	
-		return call_user_func_array( array( &$user, 'has_cap' ), $args );
-	}
-
-}
-
-// user_can() since 3.0, needed to maintain 2.8 and 2.9 backwards compatability
-if ( !function_exists( 'clean_user_cache' ) ) {
-
-	/**
-	 * Clean all user caches
-	 *
-	 * @since 3.0.0
-	 *
-	 * @param int $id User ID
-	 */
-	function clean_user_cache($id) {
-		$user = new WP_User($id);
-	
-		wp_cache_delete($id, 'users');
-		wp_cache_delete($user->user_login, 'userlogins');
-		wp_cache_delete($user->user_email, 'useremail');
-		wp_cache_delete($user->user_nicename, 'userslugs');
-		wp_cache_delete('blogs_of_user-' . $id, 'users');
-	}
-
-}
-
-if ( !function_exists( 'wp_strip_all_tags' ) ) {
-	/**
-	 * Properly strip all HTML tags including script and style
-	 *
-	 * @since 2.9.0
-	 *
-	 * @param string $string String containing HTML tags
-	 * @param bool $remove_breaks optional Whether to remove left over line breaks and white space chars
-	 * @return string The processed string.
-	 */
-	function wp_strip_all_tags($string, $remove_breaks = false) {
-		$string = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $string );
-		$string = strip_tags($string);
-	
-		if ( $remove_breaks )
-			$string = preg_replace('/[\r\n\t ]+/', ' ', $string);
-	
-		return trim($string);
-	}
-}
-
-if ( !function_exists( 'leenkme_trim_characters' ) ) {
-
-	/**
-	 * Clean all user caches
-	 *
-	 * @since 1.3.10
-	 *
-	 * @param int $id User ID
-	 */
-	function leenkme_trim_words( $string, $maxChar ) {
-		
-		$num_words = 55;
-		$more = "...";
-	
-		$original_string = $string;
-		$string = strip_shortcodes( $string );
-		$string = wp_strip_all_tags( $string );
-		$words_array = preg_split( "/[\n\r\t ]+/", $string, $num_words + 1, PREG_SPLIT_NO_EMPTY );
-		$length = strlen( utf8_decode( $string ) );
-		
-		while ( $length > $maxChar ) {
-		
-			array_pop( $words_array );
-			$string = implode( ' ', $words_array );
-			$string = $string . $more;
-			
-			$length = strlen( utf8_decode( $string ) );
-			
-		}
-		
-		return $string;
-		
-	}
-
 }

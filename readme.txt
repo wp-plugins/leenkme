@@ -1,15 +1,15 @@
 === leenk.me ===
 Contributors: layotte
-Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, social network, social media, social media tools
-Requires at least: 2.8
-Tested up to: 3.4
-Stable tag: 1.4.0
+Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, rebuzz, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
+Requires at least: 3.1
+Tested up to: 3.3
+Stable tag: 1.3.8
 
 leenk.me empowers you to publicize your WordPress content to your Twitter, Facebook, LinkedIn, & FriendFeed accounts automatically.
 
 == Description ==
 
-leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/fan page/group walls, a share on your LinkedIn profile/group, and an entry on your FriendFeed profile/group whenever you publish a new post in your WordPress website.
+leenk.me automatically publishes a tweet to your Twitter account, a status update to your Facebook profile/fan page/group walls, a share on your LinkedIn profile, and an entry on your FriendFeed profile/group whenever you publish a new post in your WordPress website.
 
 What can you do with leenk.me?
 
@@ -24,6 +24,7 @@ What can you do with leenk.me?
 * Customize your Tweet format with the custom variables %TITLE%, %URL%, %CATS%, and %TAGS%.
 * Automatically shorten URLs with [Twitter Friendly Links](http://wordpress.org/extend/plugins/twitter-friendly-links/), if it is installed - otherwise leenk.me uses TinyURL or WordPress's default short URL.
 * Add a filter to [use your own custom URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/), like bit.ly
+* Customize your Buzz message for individual posts.
 * Customize your Facebook post for individual posts.
 * Customize your LinkedIn shares for individual posts.
 * Customize your FriendFeed entries for individual posts.
@@ -37,7 +38,7 @@ What sets leenk.me apart from others?
 * You authorize which applications are connected to your leenk.me account.
 * leenk.me is instant, no need to wait for an RSS reader to get your latest posts... publishing sends your content to leenk.me automatically.
 
-You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The leenk.me personal subscription is 5 dollars a year with a one month free trial. Cancel anytime before your trial ends and you won't be charged. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
+You will need a [leenk.me API key](http://leenk.me) to use the leenk.me plugin. The leenk.me subscription is 99 cents a month with a one month free trial. Cancel anytime before your trial ends and you won't be charged. This small subscription fee is used to maintain the leenk.me server and for continued development/support.
 
 Have questions? Contact me through the leenk.me [support](http://leenk.me/contact) form.
 
@@ -59,7 +60,7 @@ Yes, the leenk.me plugin hooks into the schedule-to-publish action that WordPres
 
 = Does leenk.me work with multiple authors? =
 
-Yes, just be sure to check the box to Tweet/Publish all authors in the leenk.me plugins.
+Yes, just be sure to check the box to Tweet/Publish/Buzz all authors in the leenk.me plugins.
 
 = Can I add multiple Twitter/Facebook/Buzz accounts to a single leenk.me account? =
 
@@ -90,32 +91,35 @@ Feel free to use the leenk.me [contact form](http://leenk.me/contact) and we wil
 Yes, there is not a GUI interface for this yet, but if your URL shortener has a basic REST API then you can use the WordPress action hook 'leenkme_url_shortener' to change the URL shortener used. I wrote a post detailing [how to use the bit.ly URL shortener](http://leenk.me/2011/03/22/how-to-use-the-bit-ly-url-shortener-in-leenk-me/).
 
 == Changelog ==
-= 1.4.0 =
+= 2.0.0 =
+* Final Release of 2.0.0
+* Efficiency updates (reduced number of jQuery calls when editing post)
+* Added Open Graph Meta tags for resharing in Facebook and LinkedIn (and other social networks)
+* Updated User Query to make compatibly with WordPress Multisite
+* Fixed substring bug in jQuery call for users with a lot of pictures
+* Now leenk.me is i18n Translation Ready
+
+= 2.0.0b5 =
 * Using leenk.me API version 1.2
 * Added better error message handling
 
-= 1.3.14.1 =
-* Fixed bug causing "Exclude from Profile" checkbox option for LinkedIn to not appear on posts.
+= 2.0.0b4 =
+* Fixed issue with HTML entities appear on Facebook, LinkedIn, and FriendFeed.
+* Made some more code efficiency updates.
 
-= 1.3.14 =
-* Fixed bug causing new installs to not get default settings properly when publishing new posts.
-* Raised priority of plugin action to deal with issues caused by Subscribe2 plugin users with a high number of subscribers.
-* Removed a bunch of unused code.
+= 2.0.0b3 =
+* Corrected TinyURL and YOURLS shortener with Facebook bug, cannot use either with Facebook, because Facebook adds ?ref=nf to each link.
+* Removed shortlink call for leenk.me on non-admin pages.
+* Fixed javascript interval, too frequent and too close together.
+* Fixed non-escaped slashes on posts with single-quotes.
 
-= 1.3.13 =
-* Big efficiency update for multiple user sites.
+= 2.0.0b2 =
+* Minor fixes
 
-= 1.3.12 =
-* Added LinkedIn Groups to service and plugin.
-
-= 1.3.11 =
-* Removed Google Buzz... Google has killed the Buzz API.
-
-= 1.3.10 =
-* The last fix for Portuguese characters broke Cyrillic characters. Completely rethought the whole process and added new code.
-
-= 1.3.9 =
-* Fixed bug that causes certain non-UTF8 strings to trim too long and be rejected by a social network.
+= 2.0.0b =
+* More efficient Publish All Authors functionality.
+* Added URL Shorteners to GUI.
+* Major update to leenk.me post meta boxes.
 
 = 1.3.8 =
 * Updates LinkedIn TITLE and DESCRIPTION character limits, per their latest API notes

@@ -4,15 +4,6 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 
 	// Define class
 	class leenkme_FriendFeed {
-		
-		// Class members		
-		var $options_name			= 'leenkme_friendfeed';
-		var $friendfeed_myfeed		= 'friendfeed_myfeed';
-		var $friendfeed_group		= 'friendfeed_group';
-		var $default_image			= 'default_image';
-		var $feed_cats				= 'feed_cats';
-		var $clude					= 'clude';
-		var $feed_all_users			= 'feed_all_users';
 	
 		// Constructor
 		function leenkme_FriendFeed() {
@@ -22,55 +13,23 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 		/*--------------------------------------------------------------------
 			Administrative Functions
 		  --------------------------------------------------------------------*/
-		
-		function get_leenkme_friendfeed_settings() {
-			
-			global $wpdb;
-			
-			$user_count = $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(ID) FROM ' . $wpdb->users ) );
-			
-			if ( 1 < $user_count )
-				$feed_all_users = true;
-			else
-				$feed_all_users = false;
-			
-			$options = array( $this->feed_all_users => $feed_all_users );
-		
-			$leenkme_settings = get_option( $this->options_name );
-			if ( !empty( $leenkme_settings ) ) {
-				
-				foreach ( $leenkme_settings as $key => $option ) {
-					
-					$options[$key] = $option;
-					
-				}
-				
-			}
-			
-			return $options;
-			
-		}
 	  
 		// Option loader function
 		function get_user_settings( $user_id ) {
 			
 			// Default values for the options
-			$friendfeed_myfeed		= true;
-			$friendfeed_group		= false;
-			$default_image			= '';
-			$feed_cats				= array( '0' );
-			$clude					= 'in';
-			
 			$options = array(
-								 $this->friendfeed_myfeed 	=> $friendfeed_myfeed,
-								 $this->friendfeed_group 	=> $friendfeed_group,
-								 $this->default_image		=> $default_image,
-								 $this->feed_cats 			=> $feed_cats,
-								 $this->clude 				=> $clude
+								 'friendfeed_myfeed'		=> true,
+								 'friendfeed_group' 		=> false,
+								 'friendfeed_body'			=> '%EXCERPT%',
+								 'default_image'			=> '',
+								 'force_friendfeed_image'	=> false,
+								 'feed_cats' 				=> array( '0' ),
+								 'clude' 					=> 'in'
 							);
 							
 			// Get values from the WP options table in the database, re-assign if found
-			$user_settings = get_user_option( $this->options_name, $user_id );
+			$user_settings = get_user_option( 'leenkme_friendfeed', $user_id );
 			if ( !empty( $user_settings ) ) {
 				
 				foreach ( $user_settings as $key => $option ) {
@@ -82,7 +41,7 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 			}
 			
 			// Need this for initial INIT, for people who don't save the default settings...
-			update_user_option( $user_id, $this->options_name, $user_settings );
+			update_user_option( $user_id, 'leenkme_friendfeed', $user_settings );
 			
 			return $options;
 			
@@ -97,54 +56,49 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 			
 			// Get the user options
 			$user_settings = $this->get_user_settings( $user_id );
-			$friendfeed_settings = $this->get_leenkme_friendfeed_settings();
+			$friendfeed_settings = get_option( 'leenkme_friendfeed' );
 			
-			if ( isset( $_POST['update_friendfeed_settings'] ) ) {
+			if ( isset( $_REQUEST['update_friendfeed_settings'] ) ) {
 				
-				if ( isset( $_POST['friendfeed_myfeed'] ) )
-					$user_settings[$this->friendfeed_myfeed] = true;
+				if ( isset( $_REQUEST['friendfeed_myfeed'] ) )
+					$user_settings['friendfeed_myfeed'] = true;
 				else
-					$user_settings[$this->friendfeed_myfeed] = false;
+					$user_settings['friendfeed_myfeed'] = false;
 				
-				if ( isset( $_POST['friendfeed_group'] ) )
-					$user_settings[$this->friendfeed_group] = true;
+				if ( isset( $_REQUEST['friendfeed_group'] ) )
+					$user_settings['friendfeed_group'] = true;
 				else
-					$user_settings[$this->friendfeed_group] = false;
+					$user_settings['friendfeed_group'] = false;
 				
-				if ( isset( $_POST['friendfeed_body'] ) )
-					$user_settings[$this->friendfeed_body] = $_POST['friendfeed_body'];
+				if ( isset( $_REQUEST['friendfeed_body'] ) )
+					$user_settings['friendfeed_body'] = $_REQUEST['friendfeed_body'];
 				
-				if ( isset( $_POST['default_image'] ) )
-					$user_settings[$this->default_image] = $_POST['default_image'];
+				if ( isset( $_REQUEST['default_image'] ) )
+					$user_settings['default_image'] = $_REQUEST['default_image'];
+				
+				if ( isset( $_REQUEST['force_friendfeed_image'] ) )
+					$user_settings['force_friendfeed_image'] = true;
+				else
+					$user_settings['force_friendfeed_image'] = false;
 	
-				if ( isset( $_POST['clude'] ) && isset( $_POST['feed_cats'] ) ) {
+				if ( isset( $_REQUEST['clude'] ) && isset( $_REQUEST['feed_cats'] ) ) {
 					
-					$user_settings[$this->clude] = $_POST['clude'];
-					$user_settings[$this->feed_cats] = $_POST['feed_cats'];
+					$user_settings['clude'] = $_REQUEST['clude'];
+					$user_settings['feed_cats'] = $_REQUEST['feed_cats'];
 					
 				} else {
 					
-					$user_settings[$this->clude] = 'in';
-					$user_settings[$this->feed_cats] = array( '0' );
+					$user_settings['clude'] = 'in';
+					$user_settings['feed_cats'] = array( '0' );
 					
 				}
 				
-				update_user_option($user_id, $this->options_name, $user_settings);
-				
-				if ( current_user_can( 'leenkme_manage_all_settings' ) ) { //we're dealing with the main Admin options
-				
-					if ( isset( $_POST['feed_all_users'] ) )
-						$friendfeed_settings[$this->feed_all_users] = true;
-					else
-						$friendfeed_settings[$this->feed_all_users] = false;
-					
-					update_option( $this->options_name, $friendfeed_settings );
-					
-				}
+				update_user_option( $user_id, 'leenkme_friendfeed', $user_settings );
 				
 				// update settings notification ?>
-				<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme_FriendFeed' );?></strong></p></div>
+				<div class="updated"><p><strong><?php _e( 'Settings Updated.', 'leenkme' );?></strong></p></div>
 				<?php
+				
 			}
 			// Display HTML form for the options below
 			?>
@@ -153,22 +107,22 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 			<div class="metabox-holder">	
 			<div class="meta-box-sortables ui-sortable">
 				<form id="leenkme" method="post" action="">
-					<h2 style='margin-bottom: 10px;' ><img src='<?php echo $dl_pluginleenkme->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> FriendFeed Settings (<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">help</a>)</h2>
+					<h2 style='margin-bottom: 10px;' ><img src='<?php echo $dl_pluginleenkme->base_url; ?>/leenkme-logo-32x32.png' style='vertical-align: top;' /> FriendFeed <?php _e( 'Settings', 'leenkme' ); ?> (<a href="http://leenk.me/2011/04/08/how-to-use-the-leenk-me-friendfeed-plugin-for-wordpress/" target="_blank">help</a>)</h2>
 					
 					<div id="post-types" class="postbox">
 					
 						<div class="handlediv" title="Click to toggle"><br /></div>
-						<h3 class="hndle"><span><?php _e( 'Social Settings' ); ?></span></h3>
+						<h3 class="hndle"><span><?php _e( 'Social Settings', 'leenkme' ); ?></span></h3>
 						
 						<div class="inside">
-						<p>Feed to MyFeed? <input type="checkbox" id="friendfeed_myfeed" name="friendfeed_myfeed" <?php checked( $user_settings[$this->friendfeed_myfeed] ); ?> /></p>
-						<p>Feed to Group? <input type="checkbox" id="friendfeed_group" name="friendfeed_group" <?php checked( $user_settings[$this->friendfeed_group] ); ?> /></p>
+						<p><?php _e( 'Feed to MyFeed?', 'leenkme' ); ?> <input type="checkbox" id="friendfeed_myfeed" name="friendfeed_myfeed" <?php checked( $user_settings['friendfeed_myfeed'] ); ?> /></p>
+						<p><?php _e( 'Feed to Group?', 'leenkme' ); ?> <input type="checkbox" id="friendfeed_group" name="friendfeed_group" <?php checked( $user_settings['friendfeed_group'] ); ?> /></p>
 
 						<p>
-                        	<input type="button" class="button" name="verify_friendfeed_connect" id="ff_publish" value="<?php _e( 'Feed a Test Message', 'leenkme_FriendFeed' ) ?>" />
+                        	<input type="button" class="button" name="verify_friendfeed_connect" id="ff_publish" value="<?php _e( 'Feed a Test Message', 'leenkme' ) ?>" />
 							<?php wp_nonce_field( 'ff_publish', 'ff_publish_wpnonce' ); ?>
                         
-                            <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme_FriendFeed' ) ?>" />
+                            <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
                         </p>
 					
 						</div>
@@ -178,14 +132,39 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 					<div id="post-types" class="postbox">
 					
 						<div class="handlediv" title="Click to toggle"><br /></div>
-						<h3 class="hndle"><span><?php _e( 'Message Settings' ); ?></span></h3>
+						<h3 class="hndle"><span><?php _e( 'Message Settings', 'leenkme' ); ?></span></h3>
 						
 						<div class="inside">
-						<p>Default Image URL: <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings[$this->default_image], 'leenkme_FriendFeed' ) ?>" /></p>
+                        	<table id="friendfeed_settings_table">
+                            <tr>
+                            	<td style='vertical-align: top; padding-top: 5px;'><?php _e( 'Default Description:', 'leenkme' ); ?></td>
+                                <td><textarea name="friendfeed_body" style="width: 500px;" maxlength="350"><?php echo $user_settings['friendfeed_body']; ?></textarea></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <div class="friendfeed-format" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li>%TITLE% - <?php _e( 'Displays the post title.', 'leenkme' ); ?></li>
+                                            <li>%WPSITENAME% - <?php _e( 'Displays the WordPress site name (found in Settings -> General).', 'leenkme' ); ?></li>
+                                            <li>%WPTAGLINE% - <?php _e( 'Displays the WordPress TagLine (found in Settings -> General).', 'leenkme' ); ?></li>
+                                            <li>%EXCERPT% - <?php _e( 'Displays the WordPress Post Excerpt (only used with Description Field).', 'leenkme' ); ?></li>
+                                        </ul>
+                                    </div>
+                            	</td>
+                            </tr>
+                            <tr>
+                            	<td><?php _e( 'Default Image URL:', 'leenkme' ); ?></td>
+                                <td>
+                                    <input name="default_image" type="text" style="width: 500px;" value="<?php _e(  $user_settings['default_image'], 'leenkme' ) ?>" />
+                                    <input type="checkbox" id="force_friendfeed_image" name="force_friendfeed_image" <?php checked( $user_settings['force_friendfeed_image'] ); ?> /> <?php _e( 'Always Use', 'leenkme' ); ?>
+                                </td>
+                            </tr> 
+                            </table>
                         
-                        <p>
-                            <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme_FriendFeed' ) ?>" />
-                        </p>
+                            <p>
+                                <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
+                            </p>
                         
 						</div>
 					
@@ -194,24 +173,24 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 					<div id="post-types" class="postbox">
 					
 						<div class="handlediv" title="Click to toggle"><br /></div>
-						<h3 class="hndle"><span><?php _e( 'Feed Settings' ); ?></span></h3>
+						<h3 class="hndle"><span><?php _e( 'Feed Settings', 'leenkme' ); ?></span></h3>
 						
 						<div class="inside">
-						<p>Feed Categories: 
+						<p><?php _e( 'Feed Categories:', 'leenkme' ); ?> 
 					
 						<div class="feed-cats" style="margin-left: 50px;">
 							<p>
-							<input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings[$this->clude] ); ?> /><label for='include_cat'>Include</label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings[$this->clude] ); ?> /><label for='exclude_cat'>Exclude</label> </p>
+							<input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings['clude'] ); ?> /><label for='include_cat'><?php _e( 'Include', 'leenkme' ); ?></label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings['clude'] ); ?> /><label for='exclude_cat'><?php _e( 'Exclude', 'leenkme' ); ?></label> </p>
 							<p>
 							<select id='categories' name='feed_cats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
-							<option value="0" <?php selected( in_array( '0', (array)$user_settings[$this->feed_cats] ) ); ?>>All Categories</option>
+							<option value="0" <?php selected( in_array( '0', (array)$user_settings['feed_cats'] ) ); ?>><?php _e( 'All Categories', 'leenkme' ); ?></option>
                             
 							<?php 
 							$categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
 							foreach ( (array)$categories as $category ) {
 								?>
 								
-								<option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings[$this->feed_cats] ) ); ?>><?php echo $category->name; ?></option>
+								<option value="<?php echo $category->term_id; ?>" <?php selected( in_array( $category->term_id, (array)$user_settings['feed_cats'] ) ); ?>><?php echo $category->name; ?></option>
 			
 			
 								<?php
@@ -219,20 +198,11 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 							?>
                             
 							</select></p>
-							<p style="font-size: 11px; margin-bottom: 0px;">To 'deselect' hold the SHIFT key on your keyboard while you click the category.</p>
+							<p style="font-size: 11px; margin-bottom: 0px;"><?php _e( 'To deselect hold the SHIFT key on your keyboard while you click the category.', 'leenkme' ); ?></p>
 						</div>
-						
-						<?php if ( current_user_can('leenkme_manage_all_settings') ) { //then we're displaying the main Admin options ?>
-                        
-						<p>Feed All Authors? <input type="checkbox" name="feed_all_users" <?php checked( $friendfeed_settings[$this->feed_all_users] ); ?> /></p>
-						<div class="publish-allusers" style="margin-left: 50px;">
-						<p style="font-size: 11px; margin-bottom: 0px;">Check this box if you want leenk.me to feed to each available author account.</p>
-						</div>
-                        
-						<?php } ?>
                         
                         <p>
-                            <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme_FriendFeed' ) ?>" />
+                            <input class="button-primary" type="submit" name="update_friendfeed_settings" value="<?php _e( 'Save Settings', 'leenkme' ) ?>" />
                         </p>
                         
 						</div>
@@ -255,106 +225,139 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 			if ( isset( $_REQUEST['_inline_edit'] ) )
 				return;
 	
-			if ( isset( $_POST["friendfeed_exclude_myfeed"] ) )
-				update_post_meta( $post_id, 'friendfeed_exclude_myfeed', $_POST["friendfeed_exclude_myfeed"] );
+			if ( isset( $_REQUEST["friendfeed_exclude_myfeed"] ) )
+				update_post_meta( $post_id, '_friendfeed_exclude_myfeed', $_REQUEST["friendfeed_exclude_myfeed"] );
 			else
-				delete_post_meta( $post_id, 'friendfeed_exclude_myfeed' );
+				delete_post_meta( $post_id, '_friendfeed_exclude_myfeed' );
 	
-			if ( isset( $_POST["friendfeed_exclude_group"] ) )
-				update_post_meta( $post_id, 'friendfeed_exclude_group', $_POST["friendfeed_exclude_group"] );
+			if ( isset( $_REQUEST["friendfeed_exclude_group"] ) )
+				update_post_meta( $post_id, '_friendfeed_exclude_group', $_REQUEST["friendfeed_exclude_group"] );
 			else
-				delete_post_meta( $post_id, 'friendfeed_exclude_group' );
+				delete_post_meta( $post_id, '_friendfeed_exclude_group' );
 			
-			if ( isset( $_POST['friendfeed_body'] ) && !empty( $_POST['friendfeed_body'] ) )
-				update_post_meta( $post_id, 'friendfeed_body', $_POST['friendfeed_body'] );
+			if ( isset( $_REQUEST['friendfeed_body'] ) && !empty( $_REQUEST['friendfeed_body'] ) )
+				update_post_meta( $post_id, '_friendfeed_body', $_REQUEST['friendfeed_body'] );
 			else
-				delete_post_meta( $post_id, 'friendfeed_body' );
+				delete_post_meta( $post_id, '_friendfeed_body' );
 	
-			if ( isset($_POST["friendfeed_image"] ) && !empty( $_POST["friendfeed_image"] ) )
-				update_post_meta( $post_id, 'friendfeed_image', $_POST["friendfeed_image"] );
+			if ( isset($_REQUEST["friendfeed_image"] ) && !empty( $_REQUEST["friendfeed_image"] ) )
+				update_post_meta( $post_id, '_friendfeed_image', $_REQUEST["friendfeed_image"] );
 			else
-				delete_post_meta( $post_id, 'friendfeed_image' );
-			
-		}
-		
-		function leenkme_add_friendfeed_meta_tag_options() { 
-		
-			global $dl_pluginleenkme;
-			
-			$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
-			foreach ( $leenkme_settings['post_types'] as $post_type ) {
-				
-				add_meta_box( 
-					'leenkme-FriendFeed',
-					__( 'leenk.me FriendFeed', 'leenkme' ),
-					array( $this, 'leenkme_friendfeed_meta_box' ),
-					$post_type 
-				);
-				
-			}
+				delete_post_meta( $post_id, '_friendfeed_image' );
+	
+			if ( isset($_REQUEST["lm_friendfeed_type"] ) && !empty( $_REQUEST["lm_friendfeed_type"] ) )
+				update_post_meta( $post_id, '_lm_friendfeed_type', $_REQUEST["lm_friendfeed_type"] );
+			else
+				delete_post_meta( $post_id, '_lm_friendfeed_type' );
 			
 		}
 		
 		function leenkme_friendfeed_meta_box() {
 			
-			global $post, $current_user, $dl_pluginleenkme;
+			global $post, $current_user;
 			
 			get_currentuserinfo();
 			$user_id = $current_user->ID;
 			
-			$exclude_myfeed = get_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true ); 
-			$exclude_group = get_post_meta( $post->ID, 'friendfeed_exclude_group', true ); 
-			$friendfeed_body = get_post_meta( $post->ID, 'friendfeed_body', true);
-			$friendfeed_image = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'friendfeed_image', true ) ) );
+			if ( $exclude_myfeed = get_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true ) ) {
+				
+				delete_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true );
+				update_post_meta( $post->ID, '_friendfeed_exclude_myfeed', $exclude_myfeed );
+				
+				
+			}
+			$exclude_myfeed = get_post_meta( $post->ID, '_friendfeed_exclude_myfeed', true ); 
+			
+			if ( $exclude_group = get_post_meta( $post->ID, 'friendfeed_exclude_group', true ) ) {
+				
+				delete_post_meta( $post->ID, 'friendfeed_exclude_group', true );
+				update_post_meta( $post->ID, '_friendfeed_exclude_group', $exclude_group );
+				
+				
+			}
+			$exclude_group = get_post_meta( $post->ID, '_friendfeed_exclude_group', true );
+			
+			if ( $friendfeed_array['body'] = get_post_meta( $post->ID, 'friendfeed_body', true ) ) {
+				
+				delete_post_meta( $post->ID, 'friendfeed_body', true );
+				update_post_meta( $post->ID, '_friendfeed_body', $friendfeed_array['body'] );
+				
+				
+			}
+			$friendfeed_array['body'] = get_post_meta( $post->ID, '_friendfeed_body', true );
+			
+			if ( $friendfeed_array['picture'] = get_post_meta( $post->ID, 'friendfeed_image', true ) ) {
+				
+				delete_post_meta( $post->ID, 'friendfeed_image', true );
+				update_post_meta( $post->ID, '_friendfeed_image', $friendfeed_array['picture'] );
+				
+				
+			}
+			$friendfeed_array['picture'] = get_post_meta( $post->ID, '_friendfeed_image', true );
+			
+			$format_type = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, '_lm_friendfeed_type', true ) ) );
 			
 			$user_settings = $this->get_user_settings( $user_id );
-			$friendfeed_settings = $this->get_leenkme_friendfeed_settings(); ?>
-		
-			<input value="friendfeed_edit" type="hidden" name="friendfeed_edit" />
-			<table>
-				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"><?php _e( 'Format Options:', 'leenkme' ) ?></td>
-				  <td style="vertical-align:top; width:80px;">
-					<p>%TITLE%, %WPSITENAME%, %WPTAGLINE%</p>
-				</td></tr>
-				  
-				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px; vertical-align:top;"><?php _e( 'Custom Body:', 'leenkme' ) ?></td>
-				  <td><textarea style="margin-top: 5px;" name="friendfeed_body" cols="66" rows="5"><?php echo $friendfeed_body; ?></textarea>
-				</td></tr>
+			$friendfeed_settings = get_option( 'leenkme_friendfeed' ); ?>
+    
+    		<div id="ff_format_options">
+				<?php 
+                _e( 'Format:', 'leenkme' );
+                echo " ";
+                ?>
+                    
+                <span id="lm_friendfeed_format" class="ff_manual_format manual_format" style="display:<?php if ( $format_type ) echo "inline"; else echo "none"; ?>"><?php _e( 'Manual', 'leenkme' ); ?></span> <a id="set_to_default_ff_post" href="#" style="display:<?php if ( $format_type ) echo "inline"; else echo "none"; ?>">Reset</a>
+                <span id="lm_friendfeed_format" class="ff_default_format default_format" style="display:<?php if ( $format_type ) echo "none"; else echo "inline"; ?>"><?php _e( 'Default', 'leenkme' ); ?></span>
+                <input type="hidden" name="lm_friendfeed_type" value="<?php echo $format_type; ?>" />
+                <input type="hidden" name="friendfeed_body_format" value="<?php echo $user_settings['friendfeed_body']; ?>" />
+                <input type="hidden" name="friendfeed_image" value="<?php echo $friendfeed_array['picture'] ?>" />
+            </div>
+            
+            <div id="lm_friendfeed_box">
+            
+            	<?php 
+				if ( 0 == $format_type ) {
 				
-				<tr><td scope="row" style="text-align:right; width:150px; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Image URL:', 'leenkme' ) ?></td>
-				  <td><input value="<?php echo $friendfeed_image; ?>" type="text" name="friendfeed_image" size="80px" /></td></tr>
-				  
-				<tr><td scope="row" style="text-align:right; width:150px; vertical-align:top; padding-top: 5px; padding-right:10px;"></td>
-				  <td style="vertical-align:top; width:80px;">
-					<p>Paste the URL to the image or set the "Featured Image" if your theme supports it.</p>
-				</td></tr>
+					 $friendfeed_array['body'] 		= $user_settings['friendfeed_body'];
 				
-				<?php if ( $user_settings['friendfeed_myfeed'] ) { ?>
-                
-				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from MyFeed:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="friendfeed_exclude_myfeed" <?php checked( $exclude_myfeed || 'on' == $exclude_myfeed ); ?> />
-				</td></tr>
-                
-				<?php } ?>
+				}
 				
-				<?php if ( $user_settings['friendfeed_group'] ) { ?>
+				$friendfeed_content = get_leenkme_expanded_ff_post( $post->ID, $friendfeed_array ); ?>
+            
+                <textarea id="lm_ff_body" name="friendfeed_body" maxlength="350"><?php echo $friendfeed_content['body']; ?></textarea>
+            
+                <div id="lm_ff_attachment_meta_area">
                 
-				<tr><td scope="row" style="text-align:right; padding-top: 5px; padding-bottom:5px; padding-right:10px;"><?php _e( 'Exclude from Group:', 'leenkme' ) ?></td>
-				  <td><input style="margin-top: 5px;" type="checkbox" name="friendfeed_exclude_group" <?php checked( $exclude_group || 'on' == $exclude_group ); ?> />
-				</td></tr>
+                	<div id="lm_ff_image">
+                		<img id='lm_ff_image_src' src='<?php echo $friendfeed_content['picture']; ?>' />
+                    </div>
                 
-				<?php } ?>
-				
-				<?php // Only show ReFeed button if the post is "published"
-				if ( 'publish' === $post->post_status ) { ?>
+                </div>
                 
-				<tr><td colspan="2">
-				<input style="float: right;" type="button" class="button" name="refeed_friendfeed" id="refeed_button" value="<?php _e( 'ReFeed', 'leenkme_FriendFeed' ) ?>" />
-				</td></tr>
+            </div>
+            
+            <div id="lm_friendfeed_options">
+            
+            	<div id="lm_fb_exlusions">
+					<?php if ( $user_settings['friendfeed_myfeed'] ) { ?>
+                    <?php _e( 'Exclude from MyFeed:', 'leenkme' ) ?>
+                    <input style="margin-top: 5px;" type="checkbox" name="friendfeed_exclude_myfeed" <?php checked( $exclude_myfeed || 'on' == $exclude_myfeed ); ?> />
+                    <br />
+                    <?php } ?>
+                    <?php if ( $user_settings['friendfeed_group'] ) { ?>
+                    <?php _e( 'Exclude from Group:', 'leenkme' ) ?>
+                    <input style="margin-top: 5px;" type="checkbox" name="friendfeed_exclude_group" <?php checked( $exclude_group || 'on' == $exclude_group ); ?> />
+                    <?php } ?>
+                </div>
                 
-				<?php } ?>
+                <div id="lm_fb_republish">
+					<?php // Only show RePublish button if the post is "published"
+                    if ( 'publish' === $post->post_status ) { ?>
+						<input style="float: right;" type="button" class="button" name="refeed_friendfeed" id="lm_refeed_button" value="<?php _e( 'ReFeed', 'leenkme' ) ?>" />                   
+                     <?php } ?>
+                </div>
                 
-			</table>
+            </div>
 			<?php
 
 		}
@@ -367,43 +370,103 @@ if ( class_exists( 'leenkme_FriendFeed' ) ) {
 	$dl_pluginleenkmeFriendFeed = new leenkme_FriendFeed();
 }
 
-// Example followed from http://codex.wordpress.org/AJAX_in_Plugins
-function leenkme_friendfeed_js() {
-?>
-		$('input#ff_publish').live('click', function() {
-			var friendfeed_myfeed = $('input#friendfeed_myfeed').attr('checked')
-			var friendfeed_group = $('input#friendfeed_group').attr('checked')
+function get_leenkme_expanded_ff_post( $post_id, $friendfeed_array, $post_title = false, $excerpt = false ) {
+	
+	if ( !empty( $friendfeed_array ) ) {
+	
+		global $current_user, $dl_pluginleenkmeFriendFeed;
+		
+		get_currentuserinfo();
+		$user_id = $current_user->ID;
+		
+		$maxBodyLen = 350;
+	
+		if ( false === $post_title )
+			$post_title = get_the_title( $post_id );
+		
+		if ( false === $excerpt || empty( $excerpt ) ) {
 			
-			var data = {
-				action:				'ff_publish',
-				friendfeed_myfeed:	friendfeed_myfeed,
-				friendfeed_group:	friendfeed_group,
-				_wpnonce:			$('input#ff_publish_wpnonce').val()
-			};
+			$post = get_post( $post_id );
+		
+			if ( !empty( $post->post_excerpt ) ) {
+				
+				//use the post_excerpt if available for the friendfeed description
+				$excerpt = $post->post_excerpt; 
+				
+			} else {
+				
+				//otherwise we'll pare down the description
+				$excerpt = $post->post_content; 
+				
+			}
 			
-			ajax_response(data);
-		});
+		}
+		
+		$friendfeed_array['body'] = leenkme_trim_words( leenkme_replacements_args( $friendfeed_array['body'], $post_title, $excerpt ), $maxBodyLen );
+		
+		$user_settings = $dl_pluginleenkmeFriendFeed->get_user_settings( $user_id );
+			
+		$friendfeed_array['picture'] = leenkme_get_picture( $user_settings, $post_id, 'friendfeed' );
+			
+	
+	}
+	
+	return $friendfeed_array;
+	
+}
 
-		$('input#refeed_button').live('click', function() {
-			var data = {
-				action: 			'refeed',
-				id:  				$('input#post_ID').val(),
-				_wpnonce: 			$('input#leenkme_wpnonce').val()
-			};
-			
-			ajax_response(data);
-		});
+function leenkme_ajax_refeed() {
 
-		$('a.refeed_row_action').live('click', function() {
-			var data = {
-				action: 			'refeed',
-				id:  				$(this).attr('id'),
-				_wpnonce: 			$('input#leenkme_wpnonce').val()
-			};
-            
-			ajax_response(data);
-		});
-<?php
+	check_ajax_referer( 'leenkme' );
+	
+	if ( isset( $_REQUEST['id'] ) && isset( $_REQUEST['friendfeed_array'] ) ) {
+
+		if ( get_post_meta( $_REQUEST['id'], 'friendfeed_exclude_myfeed', true ) 
+				&& get_post_meta( $_REQUEST['id'], 'friendfeed_exclude_group', true ) ) {
+
+			die( __( 'You have excluded this post from feeding to your FriendFeed MyFeed and Group. If you would like to feed it, edit the post and remove the appropriate exclude check boxes.', 'leenkme' ) );
+
+		} else {
+			
+			$results = leenkme_ajax_connect( leenkme_publish_to_friendfeed( array(), $_REQUEST['id'], $_REQUEST['friendfeed_array'], true ) );
+		
+			if ( isset( $results ) ) {		
+				
+				foreach( $results as $result ) {	
+		
+					if ( is_wp_error( $result ) ) {
+		
+						$out[] = "<p>" . $result->get_error_message() . "</p>";
+		
+					} else if ( isset( $result['response']['code'] ) ) {
+		
+						$response = json_decode( $result['body'] );
+						$out[] = $response[1];
+		
+					} else {
+		
+						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_friendfeed">Friendfeed settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) . "</p>";
+		
+					}
+		
+				}
+				
+				die( join( (array)$out ) );
+				
+			} else {
+				
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) );
+	
+			}
+			
+		}
+		
+	} else {
+		
+		die( __( 'ERROR: Unable to determine Post ID.', 'leenkme' ) );
+	
+	}
+
 }
 
 function leenkme_ajax_ff() {
@@ -418,7 +481,7 @@ function leenkme_ajax_ff() {
 
 	if ( $api_key = $user_settings['leenkme_API'] ) {
 
-		$body = "Testing leenk.me's FriendFeed Plugin for WordPress - A webapp that allows you to publicize your WordPress posts automatically.";
+		$body = __( "Testing leenk.me's FriendFeed Plugin for WordPress - A webapp that allows you to publicize your WordPress posts automatically.", 'leenkme' );
 		$url = 'http://leenk.me/';
 		$picture = 'http://leenk.me/leenkme.png';
 		
@@ -426,12 +489,12 @@ function leenkme_ajax_ff() {
 		$connect_arr[$api_key]['friendfeed_link'] = $url;
 		$connect_arr[$api_key]['friendfeed_picture'] = $picture;
 						
-		if ( isset( $_POST['friendfeed_myfeed'] ) 
-				&& ( 'true' === $_POST['friendfeed_myfeed'] || 'checked' === $_POST['friendfeed_myfeed'] ) )
+		if ( isset( $_REQUEST['friendfeed_myfeed'] ) 
+				&& ( 'true' === $_REQUEST['friendfeed_myfeed'] || 'checked' === $_REQUEST['friendfeed_myfeed'] ) )
 			$connect_arr[$api_key]['friendfeed_myfeed'] = true;
 		
-		if ( isset( $_POST['friendfeed_group'] ) 
-				&& ( 'true' === $_POST['friendfeed_group'] || 'checked' === $_POST['friendfeed_group'] ) )
+		if ( isset( $_REQUEST['friendfeed_group'] ) 
+				&& ( 'true' === $_REQUEST['friendfeed_group'] || 'checked' === $_REQUEST['friendfeed_group'] ) )
 			$connect_arr[$api_key]['friendfeed_group'] = true;
 
 		$result = leenkme_ajax_connect( $connect_arr );
@@ -449,106 +512,35 @@ function leenkme_ajax_ff() {
 				
 			} else {
 				
-				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) );
 			
 			}
 			
 		} else {
 			
-			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
+			die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.', 'leenkme' ) );
 
 		}
 		
 	} else {
 		
-		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.' ) );
+		die( __( 'ERROR: You have no entered your leenk.me API key. Please check your leenk.me settings.', 'leenkme' ) );
 	
 	}
 
-}
-
-function leenkme_ajax_refeed() {
-
-	check_ajax_referer( 'leenkme' );
-	
-	if ( isset( $_POST['id'] ) ) {
-
-		if ( get_post_meta( $_POST['id'], 'friendfeed_exclude_myfeed', true ) 
-				&& get_post_meta( $_POST['id'], 'friendfeed_exclude_group', true ) ) {
-
-			die( 'You have excluded this post from feeding to your FriendFeed MyFeed and Group. If you would like to feed it, edit the post and remove the appropriate exclude check boxes.' );
-
-		} else {
-
-			$post = get_post( $_POST['id'] );
-			
-			$connection_array = leenkme_publish_to_friendfeed( array(), $post, true );
-			$results = leenkme_ajax_connect( $connection_array );
-		
-			if ( isset( $results ) ) {		
-				
-				foreach( $results as $result ) {	
-		
-					if ( is_wp_error( $result ) ) {
-		
-						$out[] = "<p>" . $result->get_error_message() . "</p>";
-		
-					} else if ( isset( $result['response']['code'] ) ) {
-		
-						$response = json_decode( $result['body'] );
-						$out[] = $response[1];
-		
-					} else {
-		
-						$out[] = "<p>" . __( 'Error received! Please check your <a href="admin.php?page=leenkme_friendfeed">Friendfeed settings</a> and try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) . "</p>";
-		
-					}
-		
-				}
-				
-				die( join( (array)$out ) );
-				
-			} else {
-				
-				die( __( 'ERROR: Unknown error, please try again. If this continues to fail, contact <a href="http://leenk.me/contact/" target="_blank">leenk.me support</a>.' ) );
-	
-			}
-			
-		}
-		
-	} else {
-		
-		die( 'ERROR: Unable to determine Post ID.' );
-	
-	}
-
-}
-
-function refeed_row_action( $actions, $post ) {
-	global $dl_pluginleenkme;
-	$leenkme_options = $dl_pluginleenkme->get_leenkme_settings();
-	if ( in_array( $post->post_type, $leenkme_options['post_types'] ) ) {
-		// Only show ReFeed button if the post is "published"
-		if ( 'publish' === $post->post_status ) {
-			$actions['refeed'] = '<a class="refeed_row_action" id="' . $post->ID . '" title="' . esc_attr( __( 'ReFeed this Post' ) ) . '" href="#">' . __( 'ReFeed' ) . '</a>';
-		}
-	}
-
-	return $actions;
 }
 									
 // Add function to pubslih to friendfeed
-function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = false ) {
+function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $friendfeed_array = array(), $debug = false  ) {
 	
-	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeFriendFeed;
-	$maxBodyLen = 420;
+	global $dl_pluginleenkme, $dl_pluginleenkmeFriendFeed;
 	
-	if ( get_post_meta( $post->ID, 'friendfeed_exclude_myfeed', true ) )		
+	if ( get_post_meta( $post_id, 'friendfeed_exclude_myfeed', true ) )		
 		$exclude_myfeed = true;
 	else
 		$exclude_myfeed = false;
 	
-	if ( get_post_meta( $post->ID, 'friendfeed_exclude_group', true ) )
+	if ( get_post_meta( $post_id, 'friendfeed_exclude_group', true ) )
 		$exclude_group = true;
 	else
 		$exclude_group = false;
@@ -556,37 +548,26 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 	if ( !( $exclude_myfeed && $exclude_group ) ) {
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
-		$friendfeed_settings = $dl_pluginleenkmeFriendFeed->get_leenkme_friendfeed_settings();
 		
-		if ( in_array($post->post_type, $leenkme_settings['post_types'] ) ) {
+		if ( in_array( get_post_type( $post_id ), $leenkme_settings['post_types'] ) ) {
 			
-			$options = $dl_pluginleenkmeFriendFeed->get_leenkme_friendfeed_settings();
+			$options = get_option( 'leenkme_friendfeed' );
 			
-			if ( $options['feed_all_users'] )
-				$user_ids = $wpdb->get_col( $wpdb->prepare( 'SELECT user_id FROM ' . $wpdb->usermeta . ' WHERE `meta_value` LIKE %s', '%leenkme_API%' ) );
-			else
-				$user_ids[] = $post->post_author;
-				
+			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
+			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
-			$url = get_permalink( $post->ID );
-			$post_title = strip_tags( $post->post_title );
-			$wp_sitename = strip_tags( get_bloginfo( 'name' ) );
-			$wp_tagline = strip_tags( get_bloginfo( 'description' ) );
+			$url = get_post_meta( $post_id, '_leenkme_shortened_url', true );
 			
-			foreach ( $user_ids as $user_id ) {
+			foreach ( $leenkme_users as $leenkme_user ) {
 
-				$user_settings = $dl_pluginleenkme->get_user_settings( $user_id );
+				$user_settings = $dl_pluginleenkme->get_user_settings( $leenkme_user->ID );
 
-				if ( empty( $user_settings['leenkme_API'] ) ) {
-
-					clean_user_cache( $user_id );
+				if ( empty( $user_settings['leenkme_API'] ) )
 					continue;	//Skip user if they do not have an API key set
-					
-				}
 				
 				$api_key = $user_settings['leenkme_API'];
 				
-				$options = $dl_pluginleenkmeFriendFeed->get_user_settings( $user_id );
+				$options = $dl_pluginleenkmeFriendFeed->get_user_settings( $leenkme_user->ID );
 				
 				if ( !empty( $options ) ) {
 					
@@ -595,15 +576,15 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 						
 						if ( 'ex' == $options['clude'] && in_array( '0', $options['feed_cats'] ) ) {
 							
-							if ( $debug ) echo "<p>You have your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> set to Exclude All Categories.</p>";
-							clean_user_cache( $user_id );
+							if ( $debug ) echo '<p>' . ___( 'You have your <a href="admin.php?page=leenkme_friendfeed">Leenk.me FriendFeed settings</a> set to Exclude All Categories.', 'leenkme' ) . '</p>';
+							
 							continue;
 							
 						}
 						
 						$match = false;
 						
-						$post_categories = wp_get_post_categories( $post->ID );
+						$post_categories = wp_get_post_categories( $post_id );
 						
 						foreach ( $post_categories as $cat ) {
 						
@@ -617,25 +598,21 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 						
 						if ( ( 'ex' == $options['clude'] && $match ) ) {
 							
-							if ( $debug ) echo "<p>Post in an excluded category, check your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> or remove the post from the excluded category.</p>";
-							clean_user_cache( $user_id );
+							if ( $debug ) echo '<p>' . ___( 'Post in an excluded category, check your <a href="admin.php?page=leenkme_friendfeed">Leenk.me FriendFeed settings</a> or remove the post from the excluded category.', 'leenkme' ) . '</p>';
+							
 							continue;
 							
 						} else if ( ( 'in' == $options['clude'] && !$match ) ) {
 							
-							if ( $debug ) echo "<p>Post not found in an included category, check your <a href='admin.php?page=leenkme_friendfeed'>Leenk.me FriendFeed settings</a> or add the post into the included category.</p>";
-							clean_user_cache( $user_id );
+							if ( $debug ) echo '<p>' . ___( 'Post not found in an included category, check your <a href="admin.php?page=leenkme_friendfeed">Leenk.me FriendFeed settings</a> or add the post into the included category.', 'leenkme' ) . '</p>';
+							
 							continue;
 							
 						}
 					}
 						
-					if ( !$options['friendfeed_myfeed'] && !$options['friendfeed_group']) {
-						
-						clean_user_cache( $user_id );
+					if ( !$options['friendfeed_myfeed'] && !$options['friendfeed_group'])
 						continue;	//Skip this user if they don't have Profile or Page checked in plugins FriendFeed Settings
-						
-					}
 	
 					// Added friendfeed profile to connection array if enabled
 					if ( $options['friendfeed_myfeed'] && !$exclude_myfeed ) {
@@ -650,68 +627,28 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 						$connect_arr[$api_key]['friendfeed_group'] = true;
 						
 					}
-					
-					if ( !$body = get_post_meta( $post->ID, 'friendfeed_body', true ) ) {
 						
-						if ( !empty( $post->post_excerpt ) ) {
+					if ( empty( $friendfeed_array ) ) {
+						
+						if ( 	!( $friendfeed_array['body'] 	= get_post_meta( $post_id, '_friendfeed_body', true ) ) )
+							$friendfeed_array['body'] = $options['friendfeed_body'];
 							
-							//use the post_excerpt if available for the friendfeed description
-							$body = $post->post_excerpt; 
-							
-						} else {
-							
-							//otherwise we'll pare down the description
-							$body = $post->post_content; 
-							
-						}
+						$friendfeed_array = get_leenkme_expanded_ff_post( $post_id, $friendfeed_array );
 						
 					}
-					
-					$body = str_ireplace( '%TITLE%', $post_title, $body );
-					$body = str_ireplace( '%WPSITENAME%', $wp_sitename, $body );
-					$body = str_ireplace( '%WPTAGLINE%', $wp_tagline, $body );
-					$body = leenkme_trim_words( $body, $maxBodyLen );
-					
-					if ( !( $picture = apply_filters( 'friendfeed_image', get_post_meta( $post->ID, 'friendfeed_image', true ), $post->ID ) ) ) {
-						if ( function_exists('has_post_thumbnail') && has_post_thumbnail( $post->ID ) ) {
-							
-							$post_thumbnail_id = get_post_thumbnail_id( $post->ID );
-							list( $picture, $width, $height ) = wp_get_attachment_image_src( $post_thumbnail_id );
-							
-						} else if ( $images = get_children( 'post_parent=' . $post->ID . '&post_type=attachment&post_mime_type=image&numberposts=1' ) ) {
-							
-							foreach ( $images as $attachment_id => $attachment ) {
-								
-								list( $picture, $width, $height ) = wp_get_attachment_image_src( $attachment_id );
-								break;
-								
-							}
-							
-						} else if ( !empty( $options['default_image'] ) ) {
-							
-							$picture = $options['default_image'];
-							
-						}
-					}	
 													
-					if ( isset( $picture ) && !empty( $picture ) ) {
+					if ( isset( $friendfeed_array['picture'] ) && !empty( $friendfeed_array['picture'] ) )
+						$connect_arr[$api_key]['friendfeed_picture'] = $friendfeed_array['picture'];
 						
-						$connect_arr[$api_key]['friendfeed_picture'] = $picture;
-						
-					}
 					
+					$connect_arr[$api_key]['friendfeed_body'] = $friendfeed_array['body'];
 					$connect_arr[$api_key]['friendfeed_link'] = $url;
-					$connect_arr[$api_key]['friendfeed_body'] = $body;
 					
 				}
-				
-				clean_user_cache( $user_id );
 				
 			}
 			
 		}
-		
-		$wpdb->flush();
 		
 	}
 		
@@ -721,19 +658,13 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $debug = 
 
 // Actions and filters	
 if ( isset( $dl_pluginleenkmeFriendFeed ) ) {
-	add_action( 'admin_init', array( $dl_pluginleenkmeFriendFeed, 'leenkme_add_friendfeed_meta_tag_options' ), 1 );
+	
 	add_action( 'save_post', array( $dl_pluginleenkmeFriendFeed, 'leenkme_friendfeed_meta_tags' ) );
 	
 	// Whenever you publish a post, post to friendfeed
 	add_filter('leenkme_connect', 'leenkme_publish_to_friendfeed', 20, 2);
-		  
-	// Add jQuery & AJAX for leenk.me Test
-	add_action( 'admin_head-leenk-me_page_leenkme_friendfeed', 'leenkme_js' );
 	
 	add_action( 'wp_ajax_ff_publish', 'leenkme_ajax_ff' );
 	add_action( 'wp_ajax_refeed', 'leenkme_ajax_refeed' );
 	
-	// edit-post.php post row update
-	add_filter( 'post_row_actions', 'refeed_row_action', 10, 2 );
-	add_filter( 'page_row_actions', 'refeed_row_action', 10, 2 );
 }
