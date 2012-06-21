@@ -630,7 +630,12 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
-			$url = get_post_meta( $post_id, '_leenkme_shortened_url', true );
+			if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+				
+				$url = leenkme_url_shortener( $post_id );
+				update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+			
+			}
 			
 			foreach ( $leenkme_users as $leenkme_user ) {
 				
@@ -697,13 +702,13 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 						
 					if ( empty( $linkedin_array ) ) {
 					
-						if (   !( $linkedin_array['comment'] 		= get_post_meta( $post_id, '_linkedin_comment', true ) ) )
+						if (   !( $linkedin_array['comment'] = get_post_meta( $post_id, '_linkedin_comment', true ) ) )
 							$linkedin_array['comment'] 		= $options['linkedin_comment'];
 						
-						if (   !( $linkedin_array['linktitle'] 		= get_post_meta( $post_id, '_linkedin_title', true ) ) )
+						if (   !( $linkedin_array['linktitle'] = get_post_meta( $post_id, '_linkedin_title', true ) ) )
 							$linkedin_array['linktitle'] 	= $options['linkedin_title'];
 						
-						if (   !( $linkedin_array['description']	= get_post_meta( $post_id, '_linkedin_description', true ) ) )
+						if (   !( $linkedin_array['description'] = get_post_meta( $post_id, '_linkedin_description', true ) ) )
 							$linkedin_array['description'] 	= $options['linkedin_description'];
 					
 						$linkedin_array = get_leenkme_expanded_li_post( $post_id, $linkedin_array );
@@ -713,10 +718,10 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 					if ( isset( $linkedin_array['picture'] ) && !empty( $linkedin_array['picture'] ) )
 						$connect_arr[$api_key]['li_image'] = $linkedin_array['picture'];
 					
-					$connect_arr[$api_key]['li_comment'] 	= $linkedin_array['comment'] ;
+					$connect_arr[$api_key]['li_comment'] 	= stripslashes( $linkedin_array['comment'] );
 					$connect_arr[$api_key]['li_url']		= $url;
-					$connect_arr[$api_key]['li_title']		= $linkedin_array['linktitle'];
-					$connect_arr[$api_key]['li_desc'] 		= $linkedin_array['description'];
+					$connect_arr[$api_key]['li_title']		= stripslashes( $linkedin_array['linktitle'] );
+					$connect_arr[$api_key]['li_desc'] 		= stripslashes( $linkedin_array['description'] );
 					$connect_arr[$api_key]['li_code'] 		= 'anyone';
 					
 				}

@@ -694,7 +694,12 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 					break;
 			
 				default:
-					$url = get_post_meta( $post_id, '_leenkme_shortened_url', true );
+					if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+						
+						$url = leenkme_url_shortener( $post_id );
+						update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+					
+					}
 					break;
 					
 			}
@@ -770,16 +775,16 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 						
 					if ( empty( $facebook_array ) ) {
 						
-						if (   !( $facebook_array['message'] 		= get_post_meta( $post_id, '_facebook_message', true ) ) )
+						if (   !( $facebook_array['message'] = get_post_meta( $post_id, '_facebook_message', true ) ) )
 							$facebook_array['message'] 		= $options['facebook_message'];
 							
-						if ( !( $facebook_array['linkname'] 		= get_post_meta( $post_id, '_facebook_linkname', true ) ) )
+						if ( !( $facebook_array['linkname'] = get_post_meta( $post_id, '_facebook_linkname', true ) ) )
 							$facebook_array['linkname'] 	= $options['facebook_linkname'];
 					
-						if ( !( $facebook_array['caption'] 		= get_post_meta( $post_id, '_facebook_caption', true ) ) )
+						if ( !( $facebook_array['caption'] 	= get_post_meta( $post_id, '_facebook_caption', true ) ) )
 							$facebook_array['caption'] 		= $options['facebook_caption'];
 						
-						if ( !( $facebook_array['description']	= get_post_meta( $post_id, '_facebook_description', true ) ) )
+						if ( !( $facebook_array['description'] = get_post_meta( $post_id, '_facebook_description', true ) ) )
 							$facebook_array['description']	= $options['facebook_description'];
 					
 						$facebook_array = get_leenkme_expanded_fb_post( $post_id, $facebook_array );
@@ -789,11 +794,11 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 					if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
 						$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
 					
-					$connect_arr[$api_key]['facebook_message'] 		= $facebook_array['message'];
+					$connect_arr[$api_key]['facebook_message'] 		= stripslashes( $facebook_array['message'] );
 					$connect_arr[$api_key]['facebook_link'] 		= $url;
-					$connect_arr[$api_key]['facebook_name'] 		= $facebook_array['linkname'];
-					$connect_arr[$api_key]['facebook_caption']		= $facebook_array['caption'];
-					$connect_arr[$api_key]['facebook_description'] 	= $facebook_array['description'];
+					$connect_arr[$api_key]['facebook_name'] 		= stripslashes( $facebook_array['linkname'] );
+					$connect_arr[$api_key]['facebook_caption']		= stripslashes( $facebook_array['caption'] );
+					$connect_arr[$api_key]['facebook_description'] 	= stripslashes( $facebook_array['description'] );
 					
 				}
 				

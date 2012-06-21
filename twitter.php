@@ -280,8 +280,13 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 	
 		// Get META tweet format
 		//$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
-		$url = get_post_meta( $post_id, '_leenkme_shortened_url', true );
-	
+		if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+		
+			$url = leenkme_url_shortener( $post_id );
+			update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+			
+		}
+			
 		if ( preg_match( '/%URL%/i', $tweet ) ) {
 			
 			$urlLen = strlen( $url );
@@ -614,7 +619,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = 
 					if ( !$tweet && !( $tweet = get_post_meta( $post_id, '_leenkme_tweet', true ) ) )
 						$tweet = get_leenkme_expanded_tweet( $post_id, $options['leenkme_tweetformat'], get_the_title( $post_id ) );
 					
-					$connect_arr[$api_key]['twitter_status'] = $tweet;
+					$connect_arr[$api_key]['twitter_status'] = stripslashes( $tweet );
 					
 				}
 				
