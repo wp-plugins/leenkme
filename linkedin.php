@@ -487,8 +487,8 @@ function leenkme_ajax_reshare() {
 	
 	if ( isset( $_REQUEST['id'] ) ) {
 
-		if ( get_post_meta( $_REQUEST['id'], 'linkedin_exclude', true )
-				&& get_post_meta( $_REQUEST['id'], 'linkedin_exclude_group', true ) ) {
+		if ( get_post_meta( $_REQUEST['id'], '_linkedin_exclude', true )
+				&& get_post_meta( $_REQUEST['id'], '_linkedin_exclude_group', true ) ) {
 
 			die( __( 'You have excluded this post from sharing to your LinkedIn profile. If you would like to share it, edit the post and remove the appropriate exclude check box.', 'leenkme' ) );
 
@@ -609,12 +609,12 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 	// https://developer.linkedin.com/documents/share-api
 	global $dl_pluginleenkme, $dl_pluginleenkmeLinkedIn;
 	
-	if ( get_post_meta( $post_id, 'linkedin_exclude', true ) )
+	if ( get_post_meta( $post_id, '_linkedin_exclude', true ) )
 		$linkedin_exclude = true;
 	else
 		$linkedin_exclude = false;
 	
-	if ( get_post_meta( $post->ID, 'linkedin_exclude_group', true ) )
+	if ( get_post_meta( $post->ID, '_linkedin_exclude_group', true ) )
 		$linkedin_exclude_group = true;
 	else
 		$linkedin_exclude_group = false;

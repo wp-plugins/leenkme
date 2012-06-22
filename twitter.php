@@ -170,9 +170,9 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 				return;
 	
 			if ( isset( $_REQUEST['twitter_exclude'] ) )
-				update_post_meta( $post_id, 'twitter_exclude', $_REQUEST['twitter_exclude'] );
+				update_post_meta( $post_id, '_twitter_exclude', $_REQUEST['twitter_exclude'] );
 			else
-				delete_post_meta( $post_id, 'twitter_exclude' );
+				delete_post_meta( $post_id, '_twitter_exclude' );
 				
 				
 			if ( isset( $_REQUEST['leenkme_tweet'] ) && !empty( $_REQUEST['leenkme_tweet'] ) )
@@ -204,7 +204,7 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 			
 			$tweet = get_post_meta( $post->ID, '_leenkme_tweet', true );
 			$format_type = get_post_meta( $post->ID, '_lm_tweet_type', true );
-			$exclude = get_post_meta( $post->ID, 'twitter_exclude', true ); ?>
+			$exclude = get_post_meta( $post->ID, '_twitter_exclude', true ); ?>
 		
 			<input value="twitter_edit" type="hidden" name="twitter_edit" />
 			<table style="margin-left: auto; margin-right: auto;">
@@ -491,7 +491,7 @@ function leenkme_ajax_retweet() {
 	
 	if ( isset( $_REQUEST['id'] ) ) {
 		
-		if ( get_post_meta( $_REQUEST['id'], 'twitter_exclude', true ) ) {
+		if ( get_post_meta( $_REQUEST['id'], '_twitter_exclude', true ) ) {
 		
 			die( __( 'You have excluded this post from publishing to your Twitter account. If you would like to publish it, edit the post and remove the exclude check box in the post settings.', 'leenkme' ) );
 		
@@ -547,7 +547,7 @@ function leenkme_ajax_retweet() {
 function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = false, $debug = false ) {
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
 	
-	if ( get_post_meta( $post_id, 'twitter_exclude', true ) )
+	if ( get_post_meta( $post_id, '_twitter_exclude', true ) )
 		$exclude_twitter = true;
 	else
 		$exclude_twitter = false;

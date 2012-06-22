@@ -536,9 +536,9 @@ function leenkme_ajax_republish() {
 	
 	if ( isset( $_REQUEST['id'] ) && isset( $_REQUEST['facebook_array'] ) ) {
 		
-		if ( get_post_meta( $_REQUEST['id'], 'facebook_exclude_profile', true ) 
-				&& get_post_meta( $_REQUEST['id'], 'facebook_exclude_page', true )
-				&& get_post_meta( $_REQUEST['id'], 'facebook_exclude_group', true ) ) {
+		if ( get_post_meta( $_REQUEST['id'], '_facebook_exclude_profile', true ) 
+				&& get_post_meta( $_REQUEST['id'], '_facebook_exclude_page', true )
+				&& get_post_meta( $_REQUEST['id'], '_facebook_exclude_group', true ) ) {
 					
 			die( __( 'You have excluded this post from publishing to your Facebook profile, Fan Page, and Group. If you would like to publish it, edit the post and remove the appropriate exclude check boxes.' ) );
 			
@@ -658,17 +658,17 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 	
 	global $dl_pluginleenkme, $dl_pluginleenkmeFacebook;
 	
-	if ( get_post_meta( $post_id, 'facebook_exclude_profile', true ) )
+	if ( get_post_meta( $post_id, '_facebook_exclude_profile', true ) )
 		$exclude_profile = true;
 	else
 		$exclude_profile = false;
 	
-	if ( get_post_meta( $post_id, 'facebook_exclude_page', true ) )
+	if ( get_post_meta( $post_id, '_facebook_exclude_page', true ) )
 		$exclude_page = true;
 	else
 		$exclude_page = false;
 	
-	if ( get_post_meta( $post_id, 'facebook_exclude_group', true ) )
+	if ( get_post_meta( $post_id, '_facebook_exclude_group', true ) )
 		$exclude_group = true;
 	else
 		$exclude_group = false;

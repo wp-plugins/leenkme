@@ -421,8 +421,8 @@ function leenkme_ajax_refeed() {
 	
 	if ( isset( $_REQUEST['id'] ) && isset( $_REQUEST['friendfeed_array'] ) ) {
 
-		if ( get_post_meta( $_REQUEST['id'], 'friendfeed_exclude_myfeed', true ) 
-				&& get_post_meta( $_REQUEST['id'], 'friendfeed_exclude_group', true ) ) {
+		if ( get_post_meta( $_REQUEST['id'], '_friendfeed_exclude_myfeed', true ) 
+				&& get_post_meta( $_REQUEST['id'], '_friendfeed_exclude_group', true ) ) {
 
 			die( __( 'You have excluded this post from feeding to your FriendFeed MyFeed and Group. If you would like to feed it, edit the post and remove the appropriate exclude check boxes.', 'leenkme' ) );
 
@@ -535,12 +535,12 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $frien
 	
 	global $dl_pluginleenkme, $dl_pluginleenkmeFriendFeed;
 	
-	if ( get_post_meta( $post_id, 'friendfeed_exclude_myfeed', true ) )		
+	if ( get_post_meta( $post_id, '_friendfeed_exclude_myfeed', true ) )		
 		$exclude_myfeed = true;
 	else
 		$exclude_myfeed = false;
 	
-	if ( get_post_meta( $post_id, 'friendfeed_exclude_group', true ) )
+	if ( get_post_meta( $post_id, '_friendfeed_exclude_group', true ) )
 		$exclude_group = true;
 	else
 		$exclude_group = false;

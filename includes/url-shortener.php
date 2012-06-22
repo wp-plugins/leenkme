@@ -407,12 +407,12 @@ function leenkme_show_tflp_options() {
 	
 }
 
-function leenkme_get_shortlink_handler( $shortlink, $id, $context, $allow_slugs ) {
+function leenkme_get_shortlink_handler( $shortlink, $post_id, $context, $allow_slugs ) {
 	
 	if ( is_admin() ) {
 	
-		$url = leenkme_url_shortener( $id );
-		update_post_meta( $id, '_leenkme_shortened_url', $url );
+		$url = leenkme_url_shortener( $post_id );
+		update_post_meta( $post_id, '_leenkme_shortened_url', $url );
 		return $url;
 	
 	}
