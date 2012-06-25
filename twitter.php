@@ -307,7 +307,7 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 					
 		if ( preg_match( '/%TITLE%/i', $tweet ) ) {
 			
-			$title = htmlspecialchars( stripcslashes( $title ) );
+			$title = stripcslashes( $title );
 			
 			$titleLen = strlen( utf8_decode( $title ) ); 
 			$tweetLen = strlen( utf8_decode( $tweet ) );

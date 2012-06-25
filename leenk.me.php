@@ -969,7 +969,7 @@ if ( ! class_exists( 'leenkme' ) ) {
                 <?php if ( isset( $og_array['og_image'] ) && !empty( $og_array['og_image'] ) ) ?>
                 <meta property="og:image"		content="<?php echo $og_array['og_image']; ?>">
                 
-                <?
+                <?php
 				
 			} else if ( ( is_home() || is_front_page() ) && $leenkme_settings['use_og_meta_tags'] ) {
 				
@@ -983,7 +983,7 @@ if ( ! class_exists( 'leenkme' ) ) {
                 <?php if ( isset( $leenkme_settings['og_image'] ) && !empty( $leenkme_settings['og_image'] ) ) ?>
                 <meta property="og:image"		content="<?php echo $leenkme_settings['og_image']; ?>">
                 
-                <?
+                <?php
 				
 			}
 			
@@ -1424,10 +1424,10 @@ if ( isset( $dl_pluginleenkme ) ) {
 	add_action( 'admin_menu', 'leenkme_ap');
 	
 	// Whenever you publish a post, connect to leenk.me
-	add_action( 'new_to_publish', 'leenkme_connect', 20 );
-	add_action( 'draft_to_publish', 'leenkme_connect', 20 );
-	add_action( 'pending_to_publish', 'leenkme_connect', 20 );
-	add_action( 'future_to_publish', 'leenkme_connect', 20 );
+	add_action( 'new_to_publish', 'leenkme_connect', 5 );
+	add_action( 'draft_to_publish', 'leenkme_connect', 5 );
+	add_action( 'pending_to_publish', 'leenkme_connect', 5 );
+	add_action( 'future_to_publish', 'leenkme_connect', 5 );
 	
 	add_action( 'admin_footer', array( $dl_pluginleenkme, 'leenkme_add_wpnonce' ) );
 	
