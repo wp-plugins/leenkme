@@ -25,7 +25,8 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 								 'default_image'			=> '',
 								 'force_friendfeed_image'	=> false,
 								 'feed_cats' 				=> array( '0' ),
-								 'clude' 					=> 'in'
+								 'clude' 					=> 'in',
+								 'message_preference' 		=> 'author'
 							);
 							
 			// Get values from the WP options table in the database, re-assign if found
@@ -92,6 +93,9 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
 					$user_settings['feed_cats'] = array( '0' );
 					
 				}
+				
+				if ( isset( $_REQUEST['message_preference'] ) )
+					$user_settings['message_preference'] = $_REQUEST['message_preference'];
 				
 				update_user_option( $user_id, 'leenkme_friendfeed', $user_settings );
 				
@@ -160,6 +164,28 @@ if ( ! class_exists( 'leenkme_FriendFeed' ) ) {
                                     <input type="checkbox" id="force_friendfeed_image" name="force_friendfeed_image" <?php checked( $user_settings['force_friendfeed_image'] ); ?> /> <?php _e( 'Always Use', 'leenkme' ); ?>
                                 </td>
                             </tr> 
+                            <tr>
+                            	<td><?php _e( 'Message Preference:', 'leenkme' ); ?></td>
+                                <td>
+                                	<select id="message_preference" name="message_preference">
+                                        <option value="author" <?php selected( 'author', $user_settings['message_preference'] ) ?>><?php _e( "Author", 'leenkme' ); ?></option>
+                                        <option value="mine" <?php selected( 'mine', $user_settings['message_preference'] ) ?>><?php _e( "Mine", 'leenkme' ); ?></option>
+                                        <option value="manual" <?php selected( 'manual', $user_settings['message_preference'] ) ?>><?php _e( "Manual", 'leenkme' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td colspan="2"> 
+                                    <div class="format-preference" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Preference Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li><?php _e( "Author - Most efficient, uses the post author's Message Settings.", 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Mine - Most inefficient, uses your Message Settings regardless of what the post author does.', 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Manual - Slightly inefficient, uses your Message Settigns unless the post author manually changes the message in the post.', 'leenkme' ); ?></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
                             </table>
                         
                             <p>
@@ -370,14 +396,18 @@ if ( class_exists( 'leenkme_FriendFeed' ) ) {
 	$dl_pluginleenkmeFriendFeed = new leenkme_FriendFeed();
 }
 
-function get_leenkme_expanded_ff_post( $post_id, $friendfeed_array, $post_title = false, $excerpt = false ) {
+function get_leenkme_expanded_ff_post( $post_id, $friendfeed_array, $post_title = false, $excerpt = false, $user_id = false ) {
 	
 	if ( !empty( $friendfeed_array ) ) {
 	
 		global $current_user, $dl_pluginleenkmeFriendFeed;
 		
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
+		if ( !$user_id ) {
+			
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+		}
 		
 		$maxBodyLen = 350;
 	
@@ -428,7 +458,7 @@ function leenkme_ajax_refeed() {
 
 		} else {
 			
-			$results = leenkme_ajax_connect( leenkme_publish_to_friendfeed( array(), $_REQUEST['id'], $_REQUEST['friendfeed_array'], true ) );
+			$results = leenkme_ajax_connect( leenkme_publish_to_friendfeed( array(), array( 'ID' => $_REQUEST['id'], 'post_author' => $_REQUEST['post_author'] ), $_REQUEST['friendfeed_array'], true ) );
 		
 			if ( isset( $results ) ) {		
 				
@@ -531,16 +561,16 @@ function leenkme_ajax_ff() {
 }
 									
 // Add function to pubslih to friendfeed
-function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $friendfeed_array = array(), $debug = false  ) {
+function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $friendfeed_array = array(), $debug = false  ) {
 	
 	global $dl_pluginleenkme, $dl_pluginleenkmeFriendFeed;
 	
-	if ( get_post_meta( $post_id, '_friendfeed_exclude_myfeed', true ) )		
+	if ( get_post_meta( $post['ID'], '_friendfeed_exclude_myfeed', true ) )		
 		$exclude_myfeed = true;
 	else
 		$exclude_myfeed = false;
 	
-	if ( get_post_meta( $post_id, '_friendfeed_exclude_group', true ) )
+	if ( get_post_meta( $post['ID'], '_friendfeed_exclude_group', true ) )
 		$exclude_group = true;
 	else
 		$exclude_group = false;
@@ -549,17 +579,17 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $frien
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		
-		if ( in_array( get_post_type( $post_id ), $leenkme_settings['post_types'] ) ) {
+		if ( in_array( get_post_type( $post['ID'] ), $leenkme_settings['post_types'] ) ) {
 			
 			$options = get_option( 'leenkme_friendfeed' );
 			
 			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
-			if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+			if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {
 				
-				$url = leenkme_url_shortener( $post_id );
-				update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+				$url = leenkme_url_shortener( $post['ID'] );
+				update_post_meta( $post['ID'], '_leenkme_shortened_url', $url );
 			
 			}
 			
@@ -589,7 +619,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $frien
 						
 						$match = false;
 						
-						$post_categories = wp_get_post_categories( $post_id );
+						$post_categories = wp_get_post_categories( $post['ID'] );
 						
 						foreach ( $post_categories as $cat ) {
 						
@@ -632,22 +662,44 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post_id, $frien
 						$connect_arr[$api_key]['friendfeed_group'] = true;
 						
 					}
-						
-					if ( empty( $friendfeed_array ) ) {
-						
-						if ( 	!( $friendfeed_array['body'] 	= get_post_meta( $post_id, '_friendfeed_body', true ) ) )
-							$friendfeed_array['body'] = $options['friendfeed_body'];
-							
-						$friendfeed_array = get_leenkme_expanded_ff_post( $post_id, $friendfeed_array );
-						
-					}
-													
-					if ( isset( $friendfeed_array['picture'] ) && !empty( $friendfeed_array['picture'] ) )
-						$connect_arr[$api_key]['friendfeed_picture'] = $friendfeed_array['picture'];
-						
 					
-					$connect_arr[$api_key]['friendfeed_body'] = stripslashes( $friendfeed_array['body'] );
-					$connect_arr[$api_key]['friendfeed_link'] = $url;
+					if ( $leenkme_user->ID != $post['post_author'] && ( 'mine' == $options['message_preference'] 
+						|| ( 'manual' == $options['message_preference']  && '' == get_post_meta( $post['ID'], '_lm_friendfeed_type', true ) ) ) )
+						$prefer_user = true;
+					else
+						$prefer_user = false;
+						
+					if ( $prefer_user ) {
+						
+						$prefer_friendfeed_array['body'] = $options['friendfeed_body'];
+							
+						$prefer_friendfeed_array = get_leenkme_expanded_ff_post( $post['ID'], $prefer_friendfeed_array, false, false, $leenkme_user->ID );
+														
+						if ( isset( $prefer_friendfeed_array['picture'] ) && !empty( $prefer_friendfeed_array['picture'] ) )
+							$connect_arr[$api_key]['friendfeed_picture'] = $prefer_friendfeed_array['picture'];
+							
+						
+						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( $prefer_friendfeed_array['body'] );
+						$connect_arr[$api_key]['friendfeed_link'] = $url;
+						
+					} else {
+						
+						if ( empty( $friendfeed_array ) ) {
+							
+							if ( !( $friendfeed_array['body'] = get_post_meta( $post['ID'], '_friendfeed_body', true ) ) )
+								$friendfeed_array['body'] = $options['friendfeed_body'];
+								
+							$friendfeed_array = get_leenkme_expanded_ff_post( $post['ID'], $friendfeed_array, false, false, $leenkme_user->ID );
+									
+						}
+						
+						if ( isset( $friendfeed_array['picture'] ) && !empty( $friendfeed_array['picture'] ) )
+							$connect_arr[$api_key]['friendfeed_picture'] = $friendfeed_array['picture'];
+						
+						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( $friendfeed_array['body'] );
+						$connect_arr[$api_key]['friendfeed_link'] = $url;
+					
+					}
 					
 				}
 				

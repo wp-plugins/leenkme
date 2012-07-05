@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.0.3
+Version: 2.0.4
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
 */
 
-define( 'LEENKME_VERSION' , '2.0.3' );
+define( 'LEENKME_VERSION' , '2.0.4' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -1145,7 +1145,7 @@ function leenkme_ajax_leenkme_row_action() {
 	
 	$out .= '<p class="submit inline-leenkme">';
 	$out .= '<a class="button-secondary cancel alignleft inline-leenkme-cancel" title="Cancel" post_id="' . $_REQUEST['id'] .'" href="#inline-releenk">' . __( 'Cancel', 'leenkme' ) . '</a>';
-	$out .= '<a style="margin-left: 10px;" class="button-primary save alignleft inline-leenkme-releenk" title="ReLeenk" post_id="' . $_REQUEST['id'] .'" href="#inline-releenk">' . __( 'ReLeenk', 'leenkme' ) . '</a>';
+	$out .= '<a style="margin-left: 10px;" class="button-primary save alignleft inline-leenkme-releenk" title="ReLeenk" post_id="' . $_REQUEST['id'] .'"  post_author="' . $_REQUEST['post_author'] . '" href="#inline-releenk">' . __( 'ReLeenk', 'leenkme' ) . '</a>';
 	$out .= '</p>';
 	
 	$out .= '</td>';
@@ -1163,36 +1163,33 @@ function leenkme_ajax_releenk() {
 		die( __( 'No Social Networks selected.', 'leenkme' ) );
 		
 	$connect_array = array();
+	$post_array = array( 'ID' => $_REQUEST['id'], 'post_author' => $_REQUEST['post_author'] );
 				
 	if ( in_array( 'twitter', $_REQUEST['networks'] ) ) {
 		
-		$connect_array = leenkme_publish_to_twitter( $connect_array, $_REQUEST['id'], false, true );
+		$connect_array = leenkme_publish_to_twitter( $connect_array, $post_array, false, true );
 		
 	}
 		
 	if ( in_array( 'facebook', $_REQUEST['networks'] ) ) {
 	
-		$connect_array = leenkme_publish_to_facebook( $connect_array, $_REQUEST['id'], false, true );
+		$connect_array = leenkme_publish_to_facebook( $connect_array, $post_array, false, true );
 		
 	}
 		
 	if ( in_array( 'linkedin', $_REQUEST['networks'] ) ) {
 	
-		$connect_array = leenkme_publish_to_linkedin( $connect_array, $_REQUEST['id'], false, true );
+		$connect_array = leenkme_publish_to_linkedin( $connect_array, $post_array, false, true );
 		
 	}
 		
 	if ( in_array( 'friendfeed', $_REQUEST['networks'] ) ) {
 	
-		$connect_array = leenkme_publish_to_friendfeed( $connect_array, $_REQUEST['id'], false, true );
+		$connect_array = leenkme_publish_to_friendfeed( $connect_array, $post_array, false, true );
 		
 	}
 	
 	$results = leenkme_ajax_connect( $connect_array );
-	
-	echo "<pre style='text-align: left;'>";
-	//print_r( $results );
-	echo "</pre>";
 	
 	if ( isset( $results ) ) {		
 				
@@ -1232,7 +1229,7 @@ function leenkme_connect( $post ) {
 	
 	if ( leenkme_rate_limit() ) {
 	
-		$connect_arr = apply_filters( 'leenkme_connect', array(), $post->ID );
+		$connect_arr = apply_filters( 'leenkme_connect', array(), array( 'ID' => $post->ID, 'post_author' => $post->post_author ) );
 	
 		if ( !empty( $connect_arr ) ) {
 			
@@ -1426,6 +1423,7 @@ if ( isset( $dl_pluginleenkme ) ) {
 	// Whenever you publish a post, connect to leenk.me
 	add_action( 'new_to_publish', 'leenkme_connect', 5 );
 	add_action( 'draft_to_publish', 'leenkme_connect', 5 );
+	add_action( 'auto-draft_to_publish', 'leenkme_connect', 5 );
 	add_action( 'pending_to_publish', 'leenkme_connect', 5 );
 	add_action( 'future_to_publish', 'leenkme_connect', 5 );
 	

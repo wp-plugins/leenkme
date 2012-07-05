@@ -169,6 +169,7 @@ $lm_plugin_jquery( document ).ready( function($) {
 		e.preventDefault();
 		
 		var post_id = $( this ).attr( 'post_id' );
+		var post_author = $( this ).attr( 'post_author' );
 		
 		networks = new Array();
 		$( '.lm_releenk_networks_' + post_id ).each( function() {
@@ -180,6 +181,7 @@ $lm_plugin_jquery( document ).ready( function($) {
 		var data = {
 			'action': 		'releenk',
 			'id':  			post_id,
+			'post_author':	post_author,
 			'networks':		networks,
 			'_wpnonce': 	$( 'input#leenkme_wpnonce' ).val()
 		};
@@ -192,14 +194,13 @@ $lm_plugin_jquery( document ).ready( function($) {
 	});
 
 	function show_leenkme_options( id ) {
-			
-		console.log( id );
 		
 		leenkmeRow = '<tr id="inline-leenkme-' + id + '" class="inline-leenkme"></tr>';
 			
 		var data = {
 			'action':	'leenkme_row_action',
 			'id':		id,
+			'post_author':	$( 'div#inline_' + id + ' > div.post_author' ).html(),
 			'colspan':	$('.widefat:first thead th:visible').length,
 			'_wpnonce':	$( 'input#leenkme_wpnonce' ).val()
 		};

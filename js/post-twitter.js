@@ -31,10 +31,11 @@ $lm_post_twitter_jquery(document).ready(function($) {
 	$('input#lm_retweet_button').live('click', function() {
 		
 		var data = {
-			'action': 	'retweet',
-			'id':  		$('input#post_ID').val(),
-			'tweet':  	$('textarea#leenkme_tweet').val(),
-			'_wpnonce': $('input#leenkme_wpnonce').val()
+			'action': 		'retweet',
+			'id':  			$( 'input#post_ID' ).val(),
+			'post_author':	$( 'input#post_author' ).val(),
+			'tweet':  		$( 'textarea#leenkme_tweet' ).val(),
+			'_wpnonce': 	$( 'input#leenkme_wpnonce' ).val()
 		};
 		
 		ajax_response( data );

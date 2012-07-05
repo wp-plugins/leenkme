@@ -188,7 +188,7 @@ if ( !function_exists( 'leenkme_replacements_args' ) ) {
 		
 		$string = apply_filters( 'leenkme_custom_replacement_args', $string );
 		
-		return wp_strip_all_tags( stripcslashes( str_ireplace( '&nbsp;', ' ', $string ) ) );
+		return wp_strip_all_tags( stripcslashes( html_entity_decode( $string ) ) );
 		
 	}
 

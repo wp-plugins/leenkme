@@ -32,6 +32,7 @@ $lm_post_friendfeed_jquery(document).ready(function($) {
 		var data = {
 			'action': 			'refeed',
 			'id':  				$( 'input#post_ID' ).val(),
+			'post_author':		$( 'input#post_author' ).val(),
 			'friendfeed_array': friendfeed_array,
 			'_wpnonce': 		$( 'input#leenkme_wpnonce' ).val()
 		};

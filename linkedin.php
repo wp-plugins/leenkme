@@ -27,7 +27,8 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 								'default_image' 		=> '',
 								'force_linkedin_image' 	=> false,
 								'share_cats'			=> array( '0' ),
-								'clude'					=> 'in'
+								'clude'					=> 'in',
+								'message_preference'		=> 'author'
 							);
 							
 			// Get values from the WP options table in the database, re-assign if found
@@ -100,6 +101,9 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 					$user_settings['share_cats'] = array( '0' );
 					
 				}
+				
+				if ( isset( $_REQUEST['message_preference'] ) )
+					$user_settings['message_preference'] = $_REQUEST['message_preference'];
 				
 				update_user_option( $user_id, 'leenkme_linkedin', $user_settings );
 				
@@ -180,6 +184,28 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
                                     <input type="checkbox" id="force_linkedin_image" name="force_linkedin_image" <?php checked( $user_settings['force_linkedin_image'] ); ?> /> <?php _e( 'Always use', 'leenkme' ); ?>
                                 </td>
                             </tr> 
+                            <tr>
+                            	<td><?php _e( 'Message Preference:', 'leenkme' ); ?></td>
+                                <td>
+                                	<select id="message_preference" name="message_preference">
+                                        <option value="author" <?php selected( 'author', $user_settings['message_preference'] ) ?>><?php _e( "Author", 'leenkme' ); ?></option>
+                                        <option value="mine" <?php selected( 'mine', $user_settings['message_preference'] ) ?>><?php _e( "Mine", 'leenkme' ); ?></option>
+                                        <option value="manual" <?php selected( 'manual', $user_settings['message_preference'] ) ?>><?php _e( "Manual", 'leenkme' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td colspan="2"> 
+                                    <div class="format-preference" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Preference Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li><?php _e( "Author - Most efficient, uses the post author's Message Settings.", 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Mine - Most inefficient, uses your Message Settings regardless of what the post author does.', 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Manual - Slightly inefficient, uses your Message Settigns unless the post author manually changes the message in the post.', 'leenkme' ); ?></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
                             </table>
                             
                             <p>
@@ -433,15 +459,19 @@ if ( class_exists( 'leenkme_LinkedIn' ) ) {
 	$dl_pluginleenkmeLinkedIn = new leenkme_LinkedIn();
 }
 
-function get_leenkme_expanded_li_post( $post_id, $linkedin_array, $post_title = false, $excerpt = false ) {
+function get_leenkme_expanded_li_post( $post_id, $linkedin_array, $post_title = false, $excerpt = false, $user_id = false ) {
 	
 	if ( !empty( $linkedin_array ) ) {
 
 		global $current_user, $dl_pluginleenkmeLinkedIn;
 		
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
+		if ( !$user_id ) {
+			
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
 
+		}
+		
 		$maxCommentLen = 700;
 		$maxLinkNameLen = 200;
 		$maxDescLen = 256;
@@ -494,7 +524,7 @@ function leenkme_ajax_reshare() {
 
 		} else {
 			
-			$results = leenkme_ajax_connect( leenkme_publish_to_linkedin( array(), $_REQUEST['id'], $_REQUEST['linkedin_array'], true ) );
+			$results = leenkme_ajax_connect( leenkme_publish_to_linkedin( array(), array( 'ID' => $_REQUEST['id'], 'post_author' => $_REQUEST['post_author'] ), $_REQUEST['linkedin_array'], true ) );
 	
 			if ( isset( $results ) ) {		
 				
@@ -604,17 +634,17 @@ function leenkme_ajax_li() {
 }
 									
 // Add function to share on LinkedIn
-function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedin_array = array(), $debug = false  ) {
+function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_array = array(), $debug = false  ) {
 	
 	// https://developer.linkedin.com/documents/share-api
 	global $dl_pluginleenkme, $dl_pluginleenkmeLinkedIn;
 	
-	if ( get_post_meta( $post_id, '_linkedin_exclude', true ) )
+	if ( get_post_meta( $post['ID'], '_linkedin_exclude', true ) )
 		$linkedin_exclude = true;
 	else
 		$linkedin_exclude = false;
 	
-	if ( get_post_meta( $post->ID, '_linkedin_exclude_group', true ) )
+	if ( get_post_meta( $post['ID'], '_linkedin_exclude_group', true ) )
 		$linkedin_exclude_group = true;
 	else
 		$linkedin_exclude_group = false;
@@ -623,17 +653,17 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		
-		if ( in_array( get_post_type( $post_id ), $leenkme_settings['post_types'] ) ) {
+		if ( in_array( get_post_type( $post['ID'] ), $leenkme_settings['post_types'] ) ) {
 			
 			$options = get_option( 'leenkme_linkedin' );
 			
 			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
-			if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+			if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {
 				
-				$url = leenkme_url_shortener( $post_id );
-				update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+				$url = leenkme_url_shortener( $post['ID'] );
+				update_post_meta( $post['ID'], '_leenkme_shortened_url', $url );
 			
 			}
 			
@@ -662,7 +692,7 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 						
 						$match = false;
 						
-						$post_categories = wp_get_post_categories( $post_id );
+						$post_categories = wp_get_post_categories( $post['ID'] );
 						
 						foreach ( $post_categories as $cat ) {
 						
@@ -699,30 +729,57 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post_id, $linkedi
 					// Added facebook page to connection array if enabled
 					if ( $options['linkedin_group'] && !$linkedin_exclude_group )
 						$connect_arr[$api_key]['linkedin_group'] = true;
-						
-					if ( empty( $linkedin_array ) ) {
 					
-						if (   !( $linkedin_array['comment'] = get_post_meta( $post_id, '_linkedin_comment', true ) ) )
-							$linkedin_array['comment'] 		= $options['linkedin_comment'];
+					if ( $leenkme_user->ID != $post['post_author'] && ( 'mine' == $options['message_preference'] 
+						|| ( 'manual' == $options['message_preference']  && '' == get_post_meta( $post['ID'], '_lm_linkedin_type', true ) ) ) )
+						$prefer_user = true;
+					else
+						$prefer_user = false;
 						
-						if (   !( $linkedin_array['linktitle'] = get_post_meta( $post_id, '_linkedin_title', true ) ) )
-							$linkedin_array['linktitle'] 	= $options['linkedin_title'];
+					if ( $prefer_user ) {
 						
-						if (   !( $linkedin_array['description'] = get_post_meta( $post_id, '_linkedin_description', true ) ) )
-							$linkedin_array['description'] 	= $options['linkedin_description'];
+						$prefer_linkedin_array['comment'] = $options['linkedin_comment'];
+						$prefer_linkedin_array['linktitle'] = $options['linkedin_title'];
+						$prefer_linkedin_array['description'] = $options['linkedin_description'];
 					
-						$linkedin_array = get_leenkme_expanded_li_post( $post_id, $linkedin_array );
+						$prefer_linkedin_array = get_leenkme_expanded_li_post( $post['ID'], $prefer_linkedin_array, false, false, $leenkme_user->ID );
+													
+						if ( isset( $prefer_linkedin_array['picture'] ) && !empty( $prefer_linkedin_array['picture'] ) )
+							$connect_arr[$api_key]['li_image'] = $prefer_linkedin_array['picture'];
+						
+						$connect_arr[$api_key]['li_comment'] 	= stripslashes( $prefer_linkedin_array['comment'] );
+						$connect_arr[$api_key]['li_url']		= $url;
+						$connect_arr[$api_key]['li_title']		= stripslashes( $prefer_linkedin_array['linktitle'] );
+						$connect_arr[$api_key]['li_desc'] 		= stripslashes( $prefer_linkedin_array['description'] );
+						$connect_arr[$api_key]['li_code'] 		= 'anyone';
+						
+					} else {
+						
+						if ( empty( $linkedin_array ) ) {
+						
+							if ( !( $linkedin_array['comment'] = get_post_meta( $post['ID'], '_linkedin_comment', true ) ) || $prefer_user )
+								$linkedin_array['comment'] = $options['linkedin_comment'];
+							
+							if ( !( $linkedin_array['linktitle'] = get_post_meta( $post['ID'], '_linkedin_title', true ) ) || $prefer_user )
+								$linkedin_array['linktitle'] = $options['linkedin_title'];
+							
+							if ( !( $linkedin_array['description'] = get_post_meta( $post['ID'], '_linkedin_description', true ) ) || $prefer_user )
+								$linkedin_array['description'] = $options['linkedin_description'];
+						
+							$linkedin_array = get_leenkme_expanded_li_post( $post['ID'], $linkedin_array, false, false, $leenkme_user->ID );
+							
+						}
+													
+						if ( isset( $linkedin_array['picture'] ) && !empty( $linkedin_array['picture'] ) )
+							$connect_arr[$api_key]['li_image'] = $linkedin_array['picture'];
+						
+						$connect_arr[$api_key]['li_comment'] 	= stripslashes( $linkedin_array['comment'] );
+						$connect_arr[$api_key]['li_url']		= $url;
+						$connect_arr[$api_key]['li_title']		= stripslashes( $linkedin_array['linktitle'] );
+						$connect_arr[$api_key]['li_desc'] 		= stripslashes( $linkedin_array['description'] );
+						$connect_arr[$api_key]['li_code'] 		= 'anyone';
 					
 					}
-													
-					if ( isset( $linkedin_array['picture'] ) && !empty( $linkedin_array['picture'] ) )
-						$connect_arr[$api_key]['li_image'] = $linkedin_array['picture'];
-					
-					$connect_arr[$api_key]['li_comment'] 	= stripslashes( $linkedin_array['comment'] );
-					$connect_arr[$api_key]['li_url']		= $url;
-					$connect_arr[$api_key]['li_title']		= stripslashes( $linkedin_array['linktitle'] );
-					$connect_arr[$api_key]['li_desc'] 		= stripslashes( $linkedin_array['description'] );
-					$connect_arr[$api_key]['li_code'] 		= 'anyone';
 					
 				}
 				

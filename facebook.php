@@ -29,7 +29,8 @@ if ( ! class_exists( 'leenkme_Facebook' ) ) {
 								 'default_image' 			=> '',
 								 'force_facebook_image'		=> false,
 								 'publish_cats' 			=> array( '0' ),
-								 'clude'	 				=> 'in'
+								 'clude'	 				=> 'in',
+								 'message_preference'	 	=> 'author'
 							);
 							
 			// Get values from the WP options table in the database, re-assign if found
@@ -109,6 +110,9 @@ if ( ! class_exists( 'leenkme_Facebook' ) ) {
 					$user_settings['publish_cats'] = array( '0' );
 					
 				}
+				
+				if ( isset( $_REQUEST['message_preference'] ) )
+					$user_settings['message_preference'] = $_REQUEST['message_preference'];
 				
 				update_user_option( $user_id, 'leenkme_facebook', $user_settings );
 				
@@ -194,6 +198,28 @@ if ( ! class_exists( 'leenkme_Facebook' ) ) {
                                 <td colspan="2">                   
                                     <div class="facebook-image-warning" style="margin-left: 50px;">
                                         <p style="font-size: 11px; margin-bottom: 0px;"><?php _e( 'NOTE: Do not use an image URL hosted by Facebook. Facebook will reject your message.', 'leenkme' ); ?></p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                            	<td><?php _e( 'Message Preference:', 'leenkme' ); ?></td>
+                                <td>
+                                	<select id="message_preference" name="message_preference">
+                                        <option value="author" <?php selected( 'author', $user_settings['message_preference'] ) ?>><?php _e( "Author", 'leenkme' ); ?></option>
+                                        <option value="mine" <?php selected( 'mine', $user_settings['message_preference'] ) ?>><?php _e( "Mine", 'leenkme' ); ?></option>
+                                        <option value="manual" <?php selected( 'manual', $user_settings['message_preference'] ) ?>><?php _e( "Manual", 'leenkme' ); ?></option>
+                                    </select>
+                                </td>
+                            </tr> 
+                            <tr>
+                                <td colspan="2"> 
+                                    <div class="format-preference" style="margin-left: 50px;">
+                                        <p style="font-size: 11px; margin-bottom: 0px;">Format Preference Options:</p>
+                                        <ul style="font-size: 11px;">
+                                            <li><?php _e( "Author - Most efficient, uses the post author's Message Settings.", 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Mine - Most inefficient, uses your Message Settings regardless of what the post author does.', 'leenkme' ); ?></li>
+                                            <li><?php _e( 'Manual - Slightly inefficient, uses your Message Settigns unless the post author manually changes the message in the post.', 'leenkme' ); ?></li>
+                                        </ul>
                                     </div>
                                 </td>
                             </tr>
@@ -480,14 +506,18 @@ if ( class_exists( 'leenkme_Facebook' ) ) {
 	
 }
 
-function get_leenkme_expanded_fb_post( $post_id, $facebook_array, $post_title = false, $excerpt = false ) {
+function get_leenkme_expanded_fb_post( $post_id, $facebook_array, $post_title = false, $excerpt = false, $user_id = false ) {
 	
 	if ( !empty( $facebook_array ) ) {
 
 		global $current_user, $dl_pluginleenkmeFacebook;
 		
-		get_currentuserinfo();
-		$user_id = $current_user->ID;
+		if ( !$user_id ) {
+				
+			get_currentuserinfo();
+			$user_id = $current_user->ID;
+			
+		}
 
 		$maxMessageLen = 400;
 		$maxLinkNameLen = 100;
@@ -544,7 +574,7 @@ function leenkme_ajax_republish() {
 			
 		} else {
 			
-			$results = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), $_REQUEST['id'], $_REQUEST['facebook_array'], true ) );
+			$results = leenkme_ajax_connect( leenkme_publish_to_facebook( array(), array( 'ID' => $_REQUEST['id'], 'post_author' => $_REQUEST['post_author'] ), $_REQUEST['facebook_array'], true ) );
 	
 			if ( isset( $results ) ) {		
 				
@@ -654,21 +684,21 @@ function leenkme_ajax_fb() {
 }
 									
 // Add function to pubslih to facebook
-function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $facebook_array = array(), $debug = false ) {
+function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_array = array(), $debug = false ) {
 	
 	global $dl_pluginleenkme, $dl_pluginleenkmeFacebook;
 	
-	if ( get_post_meta( $post_id, '_facebook_exclude_profile', true ) )
+	if ( get_post_meta( $post['ID'], '_facebook_exclude_profile', true ) )
 		$exclude_profile = true;
 	else
 		$exclude_profile = false;
 	
-	if ( get_post_meta( $post_id, '_facebook_exclude_page', true ) )
+	if ( get_post_meta( $post['ID'], '_facebook_exclude_page', true ) )
 		$exclude_page = true;
 	else
 		$exclude_page = false;
 	
-	if ( get_post_meta( $post_id, '_facebook_exclude_group', true ) )
+	if ( get_post_meta( $post['ID'], '_facebook_exclude_group', true ) )
 		$exclude_group = true;
 	else
 		$exclude_group = false;
@@ -677,7 +707,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		
-		if ( in_array( get_post_type( $post_id ), $leenkme_settings['post_types'] ) ) {
+		if ( in_array( get_post_type( $post['ID'] ), $leenkme_settings['post_types'] ) ) {
 			
 			$options = get_option( 'leenkme_facebook' );
 			
@@ -690,14 +720,14 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 			
 				case 'tinyurl' :
 				case 'yourls' :
-					$url = home_url( '?p=' . $post_id );
+					$url = home_url( '?p=' . $post['ID'] );
 					break;
 			
 				default:
-					if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
+					if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {
 						
-						$url = leenkme_url_shortener( $post_id );
-						update_post_meta( $post_id, '_leenkme_shortened_url', $url );
+						$url = leenkme_url_shortener( $post['ID'] );
+						update_post_meta( $post['ID'], '_leenkme_shortened_url', $url );
 					
 					}
 					break;
@@ -729,7 +759,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 						
 						$match = false;
 						
-						$post_categories = wp_get_post_categories( $post_id );
+						$post_categories = wp_get_post_categories( $post['ID'] );
 						
 						foreach ( $post_categories as $cat ) {
 						
@@ -771,34 +801,61 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post_id, $faceboo
 					// Added facebook page to connection array if enabled
 					if ( $options['facebook_group'] && !$exclude_group )
 						$connect_arr[$api_key]['facebook_group'] = true;
+					
+					if ( $leenkme_user->ID != $post['post_author'] && ( 'mine' == $options['message_preference'] 
+						|| ( 'manual' == $options['message_preference'] && '' == get_post_meta( $post['ID'], '_lm_facebook_type', true ) ) ) )
+						$prefer_user = true;
+					else
+						$prefer_user = false;
 						
+					if ( $prefer_user ) {
 						
-					if ( empty( $facebook_array ) ) {
+						$prefer_facebook_array['message'] = $options['facebook_message'];
+						$prefer_facebook_array['linkname'] = $options['facebook_linkname'];
+						$prefer_facebook_array['caption'] = $options['facebook_caption'];
+						$prefer_facebook_array['description'] = $options['facebook_description'];
+					
+						$prefer_facebook_array = get_leenkme_expanded_fb_post( $post['ID'], $prefer_facebook_array, false, false, $leenkme_user->ID );
+														
+						if ( isset( $prefer_facebook_array['picture'] ) && !empty( $prefer_facebook_array['picture'] ) )
+							$connect_arr[$api_key]['facebook_picture'] = $prefer_facebook_array['picture'];
 						
-						if (   !( $facebook_array['message'] = get_post_meta( $post_id, '_facebook_message', true ) ) )
-							$facebook_array['message'] 		= $options['facebook_message'];
+						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( $prefer_facebook_array['message'] );
+						$connect_arr[$api_key]['facebook_link'] 		= $url;
+						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( $prefer_facebook_array['linkname'] );
+						$connect_arr[$api_key]['facebook_caption']		= stripslashes( $prefer_facebook_array['caption'] );
+						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( $prefer_facebook_array['description'] );
+						
+					} else {
+						
+						if ( empty( $facebook_array ) ) {
+						
+							if ( !( $facebook_array['message'] = get_post_meta( $post['ID'], '_facebook_message', true ) ) )
+								$facebook_array['message'] = $options['facebook_message'];
+								
+							if ( !( $facebook_array['linkname'] = get_post_meta( $post['ID'], '_facebook_linkname', true ) ) )
+								$facebook_array['linkname'] = $options['facebook_linkname'];
+						
+							if ( !( $facebook_array['caption'] = get_post_meta( $post['ID'], '_facebook_caption', true ) ) )
+								$facebook_array['caption'] = $options['facebook_caption'];
 							
-						if ( !( $facebook_array['linkname'] = get_post_meta( $post_id, '_facebook_linkname', true ) ) )
-							$facebook_array['linkname'] 	= $options['facebook_linkname'];
-					
-						if ( !( $facebook_array['caption'] 	= get_post_meta( $post_id, '_facebook_caption', true ) ) )
-							$facebook_array['caption'] 		= $options['facebook_caption'];
+							if ( !( $facebook_array['description'] = get_post_meta( $post['ID'], '_facebook_description', true ) ) )
+								$facebook_array['description'] = $options['facebook_description'];
 						
-						if ( !( $facebook_array['description'] = get_post_meta( $post_id, '_facebook_description', true ) ) )
-							$facebook_array['description']	= $options['facebook_description'];
-					
-						$facebook_array = get_leenkme_expanded_fb_post( $post_id, $facebook_array );
+							$facebook_array = get_leenkme_expanded_fb_post( $post['ID'], $facebook_array, false, false, $leenkme_user->ID );
+						
+						}
+														
+						if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
+							$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
+						
+						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( $facebook_array['message'] );
+						$connect_arr[$api_key]['facebook_link'] 		= $url;
+						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( $facebook_array['linkname'] );
+						$connect_arr[$api_key]['facebook_caption']		= stripslashes( $facebook_array['caption'] );
+						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( $facebook_array['description'] );
 					
 					}
-													
-					if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
-						$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
-					
-					$connect_arr[$api_key]['facebook_message'] 		= stripslashes( $facebook_array['message'] );
-					$connect_arr[$api_key]['facebook_link'] 		= $url;
-					$connect_arr[$api_key]['facebook_name'] 		= stripslashes( $facebook_array['linkname'] );
-					$connect_arr[$api_key]['facebook_caption']		= stripslashes( $facebook_array['caption'] );
-					$connect_arr[$api_key]['facebook_description'] 	= stripslashes( $facebook_array['description'] );
 					
 				}
 				

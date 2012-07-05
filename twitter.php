@@ -19,9 +19,10 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 			
 			// Default values for the options
 			$options = array(
-								 'tweetFormat' 		=> '%TITLE% %URL%',
-								 'tweetCats '		=> array( '0' ),
-								 'clude'	 		=> 'in'
+								 'tweetFormat' 			=> '%TITLE% %URL%',
+								 'tweetCats '			=> array( '0' ),
+								 'clude'	 			=> 'in',
+								 'message_preference'	=> 'author'
 							);
 							
 			// Get values from the WP options table in the database, re-assign if found
@@ -73,6 +74,9 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 					
 				}
 				
+				if ( isset( $_REQUEST['message_preference'] ) )
+					$user_settings['message_preference'] = $_REQUEST['message_preference'];
+				
 				update_user_option( $user_id, 'leenkme_twitter', $user_settings );
 				
 				// update settings notification ?>
@@ -102,7 +106,20 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
                                 <li>%CATS% - <?php _e( 'Displays the categories of your post in your Twitter feed as a hashtag.*', 'leenkme' ); ?></li>
                                 <li>%TAGS% - <?php _e( 'Displays ags your post in your Twitter feed as a hashtag.*', 'leenkme' ); ?></li>
                             </ul>
-                            
+                            <p>
+                            	<?php _e( 'Message Preference:', 'leenkme' ); ?>
+                                <select id="message_preference" name="message_preference">
+                                    <option value="author" <?php selected( 'author', $user_settings['message_preference'] ) ?>><?php _e( "Author", 'leenkme' ); ?></option>
+                                    <option value="mine" <?php selected( 'mine', $user_settings['message_preference'] ) ?>><?php _e( "Mine", 'leenkme' ); ?></option>
+                                    <option value="manual" <?php selected( 'manual', $user_settings['message_preference'] ) ?>><?php _e( "Manual", 'leenkme' ); ?></option>
+                                </select>
+                            </p>
+                            <p style="font-size: 11px;">Format Preference Options:</p>
+                            <ul style="font-size: 11px; margin-left: 50px;">
+                                <li><?php _e( "Author - Most efficient, uses the post author's Message Settings.", 'leenkme' ); ?></li>
+                                <li><?php _e( 'Mine - Most inefficient, uses your Message Settings regardless of what the post author does.', 'leenkme' ); ?></li>
+                                <li><?php _e( 'Manual - Slightly inefficient, uses your Message Settigns unless the post author manually changes the message in the post.', 'leenkme' ); ?></li>
+                            </ul>
 							<p style="font-size: 11px; margin-top: 25px;"><?php _e( '*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your format is too long to accommodate %TITLE% and/or %URL% then this plugin will cut off your title to fit and/or remove the URL. URL is given preference (since it\'s either all or nothing). So if your TITLE ends up making your Tweet go over the 140 characters, it will take a substring of your title (plus some ellipsis). If you use the %CATS% or %TAGS% variable, categories are given priority, it will display every category that will fit within the tweet length limitation. After adding the categories leenk.me moves onto tags and will add every tag that will fit within the tweet length limitation. leenk.me will also strip out any non-word character from the Twitter "hashtag" a single word.', 'leenkme' ); ?></p>
 					
                     
@@ -430,11 +447,9 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 		
 		$tweet = get_post_meta( $post_id, '_leenkme_tweet', true );
 		
-	}		
+	}
 	
-	update_post_meta( $post_id, '_leenkme_tweet', $tweet );
-	
-	return trim( $tweet );
+	return trim( html_entity_decode( $tweet ) );
 	
 }
 
@@ -497,7 +512,7 @@ function leenkme_ajax_retweet() {
 		
 		} else if ( isset( $_REQUEST['tweet'] ) ) {
 			
-			$results = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), $_REQUEST['id'], $_REQUEST['tweet'], true ) );
+			$results = leenkme_ajax_connect( leenkme_publish_to_twitter( array(), array( 'ID' => $_REQUEST['id'], 'post_author' => $_REQUEST['post_author'] ), $_REQUEST['tweet'], true ) );
 			
 			if ( isset( $results ) ) {	
 			
@@ -544,10 +559,11 @@ function leenkme_ajax_retweet() {
 }
 
 // Add function to publish to twitter
-function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = false, $debug = false ) {
+function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = false, $debug = false ) {
+	
 	global $wpdb, $dl_pluginleenkme, $dl_pluginleenkmeTwitter;
 	
-	if ( get_post_meta( $post_id, '_twitter_exclude', true ) )
+	if ( get_post_meta( $post['ID'], '_twitter_exclude', true ) )
 		$exclude_twitter = true;
 	else
 		$exclude_twitter = false;
@@ -556,7 +572,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = 
 		
 		$leenkme_settings = $dl_pluginleenkme->get_leenkme_settings();
 		
-		if ( in_array( get_post_type( $post_id ), $leenkme_settings['post_types'] ) ) {
+		if ( in_array( get_post_type( $post['ID'] ), $leenkme_settings['post_types'] ) ) {
 			
 			$options = get_option( 'leenkme_twitter' );
 			
@@ -589,7 +605,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = 
 						
 						$match = false;
 						
-						$post_categories = wp_get_post_categories( $post_id );
+						$post_categories = wp_get_post_categories( $post['ID'] );
 						
 						foreach ( $post_categories as $cat ) {
 						
@@ -615,11 +631,25 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = 
 							
 						}
 					}
-				
-					if ( !$tweet && !( $tweet = get_post_meta( $post_id, '_leenkme_tweet', true ) ) )
-						$tweet = get_leenkme_expanded_tweet( $post_id, $options['leenkme_tweetformat'], get_the_title( $post_id ) );
 					
-					$connect_arr[$api_key]['twitter_status'] = stripslashes( $tweet );
+					if ( $leenkme_user->ID != $post['post_author'] && ( 'mine' == $options['message_preference'] 
+						|| ( 'manual' == $options['message_preference'] && '' == get_post_meta( $post['ID'], '_lm_tweet_type', true ) ) ) )
+						$prefer_user = true;
+					else
+						$prefer_user = false;
+						
+					if ( $prefer_user ) {
+						
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ) );
+						
+					} else {
+						
+						if ( empty( $tweet ) && !( $tweet = get_post_meta( $post['ID'], '_leenkme_tweet', true ) ) )
+							$tweet = get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) );
+						
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( $tweet );
+						
+					}
 					
 				}
 				
@@ -628,7 +658,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post_id, $tweet = 
 		}
 		
 	}
-		
+	
 	return $connect_arr;
 	
 }
@@ -640,9 +670,7 @@ if ( isset( $dl_pluginleenkmeTwitter ) ) {
 	
 	// Whenever you publish a post, post to twitter
 	add_filter( 'leenkme_connect', 'leenkme_publish_to_twitter', 10, 2 );
-	//add_filter( 'leenkme_comment_connect', 'leenkme_comment_to_twitter', 10, 2 );
-
-	//add_action( 'wp_ajax_get_leenkme_expanded_tweet', 'get_leenkme_expanded_tweet_ajax' );
+	
 	add_action( 'wp_ajax_tweet', 'leenkme_ajax_tweet' );
 	add_action( 'wp_ajax_retweet', 'leenkme_ajax_retweet' );
 	
