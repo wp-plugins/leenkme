@@ -640,14 +640,14 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 						
 					if ( $prefer_user ) {
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ) );
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ) ) );
 						
 					} else {
 						
 						if ( empty( $tweet ) && !( $tweet = get_post_meta( $post['ID'], '_leenkme_tweet', true ) ) )
 							$tweet = get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) );
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( $tweet );
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( $tweet ) );
 						
 					}
 					

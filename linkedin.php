@@ -747,10 +747,10 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 						if ( isset( $prefer_linkedin_array['picture'] ) && !empty( $prefer_linkedin_array['picture'] ) )
 							$connect_arr[$api_key]['li_image'] = $prefer_linkedin_array['picture'];
 						
-						$connect_arr[$api_key]['li_comment'] 	= stripslashes( $prefer_linkedin_array['comment'] );
+						$connect_arr[$api_key]['li_comment'] 	= stripslashes( html_entity_decode( $prefer_linkedin_array['comment'] ) );
 						$connect_arr[$api_key]['li_url']		= $url;
-						$connect_arr[$api_key]['li_title']		= stripslashes( $prefer_linkedin_array['linktitle'] );
-						$connect_arr[$api_key]['li_desc'] 		= stripslashes( $prefer_linkedin_array['description'] );
+						$connect_arr[$api_key]['li_title']		= stripslashes( html_entity_decode( $prefer_linkedin_array['linktitle'] ) );
+						$connect_arr[$api_key]['li_desc'] 		= stripslashes( html_entity_decode( $prefer_linkedin_array['description'] ) );
 						$connect_arr[$api_key]['li_code'] 		= 'anyone';
 						
 					} else {
@@ -773,10 +773,10 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 						if ( isset( $linkedin_array['picture'] ) && !empty( $linkedin_array['picture'] ) )
 							$connect_arr[$api_key]['li_image'] = $linkedin_array['picture'];
 						
-						$connect_arr[$api_key]['li_comment'] 	= stripslashes( $linkedin_array['comment'] );
+						$connect_arr[$api_key]['li_comment'] 	= stripslashes( html_entity_decode( $linkedin_array['comment'] ) );
 						$connect_arr[$api_key]['li_url']		= $url;
-						$connect_arr[$api_key]['li_title']		= stripslashes( $linkedin_array['linktitle'] );
-						$connect_arr[$api_key]['li_desc'] 		= stripslashes( $linkedin_array['description'] );
+						$connect_arr[$api_key]['li_title']		= stripslashes( html_entity_decode( $linkedin_array['linktitle'] ) );
+						$connect_arr[$api_key]['li_desc'] 		= stripslashes( html_entity_decode( $linkedin_array['description'] ) );
 						$connect_arr[$api_key]['li_code'] 		= 'anyone';
 					
 					}
