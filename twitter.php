@@ -62,10 +62,10 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 				if ( isset( $_REQUEST['leenkme_tweetformat'] ) )
 					$user_settings['tweetFormat'] = $_REQUEST['leenkme_tweetformat'];
 				
-				if ( isset( $_REQUEST['clude'] ) && isset( $_REQUEST['tweetcats'] ) ) {
+				if ( isset( $_REQUEST['clude'] ) && isset( $_REQUEST['tweetCats'] ) ) {
 					
 					$user_settings['clude'] = $_REQUEST['clude'];
-					$user_settings['tweetCats'] = $_REQUEST['tweetcats'];
+					$user_settings['tweetCats'] = $_REQUEST['tweetCats'];
 					
 				} else {
 					
@@ -146,7 +146,7 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 							<input type='radio' name='clude' id='include_cat' value='in' <?php checked( 'in', $user_settings['clude'] ); ?> /><label for='include_cat'><?php _e( 'Include', 'leenkme' ); ?></label> &nbsp; &nbsp; <input type='radio' name='clude' id='exclude_cat' value='ex' <?php checked( 'ex', $user_settings['clude'] ); ?> /><label for='exclude_cat'><?php _e( 'Exclude', 'leenkme' ); ?></label>
                             </p>
                             <p>
-                            <select id='categories' name='tweetcats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
+                            <select id='categories' name='tweetCats[]' multiple="multiple" size="5" style="height: 70px; width: 150px;">
                                 <option value="0" <?php selected( in_array( "0", (array)$user_settings['tweetCats'] ) ); ?>>All Categories</option>
                             <?php 
                             $categories = get_categories( array( 'hide_empty' => 0, 'orderby' => 'name' ) );
@@ -449,7 +449,7 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 		
 	}
 	
-	return trim( html_entity_decode( $tweet ) );
+	return trim( html_entity_decode( $tweet, ENT_COMPAT, get_bloginfo('charset') ) );
 	
 }
 
@@ -592,10 +592,10 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 				
 				if ( !empty( $options ) ) {	
 					
-					if ( ( !empty( $options['tweetcats'] ) && isset( $options['clude'] ) )
-							&& !( 'in' == $options['clude'] && in_array( '0', $options['tweetcats'] ) ) ) {
+					if ( ( !empty( $options['tweetCats'] ) && isset( $options['clude'] ) )
+							&& !( 'in' == $options['clude'] && in_array( '0', $options['tweetCats'] ) ) ) {
 						
-						if ( 'ex' == $options['clude'] && in_array( '0', (array)$options['tweetcats'] ) ) {
+						if ( 'ex' == $options['clude'] && in_array( '0', (array)$options['tweetCats'] ) ) {
 							
 							if ( $debug ) echo '<p>' . __( 'You have your <a href="admin.php?page=leenkme_twitter">Leenk.me Twitter settings</a> set to Exclude All Categories.', 'leenkme' ) . '</p>';
 							
@@ -609,7 +609,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 						
 						foreach ( $post_categories as $cat ) {
 						
-							if ( in_array( (int)$cat, $options['tweetcats'] ) ) {
+							if ( in_array( (int)$cat, $options['tweetCats'] ) ) {
 							
 								$match = true;
 								
@@ -640,14 +640,14 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 						
 					if ( $prefer_user ) {
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ) ) );
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ), ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					} else {
 						
 						if ( empty( $tweet ) && !( $tweet = get_post_meta( $post['ID'], '_leenkme_tweet', true ) ) )
 							$tweet = get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) );
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( $tweet ) );
+						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( $tweet, ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					}
 					

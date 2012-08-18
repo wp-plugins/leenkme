@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.0.5
+Version: 2.0.6
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
 */
 
-define( 'LEENKME_VERSION' , '2.0.5' );
+define( 'LEENKME_VERSION' , '2.0.6' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -114,7 +114,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 										
 			if ( in_array( $hook_suffix, array_merge( $leenkme_general_pages, $leenkme_settings_pages ) ) ) {
 			
-				wp_enqueue_script( 'leenkme_js', $this->base_url . 'js/leenkme.js', array( 'jquery' ), '1.0.0' );
+				wp_enqueue_script( 'leenkme_js', $this->base_url . 'js/leenkme.js', array( 'jquery' ), LEENKME_VERSION );
 			
 			}
 			
@@ -124,7 +124,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 				wp_enqueue_style( 'dashboard' );
 				wp_enqueue_style( 'thickbox' );
 				wp_enqueue_style( 'wp-admin' );
-				wp_enqueue_style( 'leenkme_plugin_css', $this->base_url . 'css/leenkme.css' );
+				wp_enqueue_style( 'leenkme_plugin_css', $this->base_url . 'css/leenkme.css', array(), LEENKME_VERSION );
 				
 				wp_enqueue_script( 'postbox' );
 				wp_enqueue_script( 'dashboard' );
@@ -139,21 +139,21 @@ if ( ! class_exists( 'leenkme' ) ) {
 			
 			if ( in_array( $hook_suffix, $leenkme_post_pages ) ) {
 				
-				wp_enqueue_style( 'leenkme_post_css', $this->base_url . 'css/post.css' );
+				wp_enqueue_style( 'leenkme_post_css', $this->base_url . 'css/post.css', array(), LEENKME_VERSION );
 				
-				wp_enqueue_script( 'leenkme_post_js', $this->base_url . 'js/post.js', array( 'jquery' ), '1.0.0' );
+				wp_enqueue_script( 'leenkme_post_js', $this->base_url . 'js/post.js', array( 'jquery' ), LEENKME_VERSION );
 			
 				if ( $this->plugin_enabled( 'twitter' ) )
-					wp_enqueue_script( 'leenkme_twitter_post_js', $this->base_url . 'js/post-twitter.js', array( 'leenkme_post_js' ), '1.0.0' );
+					wp_enqueue_script( 'leenkme_twitter_post_js', $this->base_url . 'js/post-twitter.js', array( 'leenkme_post_js' ), LEENKME_VERSION );
 				
 				if ( $this->plugin_enabled( 'facebook' ) )
-					wp_enqueue_script( 'leenkme_facebook_post_js', $this->base_url . 'js/post-facebook.js', array( 'leenkme_post_js' ), '1.0.0' );
+					wp_enqueue_script( 'leenkme_facebook_post_js', $this->base_url . 'js/post-facebook.js', array( 'leenkme_post_js' ), LEENKME_VERSION );
 				
 				if ( $this->plugin_enabled( 'linkedin' ) )
-					wp_enqueue_script( 'leenkme_linkedin_post_js', $this->base_url . 'js/post-linkedin.js', array( 'leenkme_post_js' ), '1.0.0' );
+					wp_enqueue_script( 'leenkme_linkedin_post_js', $this->base_url . 'js/post-linkedin.js', array( 'leenkme_post_js' ), LEENKME_VERSION );
 				
 				if ( $this->plugin_enabled( 'friendfeed' ) )
-					wp_enqueue_script( 'leenkme_friendfeed_post_js', $this->base_url . 'js/post-friendfeed.js', array( 'leenkme_post_js' ), '1.0.0' );
+					wp_enqueue_script( 'leenkme_friendfeed_post_js', $this->base_url . 'js/post-friendfeed.js', array( 'leenkme_post_js' ), LEENKME_VERSION );
 					
 			}
 			

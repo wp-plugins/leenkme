@@ -820,11 +820,11 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 						if ( isset( $prefer_facebook_array['picture'] ) && !empty( $prefer_facebook_array['picture'] ) )
 							$connect_arr[$api_key]['facebook_picture'] = $prefer_facebook_array['picture'];
 						
-						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['message'] ) );
+						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['message'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['facebook_link'] 		= $url;
-						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['linkname'] ) );
-						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $prefer_facebook_array['caption'] ) );
-						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $prefer_facebook_array['description'] ) );
+						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['linkname'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $prefer_facebook_array['caption'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $prefer_facebook_array['description'], ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					} else {
 						
@@ -849,11 +849,11 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 						if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
 							$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
 						
-						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $facebook_array['message'] ) );
+						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $facebook_array['message'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['facebook_link'] 		= $url;
-						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $facebook_array['linkname'] ) );
-						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $facebook_array['caption'] ) );
-						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $facebook_array['description'] ) );
+						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $facebook_array['linkname'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $facebook_array['caption'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $facebook_array['description'], ENT_COMPAT, get_bloginfo('charset') ) );
 					
 					}
 					

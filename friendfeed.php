@@ -679,7 +679,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $friendfe
 							$connect_arr[$api_key]['friendfeed_picture'] = $prefer_friendfeed_array['picture'];
 							
 						
-						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( html_entity_decode( $prefer_friendfeed_array['body'] ) );
+						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( html_entity_decode( $prefer_friendfeed_array['body'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['friendfeed_link'] = $url;
 						
 					} else {
@@ -696,7 +696,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $friendfe
 						if ( isset( $friendfeed_array['picture'] ) && !empty( $friendfeed_array['picture'] ) )
 							$connect_arr[$api_key]['friendfeed_picture'] = $friendfeed_array['picture'];
 						
-						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( html_entity_decode( $friendfeed_array['body'] ) );
+						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( html_entity_decode( $friendfeed_array['body'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['friendfeed_link'] = $url;
 					
 					}
