@@ -175,7 +175,7 @@ if ( !function_exists( 'leenkme_replacements_args' ) ) {
 	 *
 	 * @param int $id User ID
 	 */
-	function leenkme_replacements_args( $string, $post_title, $excerpt ) {
+	function leenkme_replacements_args( $string, $post_title, $post_id, $excerpt ) {
 			
 		$wp_sitename = get_bloginfo( 'name' );
 		$wp_tagline = get_bloginfo( 'description' );
@@ -186,7 +186,7 @@ if ( !function_exists( 'leenkme_replacements_args' ) ) {
 		$string = str_ireplace( '%WPTAGLINE%', $wp_tagline, $string );
 		$string = str_ireplace( '%EXCERPT%', $excerpt, $string );
 		
-		$string = apply_filters( 'leenkme_custom_replacement_args', $string );
+		$string = apply_filters( 'leenkme_custom_replacement_args', $string, $post_id );
 		
 		return wp_strip_all_tags( stripcslashes( html_entity_decode( $string, ENT_COMPAT, get_bloginfo('charset') ) ) );
 		

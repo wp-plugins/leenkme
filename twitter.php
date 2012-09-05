@@ -449,6 +449,8 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 		
 	}
 	
+	$tweet = apply_filters( 'leenkme_custom_replacement_args', $tweet, $post_id );
+	
 	return trim( html_entity_decode( $tweet, ENT_COMPAT, get_bloginfo('charset') ) );
 	
 }

@@ -545,10 +545,10 @@ function get_leenkme_expanded_fb_post( $post_id, $facebook_array, $post_title = 
 			
 		}
 		
-		$facebook_array['message'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['message'], $post_title, $excerpt ), $maxMessageLen );
-		$facebook_array['linkname'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['linkname'], $post_title, $excerpt ), $maxLinkNameLen );
-		$facebook_array['caption'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['caption'], $post_title, $excerpt ), $maxCaptionLen );
-		$facebook_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['description'], $post_title, $excerpt ), $maxDescLen );
+		$facebook_array['message'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['message'], $post_title, $post->ID, $excerpt ), $maxMessageLen );
+		$facebook_array['linkname'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['linkname'], $post_title, $post->ID, $excerpt ), $maxLinkNameLen );
+		$facebook_array['caption'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['caption'], $post_title, $post->ID, $excerpt ), $maxCaptionLen );
+		$facebook_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['description'], $post_title, $post->ID, $excerpt ), $maxDescLen );
 		
 		$user_settings = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
 		

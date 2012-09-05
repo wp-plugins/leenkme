@@ -497,9 +497,9 @@ function get_leenkme_expanded_li_post( $post_id, $linkedin_array, $post_title = 
 			
 		}
 		
-		$linkedin_array['comment'] 		= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['comment'] , $post_title, $excerpt ), $maxCommentLen );
-		$linkedin_array['linktitle'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['linktitle'], $post_title, $excerpt ), $maxLinkNameLen );
-		$linkedin_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['description'], $post_title, $excerpt ), $maxDescLen );
+		$linkedin_array['comment'] 		= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['comment'], $post_title, $post->ID, $excerpt ), $maxCommentLen );
+		$linkedin_array['linktitle'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['linktitle'], $post_title, $post->ID, $excerpt ), $maxLinkNameLen );
+		$linkedin_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['description'], $post_title, $post->ID, $excerpt ), $maxDescLen );
 		
 		$user_settings = $dl_pluginleenkmeLinkedIn->get_user_settings( $user_id );
 			
