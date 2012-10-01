@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.0.7
+Version: 2.0.8
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
 */
 
-define( 'LEENKME_VERSION' , '2.0.7' );
+define( 'LEENKME_VERSION' , '2.0.8' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -1262,7 +1262,7 @@ function leenkme_connect( $post ) {
 	
 	} else {
 		
-		$out = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
+		$out[] = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
 		
 	}
 	
@@ -1306,14 +1306,14 @@ function leenkme_ajax_connect( $connect_arr ) {
 			}
 			
 		} else {
-			
-				$out[$api_key] = __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.', 'leenkme' );
+		
+			$out[] = __( 'Invalid leenk.me setup, for help please contact <a href="http://leenk.me/" target="_blank">leenk.me support</a>.', 'leenkme' );
 		
 		}
 		
 	} else {
 		
-		$out[$api_key] = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
+		$out[] = __( 'Error: You have exceeded your rate limit for API calls, only 350 API calls are allowed every hour.', 'leenkme' );
 		
 	}
 	

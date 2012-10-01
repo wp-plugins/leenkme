@@ -583,7 +583,7 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $friendfe
 			
 			$options = get_option( 'leenkme_friendfeed' );
 			
-			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
+			$args = array( 'meta_query' => array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' ) );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
 			if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {

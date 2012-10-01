@@ -711,7 +711,7 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 			
 			$options = get_option( 'leenkme_facebook' );
 			
-			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
+			$args = array( 'meta_query' => array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' ) );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
 			// Facebook currently addes ref=nf on the end of every URL, this break TinyURL and YOURLS,

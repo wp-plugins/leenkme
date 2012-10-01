@@ -578,7 +578,7 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 			
 			$options = get_option( 'leenkme_twitter' );
 			
-			$args = array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' );
+			$args = array( 'meta_query' => array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' ) );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
 			foreach ( $leenkme_users as $leenkme_user ) {
