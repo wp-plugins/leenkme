@@ -175,7 +175,7 @@ if ( !function_exists( 'leenkme_replacements_args' ) ) {
 	 *
 	 * @param int $id User ID
 	 */
-	function leenkme_replacements_args( $string, $post_title, $post_id, $excerpt ) {
+	function leenkme_replacements_args( $string, $post_title = '', $post_id = 0, $excerpt = '' ) {
 			
 		$wp_sitename = get_bloginfo( 'name' );
 		$wp_tagline = get_bloginfo( 'description' );

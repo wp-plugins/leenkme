@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.0.8
+Version: 2.0.8.1
 Author URI: http://leenk.me/about/
 Tags: twitter, facebook, face, book, linkedin, linked, in, friendfeed, friend, feed, oauth, profile, fan page, groups, image, images, social network, social media, post, page, custom post type, twitter post, tinyurl, twitter friendly links, admin, author, contributor, exclude, category, categories, retweet, republish, connect, status update, leenk.me, leenk me, leenk, scheduled post, publish, publicize, smo, social media optimization, ssl, secure, facepress, hashtags, hashtag, categories, tags, social tools, bit.ly, j.mp, bitly, jmp, ow.ly, owly, YOURLS, tinyurl
 */
 
-define( 'LEENKME_VERSION' , '2.0.8' );
+define( 'LEENKME_VERSION' , '2.0.8.1' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -977,8 +977,8 @@ if ( ! class_exists( 'leenkme' ) ) {
                 
                 <meta property="og:url"			content="<?php echo site_url(); ?>">
                 <meta property="og:type"		content="<?php echo $leenkme_settings['og_type']; ?>"> 
-                <meta property="og:title"		content="<?php echo htmlentities( leenkme_replacements_args( $leenkme_settings['og_sitename'], '', '' ) ); ?>">
-                <meta property="og:description"	content="<?php echo htmlentities( leenkme_trim_words( leenkme_replacements_args( $leenkme_settings['og_description'], '', '' ), 300 ) ); ?>">
+                <meta property="og:title"		content="<?php echo htmlentities( leenkme_replacements_args( $leenkme_settings['og_sitename'] ) ); ?>">
+                <meta property="og:description"	content="<?php echo htmlentities( leenkme_trim_words( leenkme_replacements_args( $leenkme_settings['og_description'] ), 300 ) ); ?>">
                 
                 <?php if ( isset( $leenkme_settings['og_image'] ) && !empty( $leenkme_settings['og_image'] ) ) ?>
                 <meta property="og:image"		content="<?php echo $leenkme_settings['og_image']; ?>">
