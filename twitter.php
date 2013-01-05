@@ -183,7 +183,7 @@ if ( ! class_exists( 'leenkme_Twitter' ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return;
 				
-			if ( isset( $_REQUEST['_inline_edit'] ) )
+			if ( isset( $_REQUEST['_inline_edit'] ) || isset( $_REQUEST['doing_wp_cron'] ) )
 				return;
 	
 			if ( isset( $_REQUEST['twitter_exclude'] ) )

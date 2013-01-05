@@ -282,7 +282,7 @@ if ( ! class_exists( 'leenkme_Facebook' ) ) {
 			if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 				return;
 				
-			if ( isset( $_REQUEST['_inline_edit'] ) )
+			if ( isset( $_REQUEST['_inline_edit'] ) || isset( $_REQUEST['doing_wp_cron'] ) )
 				return;
 	
 			if ( isset( $_REQUEST["facebook_exclude_profile"] ) )
@@ -320,13 +320,13 @@ if ( ! class_exists( 'leenkme_Facebook' ) ) {
 			else
 				delete_post_meta( $post_id, '_facebook_description' );
 	
-			if ( isset($_REQUEST["facebook_image"] ) && !empty( $_REQUEST["facebook_image"] ) )
-				update_post_meta( $post_id, '_facebook_image', $_REQUEST["facebook_image"] );
+			if ( isset( $_REQUEST['facebook_image'] ) && !empty( $_REQUEST['facebook_image'] ) )
+				update_post_meta( $post_id, '_facebook_image', $_REQUEST['facebook_image'] );
 			else
 				delete_post_meta( $post_id, '_facebook_image' );
 	
-			if ( isset($_REQUEST["lm_facebook_type"] ) && !empty( $_REQUEST["lm_facebook_type"] ) )
-				update_post_meta( $post_id, '_lm_facebook_type', $_REQUEST["lm_facebook_type"] );
+			if ( isset( $_REQUEST['lm_facebook_type'] ) && !empty( $_REQUEST['lm_facebook_type'] ) )
+				update_post_meta( $post_id, '_lm_facebook_type', $_REQUEST['lm_facebook_type'] );
 			else
 				delete_post_meta( $post_id, '_lm_facebook_type' );
 			
@@ -803,32 +803,32 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 						$connect_arr[$api_key]['facebook_group'] = true;
 					
 					if ( $leenkme_user->ID != $post['post_author'] && ( 'mine' == $options['message_preference'] 
-						|| ( 'manual' == $options['message_preference'] && '' == get_post_meta( $post['ID'], '_lm_facebook_type', true ) ) ) )
+						|| ( 'manual' == $options['message_preference'] && 1 != get_post_meta( $post['ID'], '_lm_facebook_type', true ) ) ) )
 						$prefer_user = true;
 					else
 						$prefer_user = false;
 						
 					if ( $prefer_user ) {
 						
-						$prefer_facebook_array['message'] = $options['facebook_message'];
-						$prefer_facebook_array['linkname'] = $options['facebook_linkname'];
-						$prefer_facebook_array['caption'] = $options['facebook_caption'];
-						$prefer_facebook_array['description'] = $options['facebook_description'];
+						$facebook_array['message'] = $options['facebook_message'];
+						$facebook_array['linkname'] = $options['facebook_linkname'];
+						$facebook_array['caption'] = $options['facebook_caption'];
+						$facebook_array['description'] = $options['facebook_description'];
 					
-						$prefer_facebook_array = get_leenkme_expanded_fb_post( $post['ID'], $prefer_facebook_array, false, false, $leenkme_user->ID );
+						$facebook_array = get_leenkme_expanded_fb_post( $post['ID'], $facebook_array, false, false, $leenkme_user->ID );
 														
-						if ( isset( $prefer_facebook_array['picture'] ) && !empty( $prefer_facebook_array['picture'] ) )
-							$connect_arr[$api_key]['facebook_picture'] = $prefer_facebook_array['picture'];
+						if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
+							$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
 						
-						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['message'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $facebook_array['message'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['facebook_link'] 		= $url;
-						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $prefer_facebook_array['linkname'], ENT_COMPAT, get_bloginfo('charset') ) );
-						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $prefer_facebook_array['caption'], ENT_COMPAT, get_bloginfo('charset') ) );
-						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $prefer_facebook_array['description'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_name'] 		= stripslashes( html_entity_decode( $facebook_array['linkname'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_caption']		= stripslashes( html_entity_decode( $facebook_array['caption'], ENT_COMPAT, get_bloginfo('charset') ) );
+						$connect_arr[$api_key]['facebook_description'] 	= stripslashes( html_entity_decode( $facebook_array['description'], ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					} else {
 						
-						if ( empty( $facebook_array ) ) {
+						if ( !$facebook_array || empty( $facebook_array ) ) {
 						
 							if ( !( $facebook_array['message'] = get_post_meta( $post['ID'], '_facebook_message', true ) ) )
 								$facebook_array['message'] = $options['facebook_message'];
