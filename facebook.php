@@ -724,12 +724,8 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 					break;
 			
 				default:
-					if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {
-						
+					if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) )
 						$url = leenkme_url_shortener( $post['ID'] );
-						update_post_meta( $post['ID'], '_leenkme_shortened_url', $url );
-					
-					}
 					break;
 					
 			}

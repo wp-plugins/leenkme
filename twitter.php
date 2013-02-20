@@ -295,28 +295,21 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 		
 		$maxLen = 140;
 	
-		// Get META tweet format
-		//$tweet = htmlspecialchars( stripcslashes( get_post_meta( $post->ID, 'leenkme_tweet', true ) ) );
-		if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) ) {
-		
-			$url = leenkme_url_shortener( $post_id );
-			update_post_meta( $post_id, '_leenkme_shortened_url', $url );
-			
-		}
-			
-		if ( preg_match( '/%URL%/i', $tweet ) ) {
-			
-			$urlLen = strlen( $url );
-			$tweetLen = strlen( utf8_decode( $tweet ) );
-			$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
-			
-			if ( $totalLen <= $maxLen ) {
+		if ( has_filter( 'get_shortlink', 'leenkme_get_shortlink_handler', 1, 4 ) ) {
 				
-				$tweet = str_ireplace( "%URL%", $url, $tweet );
+			if ( !( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) ) )
+				$url = leenkme_url_shortener( $post_id );
+					
+			if ( preg_match( '/%URL%/i', $tweet ) ) {
 				
-			} else {
+				$urlLen = strlen( $url );
+				$tweetLen = strlen( utf8_decode( $tweet ) );
+				$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
 				
-				$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
+				if ( $totalLen <= $maxLen )
+					$tweet = str_ireplace( "%URL%", $url, $tweet );
+				else
+					$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
 				
 			}
 			
@@ -331,11 +324,8 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 			$diffLen = $maxLen - $tweetLen;
 			$totalLen = $titleLen + $tweetLen - 7;	// subtract 7 for "%TITLE%".
 			
-			if ( $titleLen > $diffLen ) {
-				
+			if ( $titleLen > $diffLen )
 				$title = leenkme_trim_words( $title, $diffLen );
-				
-			}
 		
 			$tweet = str_ireplace( "%TITLE%", $title, $tweet );
 			
@@ -346,15 +336,10 @@ function get_leenkme_expanded_tweet( $post_id, $tweet = false, $title, $cats = f
 			$cat_array = array();
 			$post_categories = array();
 			
-			if ( false === $cats ) {
-				
+			if ( false === $cats ) 
 				$post_categories = wp_get_post_categories( $post_id );
-			
-			} else  if ( !empty( $cats ) ) {
-				
+			else if ( !empty( $cats ) )
 				$post_categories = split( ',', $cats );
-				
-			}
 			
 			foreach( $post_categories as $c ) {
 				
@@ -642,16 +627,42 @@ function leenkme_publish_to_twitter( $connect_arr = array(), $post, $tweet = fal
 						
 					if ( $prefer_user ) {
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ), ENT_COMPAT, get_bloginfo('charset') ) );
+						$tweet = stripslashes( html_entity_decode( get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) ), ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					} else {
 						
 						if ( empty( $tweet ) && !( $tweet = get_post_meta( $post['ID'], '_leenkme_tweet', true ) ) )
 							$tweet = get_leenkme_expanded_tweet( $post['ID'], $options['tweetFormat'], get_the_title( $post['ID'] ) );
 						
-						$connect_arr[$api_key]['twitter_status'] = stripslashes( html_entity_decode( $tweet, ENT_COMPAT, get_bloginfo('charset') ) );
+						$tweet = stripslashes( html_entity_decode( $tweet, ENT_COMPAT, get_bloginfo('charset') ) );
 						
 					}
+					
+					if ( !has_filter( 'get_shortlink', 'leenkme_get_shortlink_handler', 1, 4 ) ) {
+		
+						if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) )
+							$url = leenkme_url_shortener( $post['ID'] );
+							
+						echo $tweet;
+						
+						if ( preg_match( '/%URL%/i', $tweet ) ) {
+							
+							$urlLen = strlen( $url );
+							$tweetLen = strlen( utf8_decode( $tweet ) );
+							$totalLen = $urlLen + $tweetLen - 5; // subtract 5 for "%URL%".
+							
+							if ( 140 >= $totalLen )
+								$tweet = str_ireplace( "%URL%", $url, $tweet );
+							else
+								$tweet = str_ireplace( "%URL%", "", $tweet ); // Too Long (need to get rid of URL).
+							
+						}
+							
+						echo $tweet;
+						
+					}
+					
+					$connect_arr[$api_key]['twitter_status'] = $tweet;
 					
 				}
 				

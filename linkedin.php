@@ -660,11 +660,20 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 			$args = array( 'meta_query' => array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' ) );
 			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
 			
-			if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) ) {
-				
-				$url = leenkme_url_shortener( $post['ID'] );
-				update_post_meta( $post['ID'], '_leenkme_shortened_url', $url );
+			// LinkedIn break TinyURL and YOURLS,
+			// So we have to use the default non-permalink URL to be safe.
+			switch( $leenkme_settings['url_shortener'] ) {
 			
+				case 'tinyurl' :
+				case 'yourls' :
+					$url = home_url( '?p=' . $post['ID'] );
+					break;
+			
+				default:
+					if ( !( $url = get_post_meta( $post['ID'], '_leenkme_shortened_url', true ) ) )
+						$url = leenkme_url_shortener( $post['ID'] );
+					break;
+					
 			}
 			
 			foreach ( $leenkme_users as $leenkme_user ) {

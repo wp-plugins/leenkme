@@ -12,43 +12,46 @@ function leenkme_url_shortener( $post_id ) {
 	switch ( $leenkme_settings['url_shortener'] ) {
 	
 		case 'supr' :
-			return leenkme_get_supr_url( $url );
+			$short_url = leenkme_get_supr_url( $url );
 			break;
 		
 		case 'bitly' :
-			return leenkme_get_bitly_url( $url );
+			$short_url = leenkme_get_bitly_url( $url );
 			break;
 		
 		case 'yourls' :
-			return leenkme_get_yourls_url( $url );
+			$short_url = leenkme_get_yourls_url( $url );
 			break;
 		
 		case 'isgd' :
-			return leenkme_get_isgd_url( $url );
+			$short_url = leenkme_get_isgd_url( $url );
 			break;
 		
 		case 'wpme' :
-			return leenkme_get_wpme_url( $post_id );
+			$short_url = leenkme_get_wpme_url( $post_id );
 			break;
 		
 		case 'owly' :
-			return leenkme_get_owly_url( $url );
+			$short_url = leenkme_get_owly_url( $url );
 			break;
 		
 		case 'tinyurl' :
-			return leenkme_get_tinyurl_url( $url );
+			$short_url = leenkme_get_tinyurl_url( $url );
 			break;
 	
 		case 'tflp' :
-			return leenkme_get_tflp_url( $url );
+			$short_url = leenkme_get_tflp_url( $url );
 			break;
 		
 		case 'wppostid' :
 		default :
-			return $url;
+			$short_url = $url;
 			break;
 		
 	}
+
+	update_post_meta( $post_id, '_leenkme_shortened_url', $short_url );
+	return $short_url;
 
 }
 

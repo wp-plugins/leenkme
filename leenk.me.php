@@ -934,7 +934,6 @@ if ( ! class_exists( 'leenkme' ) ) {
 			if ( is_single() && $leenkme_settings['use_single_og_meta_tags'] ) {
 				
 				$post_title = get_the_title();
-				$post = get_post( $post_id );
 		
 				if ( !empty( $post->post_excerpt ) ) {
 					
@@ -952,7 +951,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 				$og_array['og_sitename'] 	= leenkme_replacements_args( $leenkme_settings['og_single_sitename'], $post_title, $post->ID, $excerpt );
 				$og_array['og_description'] = leenkme_trim_words( leenkme_replacements_args( $leenkme_settings['og_single_description'], $post_title, $post->ID, $excerpt ), 300 );
 				
-				$og_array['og_image'] 		= leenkme_get_picture( $leenkme_settings, $post_id, 'og' );
+				$og_array['og_image'] 		= leenkme_get_picture( $leenkme_settings, $post->ID, 'og' );
 				
 				if ( isset( $og_array['og_image'] ) && empty( $og_array['og_image'] ) 
 					&& isset( $leenkme_settings['og_image'] ) && !empty( $leenkme_settings['og_image'] ) )
