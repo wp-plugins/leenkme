@@ -18,7 +18,7 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 		function get_user_settings( $user_id ) {
 			
 			// Default values for the options
-			$options = array(
+			$defaults = array(
 								'linkedin_profile'		=> true,
 								'linkedin_group'		=> false,
 								'linkedin_comment'		=> '%TITLE%',
@@ -33,20 +33,8 @@ if ( ! class_exists( 'leenkme_LinkedIn' ) ) {
 							
 			// Get values from the WP options table in the database, re-assign if found
 			$user_settings = get_user_option( 'leenkme_linkedin', $user_id );
-			if ( !empty( $user_settings ) ) {
-				
-				foreach ( $user_settings as $key => $option ) {
-					
-					$options[$key] = $option;
-					
-				}
-				
-			}
 			
-			// Need this for initial INIT, for people who don't save the default settings...
-			update_user_option( $user_id, 'leenkme_linkedin', $user_settings );
-			
-			return $options;
+			return wp_parse_args( $user_settings, $defaults );
 			
 		}
 		
@@ -657,8 +645,7 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 			
 			$options = get_option( 'leenkme_linkedin' );
 			
-			$args = array( 'meta_query' => array( 'meta_value' => 'leenkme_API', 'meta_compare' => 'LIKE' ) );
-			$leenkme_users = get_users( apply_filters( 'leenkme_user_args', $args ) );
+			$leenkme_users = leenkme_get_users();
 			
 			// LinkedIn break TinyURL and YOURLS,
 			// So we have to use the default non-permalink URL to be safe.

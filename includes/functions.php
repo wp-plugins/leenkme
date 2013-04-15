@@ -313,3 +313,20 @@ if ( !function_exists( 'leenkme_rate_limit' ) ) {
 	}
 	
 }
+
+if ( !function_exists( 'leenkme_get_users' ) ) {
+
+	function leenkme_get_users() {
+		
+		$args = array( 
+					'meta_query' => array( 
+										'meta_value' => 'leenkme_API', 
+										'meta_compare' => 'LIKE' 
+									) 
+				);
+				
+		return get_users( apply_filters( 'leenkme_user_args', $args ) );
+		
+	}
+	
+}

@@ -418,6 +418,11 @@ function leenkme_get_shortlink_handler( $shortlink, $post_id, $context, $allow_s
 		update_post_meta( $post_id, '_leenkme_shortened_url', $url );
 		return $url;
 	
+	} else {
+	
+		if ( $url = get_post_meta( $post_id, '_leenkme_shortened_url', true ) )
+			return $url;
+		
 	}
 
 	return $shortlink;
