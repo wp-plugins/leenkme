@@ -485,9 +485,9 @@ function get_leenkme_expanded_li_post( $post_id, $linkedin_array, $post_title = 
 			
 		}
 		
-		$linkedin_array['comment'] 		= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['comment'], $post_title, $post->ID, $excerpt ), $maxCommentLen );
-		$linkedin_array['linktitle'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['linktitle'], $post_title, $post->ID, $excerpt ), $maxLinkNameLen );
-		$linkedin_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['description'], $post_title, $post->ID, $excerpt ), $maxDescLen );
+		$linkedin_array['comment'] 		= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['comment'], $post_title, $post_id, $excerpt ), $maxCommentLen );
+		$linkedin_array['linktitle'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['linktitle'], $post_title, $post_id, $excerpt ), $maxLinkNameLen );
+		$linkedin_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $linkedin_array['description'], $post_title, $post_id, $excerpt ), $maxDescLen );
 		
 		$user_settings = $dl_pluginleenkmeLinkedIn->get_user_settings( $user_id );
 			
@@ -751,7 +751,7 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 						
 					} else {
 						
-						if ( empty( $linkedin_array ) ) {
+						if ( !$linkedin_array || empty( $linkedin_array ) ) {
 						
 							if ( !( $linkedin_array['comment'] = get_post_meta( $post['ID'], '_linkedin_comment', true ) ) || $prefer_user )
 								$linkedin_array['comment'] = $options['linkedin_comment'];
@@ -768,7 +768,9 @@ function leenkme_publish_to_linkedin( $connect_arr = array(), $post, $linkedin_a
 													
 						if ( isset( $linkedin_array['picture'] ) && !empty( $linkedin_array['picture'] ) )
 							$connect_arr[$api_key]['li_image'] = $linkedin_array['picture'];
-						
+						else
+							$connect_arr[$api_key]['li_image'] = leenkme_get_picture( $user_settings, $post['ID'], 'linkedin' );
+							
 						$connect_arr[$api_key]['li_comment'] 	= stripslashes( html_entity_decode( $linkedin_array['comment'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['li_url']		= $url;
 						$connect_arr[$api_key]['li_title']		= stripslashes( html_entity_decode( $linkedin_array['linktitle'], ENT_COMPAT, get_bloginfo('charset') ) );

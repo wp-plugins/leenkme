@@ -432,7 +432,7 @@ function get_leenkme_expanded_ff_post( $post_id, $friendfeed_array, $post_title 
 			
 		}
 		
-		$friendfeed_array['body'] = leenkme_trim_words( leenkme_replacements_args( $friendfeed_array['body'], $post_title, $post->ID, $excerpt ), $maxBodyLen );
+		$friendfeed_array['body'] = leenkme_trim_words( leenkme_replacements_args( $friendfeed_array['body'], $post_title, $post_id, $excerpt ), $maxBodyLen );
 		
 		$user_settings = $dl_pluginleenkmeFriendFeed->get_user_settings( $user_id );
 			
@@ -690,6 +690,8 @@ function leenkme_publish_to_friendfeed( $connect_arr = array(), $post, $friendfe
 						
 						if ( isset( $friendfeed_array['picture'] ) && !empty( $friendfeed_array['picture'] ) )
 							$connect_arr[$api_key]['friendfeed_picture'] = $friendfeed_array['picture'];
+						else
+							$connect_arr[$api_key]['friendfeed_picture'] = leenkme_get_picture( $user_settings, $post['ID'], 'friendfeed' );
 						
 						$connect_arr[$api_key]['friendfeed_body'] = stripslashes( html_entity_decode( $friendfeed_array['body'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['friendfeed_link'] = $url;

@@ -533,10 +533,10 @@ function get_leenkme_expanded_fb_post( $post_id, $facebook_array, $post_title = 
 			
 		}
 		
-		$facebook_array['message'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['message'], $post_title, $post->ID, $excerpt ), $maxMessageLen );
-		$facebook_array['linkname'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['linkname'], $post_title, $post->ID, $excerpt ), $maxLinkNameLen );
-		$facebook_array['caption'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['caption'], $post_title, $post->ID, $excerpt ), $maxCaptionLen );
-		$facebook_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['description'], $post_title, $post->ID, $excerpt ), $maxDescLen );
+		$facebook_array['message'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['message'], $post_title, $post_id, $excerpt ), $maxMessageLen );
+		$facebook_array['linkname'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['linkname'], $post_title, $post_id, $excerpt ), $maxLinkNameLen );
+		$facebook_array['caption'] 		= leenkme_trim_words( leenkme_replacements_args( $facebook_array['caption'], $post_title, $post_id, $excerpt ), $maxCaptionLen );
+		$facebook_array['description'] 	= leenkme_trim_words( leenkme_replacements_args( $facebook_array['description'], $post_title, $post_id, $excerpt ), $maxDescLen );
 		
 		$user_settings = $dl_pluginleenkmeFacebook->get_user_settings( $user_id );
 		
@@ -828,9 +828,11 @@ function leenkme_publish_to_facebook( $connect_arr = array(), $post, $facebook_a
 							$facebook_array = get_leenkme_expanded_fb_post( $post['ID'], $facebook_array, false, false, $leenkme_user->ID );
 						
 						}
-														
+										
 						if ( isset( $facebook_array['picture'] ) && !empty( $facebook_array['picture'] ) )
 							$connect_arr[$api_key]['facebook_picture'] = $facebook_array['picture'];
+						else
+							$connect_arr[$api_key]['facebook_picture'] = leenkme_get_picture( $user_settings, $post['ID'], 'facebook' );
 						
 						$connect_arr[$api_key]['facebook_message'] 		= stripslashes( html_entity_decode( $facebook_array['message'], ENT_COMPAT, get_bloginfo('charset') ) );
 						$connect_arr[$api_key]['facebook_link'] 		= $url;

@@ -205,7 +205,7 @@ if ( !function_exists( 'leenkme_get_picture' ) ) {
 	 */
 	function leenkme_get_picture( $settings, $post_id, $type ) {
 	
-		if ( $settings['force_' . $type . '_image'] ) {
+		if ( !empty( $settings['force_' . $type . '_image'] ) ) {
 			
 			if ( 'og' == $type )
 				$picture = $settings['og_single_image'];

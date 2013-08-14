@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.1.1
+Version: 2.1.2
 Author URI: http://leenk.me/about/
 Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, open graph, social media, social media tools
 */
 
-define( 'LEENKME_VERSION' , '2.1.1' );
+define( 'LEENKME_VERSION' , '2.1.2' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -188,15 +188,6 @@ if ( ! class_exists( 'leenkme' ) ) {
 					
 					if ( isset( $_REQUEST['url_shortener'] ) )
 						$leenkme_settings['url_shortener'] = $_REQUEST['url_shortener'];
-					
-					if ( isset( $_REQUEST['supr_shortner_type'] ) )
-						$leenkme_settings['supr_shortner_type'] = $_REQUEST['supr_shortner_type'];
-					
-					if ( isset( $_REQUEST['supr_username'] ) )
-						$leenkme_settings['supr_username'] = $_REQUEST['supr_username'];
-					
-					if ( isset( $_REQUEST['supr_apikey'] ) )
-						$leenkme_settings['supr_apikey'] = $_REQUEST['supr_apikey'];
 					
 					if ( isset( $_REQUEST['bitly_username'] ) )
 						$leenkme_settings['bitly_username'] = $_REQUEST['bitly_username'];
@@ -445,7 +436,6 @@ if ( ! class_exists( 'leenkme' ) ) {
                         	<th rowspan="1"><?php _e( 'Select Your Default URL Shortner', 'leenkme' ); ?></th>
                             <td class="leenkme_url_shortener">
                             	<select id="leenkme_url_shortener_select" name="url_shortener"> 
-                                	<option value="supr" <?php selected( 'supr', $leenkme_settings['url_shortener'] ); ?>>su.pr</option>
                                 	<option value="bitly" <?php selected( 'bitly', $leenkme_settings['url_shortener'] ); ?>>bit.ly</option>
                                     <option value="yourls" <?php selected( 'yourls', $leenkme_settings['url_shortener'] ); ?>>YOURLS</option>
                                     <option value="isgd" <?php selected( 'isgd', $leenkme_settings['url_shortener'] ); ?>>is.gd</option>
@@ -462,10 +452,6 @@ if ( ! class_exists( 'leenkme' ) ) {
                             <td class='url_shortener_options'>
                             	<?php
 									switch( $leenkme_settings['url_shortener'] ) {
-									
-										case 'supr' :
-											leenkme_show_supr_options();
-											break;
 										
 										case 'bitly' :
 											leenkme_show_bitly_options();
@@ -812,6 +798,8 @@ if ( ! class_exists( 'leenkme' ) ) {
 	
 			echo '<div id="leenkme_meta_box">';
 			
+			echo '<a href class="leenkme_refresh_button button button-primary button-large right">' . __( 'Refresh Preview', 'leenkme' ) . '</a>';
+			
 				echo '<ul class="leenkme_tabs">';
 				
 				if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) ) {
@@ -907,10 +895,6 @@ if ( ! class_exists( 'leenkme' ) ) {
 			if ( isset( $_REQUEST['selected'] ) ) {
 				
 				switch( $_REQUEST['selected'] ) {
-				
-					case 'supr' :
-						die( leenkme_show_supr_options() );
-						break;
 					
 					case 'bitly' :
 						die( leenkme_show_bitly_options() );
