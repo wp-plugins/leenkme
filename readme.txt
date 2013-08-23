@@ -91,7 +91,7 @@ Yes, there is now a GUI interface for this in the main leenk.me settings, but if
 
 == Changelog ==
 = 2.1.3 =
-* Replaced most isset() calls to !empty() to improve iffeciency
+* Replaced most isset() calls to !empty() to improve efficiency
 * Fixed bug causing 'exclude' option to not work
 * Updated 'publish' action hook
 * Removed save_post hook in order to save post meta before transition_post_status runs the leenkme_connect function
