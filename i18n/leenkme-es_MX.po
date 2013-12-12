@@ -5,14 +5,14 @@ msgstr ""
 "Project-Id-Version: leenk.me\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/leenkme\n"
 "POT-Creation-Date: 2013-12-09 14:35:54+00:00\n"
-"PO-Revision-Date: 2013-12-09 09:47-0500\n"
+"PO-Revision-Date: 2013-12-11 10:56+0100\n"
 "Last-Translator: jelena kovacevic <jecajeca260@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: es_MX\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.6.1\n"
+"X-Generator: Poedit 1.5.5\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 #: facebook.php:120 friendfeed.php:109 linkedin.php:109 twitter.php:75
@@ -116,15 +116,15 @@ msgstr ""
 
 #: facebook.php:205 friendfeed.php:174 linkedin.php:186 twitter.php:102
 msgid "Message Preference:"
-msgstr ""
+msgstr "Preferencia de Mensaje:"
 
 #: facebook.php:208 friendfeed.php:177 linkedin.php:189 twitter.php:104
 msgid "Author"
-msgstr ""
+msgstr "Autor"
 
 #: facebook.php:209 friendfeed.php:178 linkedin.php:190 twitter.php:105
 msgid "Mine"
-msgstr ""
+msgstr "Mío"
 
 #: facebook.php:210 facebook.php:433 friendfeed.php:179 friendfeed.php:348
 #: linkedin.php:191 linkedin.php:390 twitter.php:106 twitter.php:236
@@ -134,18 +134,23 @@ msgstr "Manual"
 #: facebook.php:219 friendfeed.php:188 linkedin.php:200 twitter.php:111
 msgid "Author - Most efficient, uses the post author's Message Settings."
 msgstr ""
+"Autor - Más eficiente, utiliza los ajustes de post del mensaje del autor."
 
 #: facebook.php:220 friendfeed.php:189 linkedin.php:201 twitter.php:112
 msgid ""
 "Mine - Most inefficient, uses your Message Settings regardless of what the "
 "post author does."
 msgstr ""
+"Mío - Más ineficiente, utiliza sus ajustes de mensajes, independientemente "
+"de lo que haga el post del autor."
 
 #: facebook.php:221 friendfeed.php:190 linkedin.php:202 twitter.php:113
 msgid ""
 "Manual - Slightly inefficient, uses your Message Settigns unless the post "
 "author manually changes the message in the post."
 msgstr ""
+"Manual - Ligeramente ineficiente, utiliza sus ajustes de mensaje a menos que "
+"el autor del post cambie manualmente el mensaje en el correo."
 
 #: facebook.php:238 linkedin.php:221 twitter.php:131
 msgid "Publish Settings"
@@ -407,10 +412,9 @@ msgstr "Haga clic aquí para suscribirse a leenk.me y generar una llave de API"
 
 #: leenk.me.php:368
 msgid "Other leenk.me users on this site"
-msgstr ""
+msgstr "  Otros usuarios de leenk.me en este sitio"
 
 #: leenk.me.php:394
-#, fuzzy
 msgid "Administrator Options"
 msgstr "Opciones de administrador de leenk.me"
 
@@ -452,51 +456,45 @@ msgstr "Seleccione su URL Corta por Defecto"
 
 #: leenk.me.php:525
 msgid "Open Graph Meta Tag Options"
-msgstr ""
+msgstr "Opciones de Open Graph Meta Tag"
 
 #: leenk.me.php:531
 msgid "Enable OG Meta Tags on Home/Front Page"
-msgstr ""
+msgstr "Habilitar OG Meta Tags en ​​el Inicio/Página de Inicio"
 
 #: leenk.me.php:536
-#, fuzzy
 msgid "Select Site Type"
 msgstr "Elija sus tipos de Post"
 
 #: leenk.me.php:546
 msgid "Site Name:"
-msgstr ""
+msgstr "  Nombre del Sitio:"
 
 #: leenk.me.php:550
-#, fuzzy
 msgid "Site Description:"
 msgstr "Descripción por Defecto:"
 
 #: leenk.me.php:565
-#, fuzzy
 msgid "Site Image URL:"
 msgstr "URL de Imagen por Defecto:"
 
 #: leenk.me.php:574
 msgid "Enable OG Meta Tags on Posts"
-msgstr ""
+msgstr "Habilitar OG Meta Tags en Posts"
 
 #: leenk.me.php:578
-#, fuzzy
 msgid "Post Title:"
 msgstr "Post:"
 
 #: leenk.me.php:582
 msgid "Post Site Name:"
-msgstr ""
+msgstr "Nombre del Sitio de Post:"
 
 #: leenk.me.php:586
-#, fuzzy
 msgid "Post Description:"
 msgstr "Descripción por Defecto:"
 
 #: leenk.me.php:603
-#, fuzzy
 msgid "Default Post Image URL:"
 msgstr "URL de Imagen por Defecto:"
 
@@ -507,6 +505,11 @@ msgid ""
 "leenk.me/' target='_blank'>http://leenk.me/</a> and follow the instructions "
 "for updating your settings.</p><p><a href='%s'>hide this notice</a></p>"
 msgstr ""
+"<p>Debido a algunos cambios que Facebook ha introducido en su sistema, usted "
+"tendrá que actualizar su cuenta de leenk.me.<br />Por favor loguéese en <a "
+"href='http://leenk.me/' target='_blank'>http://leenk.me/</a> y siga las "
+"instrucciones para actualizar la configuración.</p><p><a href='%s'>esconder "
+"este anuncio</a></p>"
 
 #: leenk.me.php:814 leenk.me.php:1062
 msgid "leenk.me"
@@ -514,7 +517,7 @@ msgstr "leenk.me"
 
 #: leenk.me.php:832
 msgid "Refresh Preview"
-msgstr ""
+msgstr "  Actualizar Vista"
 
 #: leenk.me.php:1062 leenk.me.php:1065
 msgid "leenk.me Settings"
@@ -630,12 +633,10 @@ msgstr ""
 "enlaces para obtener más información: </ p>"
 
 #: linkedin.php:132
-#, fuzzy
 msgid "Share to Personal Profile?"
 msgstr "¿Publicar en el Perfil Personal?"
 
 #: linkedin.php:133
-#, fuzzy
 msgid "Share to Group?"
 msgstr "¿Feed al Grupo?"
 
