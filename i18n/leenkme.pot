@@ -1,0 +1,731 @@
+# Copyright (C) 2013 
+# This file is distributed under the same license as the  package.
+msgid ""
+msgstr ""
+"Project-Id-Version: leenk.me\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/leenkme\n"
+"POT-Creation-Date: 2013-12-09 14:35:54+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2013-12-09 09:48-0500\n"
+"Last-Translator: Lew Ayotte <lew@lewayotte.com>\n"
+"Language-Team: leenk.me <support@leen.me>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en_US\n"
+"X-Generator: Poedit 1.6.1\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: facebook.php:120 friendfeed.php:109 linkedin.php:109 twitter.php:75
+msgid "Settings Updated."
+msgstr ""
+
+#: facebook.php:131 friendfeed.php:120 linkedin.php:123 twitter.php:85
+msgid "Settings"
+msgstr ""
+
+#: facebook.php:131 linkedin.php:123 twitter.php:85
+msgid "help"
+msgstr ""
+
+#: facebook.php:135 friendfeed.php:125 linkedin.php:128
+msgid "Social Settings"
+msgstr ""
+
+#: facebook.php:139
+msgid "Publish to Personal Profile?"
+msgstr ""
+
+#: facebook.php:140
+msgid "Publish to Fan Page?"
+msgstr ""
+
+#: facebook.php:141
+msgid "Publish to Group?"
+msgstr ""
+
+#: facebook.php:144
+msgid "Publish a Test Message"
+msgstr ""
+
+#: facebook.php:147 facebook.php:229 facebook.php:266 friendfeed.php:135
+#: friendfeed.php:198 friendfeed.php:237 leenk.me.php:381 leenk.me.php:514
+#: leenk.me.php:612 linkedin.php:139 linkedin.php:211 linkedin.php:251
+#: twitter.php:122 twitter.php:160
+msgid "Save Settings"
+msgstr ""
+
+#: facebook.php:157 friendfeed.php:145 linkedin.php:149 twitter.php:89
+msgid "Message Settings"
+msgstr ""
+
+#: facebook.php:162
+msgid "Default Message:"
+msgstr ""
+
+#: facebook.php:166 linkedin.php:158
+msgid "Default Link Name:"
+msgstr ""
+
+#: facebook.php:170
+msgid "Default Caption:"
+msgstr ""
+
+#: facebook.php:174 friendfeed.php:150 linkedin.php:162
+msgid "Default Description:"
+msgstr ""
+
+#: facebook.php:182 friendfeed.php:158 leenk.me.php:594 linkedin.php:170
+msgid "Displays the post title."
+msgstr ""
+
+#: facebook.php:183 friendfeed.php:159 leenk.me.php:558 leenk.me.php:595
+#: linkedin.php:171
+msgid "Displays the WordPress site name (found in Settings -> General)."
+msgstr ""
+
+#: facebook.php:184 friendfeed.php:160 leenk.me.php:559 leenk.me.php:596
+#: linkedin.php:172
+msgid "Displays the WordPress TagLine (found in Settings -> General)."
+msgstr ""
+
+#: facebook.php:185 friendfeed.php:161 leenk.me.php:597 linkedin.php:173
+msgid "Displays the WordPress Post Excerpt (only used with Description Field)."
+msgstr ""
+
+#: facebook.php:191 friendfeed.php:167 linkedin.php:179
+msgid "Default Image URL:"
+msgstr ""
+
+#: facebook.php:194 friendfeed.php:170 leenk.me.php:606
+msgid "Always Use"
+msgstr ""
+
+#: facebook.php:200
+msgid ""
+"NOTE: Do not use an image URL hosted by Facebook. Facebook will reject your "
+"message."
+msgstr ""
+
+#: facebook.php:205 friendfeed.php:174 linkedin.php:186 twitter.php:102
+msgid "Message Preference:"
+msgstr ""
+
+#: facebook.php:208 friendfeed.php:177 linkedin.php:189 twitter.php:104
+msgid "Author"
+msgstr ""
+
+#: facebook.php:209 friendfeed.php:178 linkedin.php:190 twitter.php:105
+msgid "Mine"
+msgstr ""
+
+#: facebook.php:210 facebook.php:433 friendfeed.php:179 friendfeed.php:348
+#: linkedin.php:191 linkedin.php:390 twitter.php:106 twitter.php:236
+msgid "Manual"
+msgstr ""
+
+#: facebook.php:219 friendfeed.php:188 linkedin.php:200 twitter.php:111
+msgid "Author - Most efficient, uses the post author's Message Settings."
+msgstr ""
+
+#: facebook.php:220 friendfeed.php:189 linkedin.php:201 twitter.php:112
+msgid ""
+"Mine - Most inefficient, uses your Message Settings regardless of what the "
+"post author does."
+msgstr ""
+
+#: facebook.php:221 friendfeed.php:190 linkedin.php:202 twitter.php:113
+msgid ""
+"Manual - Slightly inefficient, uses your Message Settigns unless the post "
+"author manually changes the message in the post."
+msgstr ""
+
+#: facebook.php:238 linkedin.php:221 twitter.php:131
+msgid "Publish Settings"
+msgstr ""
+
+#: facebook.php:241
+msgid "Publish Categories:"
+msgstr ""
+
+#: facebook.php:245 friendfeed.php:215 linkedin.php:228 twitter.php:138
+msgid "Include"
+msgstr ""
+
+#: facebook.php:245 friendfeed.php:215 linkedin.php:228 twitter.php:138
+msgid "Exclude"
+msgstr ""
+
+#: facebook.php:262 linkedin.php:246 twitter.php:156
+msgid ""
+"To \"deselect\" hold the SHIFT key on your keyboard while you click the "
+"category."
+msgstr ""
+
+#: facebook.php:429 friendfeed.php:344 linkedin.php:386 twitter.php:232
+msgid "Format:"
+msgstr ""
+
+#: facebook.php:434 friendfeed.php:349 linkedin.php:391 twitter.php:237
+msgid "Default"
+msgstr ""
+
+#: facebook.php:479 linkedin.php:436
+msgid "Exclude from Profile:"
+msgstr ""
+
+#: facebook.php:484
+msgid "Exclude from Page:"
+msgstr ""
+
+#: facebook.php:489 friendfeed.php:387 linkedin.php:441
+msgid "Exclude from Group:"
+msgstr ""
+
+#: facebook.php:497
+msgid "RePublish"
+msgstr ""
+
+#: facebook.php:580
+msgid ""
+"You have excluded this post from publishing to your Facebook profile, Fan "
+"Page, and Group. If you would like to publish it, edit the post and remove "
+"the appropriate exclude check boxes."
+msgstr ""
+
+#: facebook.php:601
+msgid ""
+"Error received! Please check your <a href=\"admin.php?page=leenkme_facebook"
+"\">Facebook settings</a> and try again. If this continues to fail, contact "
+"<a href=\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: facebook.php:611 facebook.php:675 facebook.php:681 friendfeed.php:501
+#: friendfeed.php:558 friendfeed.php:564 leenk.me.php:1122 leenk.me.php:1132
+#: leenk.me.php:1255 linkedin.php:560 linkedin.php:624 linkedin.php:630
+#: twitter.php:474 twitter.php:479 twitter.php:531
+msgid ""
+"ERROR: Unknown error, please try again. If this continues to fail, contact "
+"<a href=\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: facebook.php:619 friendfeed.php:509 linkedin.php:568 twitter.php:543
+msgid "ERROR: Unable to determine Post ID."
+msgstr ""
+
+#: facebook.php:638
+msgid "Testing the leenk.me Facebook Plugin for WordPress"
+msgstr ""
+
+#: facebook.php:641 linkedin.php:591
+msgid ""
+"leenk.me is a webapp that allows you to publish to popular social networking "
+"sites whenever you publish a new post from your WordPress website."
+msgstr ""
+
+#: facebook.php:687 friendfeed.php:570 linkedin.php:636 twitter.php:485
+msgid ""
+"ERROR: You have no entered your leenk.me API key. Please check your leenk.me "
+"settings."
+msgstr ""
+
+#: facebook.php:756
+msgid ""
+"You have your <a href=\"admin.php?page=leenkme_facebook\">leenk.me Facebook "
+"settings</a> set to Exclude All Categories."
+msgstr ""
+
+#: facebook.php:778
+msgid ""
+"Post in an excluded category, check your <a href=\"admin.php?"
+"page=leenkme_facebook\">Leenk.me Facebook settings</a> or remove the post "
+"from the excluded category."
+msgstr ""
+
+#: facebook.php:784
+msgid ""
+"Post not found in an included category, check your <a href=\"admin.php?"
+"page=leenkme_facebook\">Leenk.me Facebook settings</a> or add the post into "
+"the included category."
+msgstr ""
+
+#: friendfeed.php:128
+msgid "Feed to MyFeed?"
+msgstr ""
+
+#: friendfeed.php:129
+msgid "Feed to Group?"
+msgstr ""
+
+#: friendfeed.php:132
+msgid "Feed a Test Message"
+msgstr ""
+
+#: friendfeed.php:208
+msgid "Feed Settings"
+msgstr ""
+
+#: friendfeed.php:211
+msgid "Feed Categories:"
+msgstr ""
+
+#: friendfeed.php:218 linkedin.php:231
+msgid "All Categories"
+msgstr ""
+
+#: friendfeed.php:233
+msgid ""
+"To deselect hold the SHIFT key on your keyboard while you click the category."
+msgstr ""
+
+#: friendfeed.php:382
+msgid "Exclude from MyFeed:"
+msgstr ""
+
+#: friendfeed.php:395
+msgid "ReFeed"
+msgstr ""
+
+#: friendfeed.php:470
+msgid ""
+"You have excluded this post from feeding to your FriendFeed MyFeed and "
+"Group. If you would like to feed it, edit the post and remove the "
+"appropriate exclude check boxes."
+msgstr ""
+
+#: friendfeed.php:491
+msgid ""
+"Error received! Please check your <a href=\"admin.php?page=leenkme_friendfeed"
+"\">Friendfeed settings</a> and try again. If this continues to fail, contact "
+"<a href=\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: friendfeed.php:527
+msgid ""
+"Testing leenk.me's FriendFeed Plugin for WordPress - A webapp that allows "
+"you to publicize your WordPress posts automatically."
+msgstr ""
+
+#: includes/url-shortener.php:242 includes/url-shortener.php:282
+msgid "Username"
+msgstr ""
+
+#: includes/url-shortener.php:243
+msgid "API Key"
+msgstr ""
+
+#: includes/url-shortener.php:278
+msgid "Username/Password"
+msgstr ""
+
+#: includes/url-shortener.php:278
+msgid "Signature Key"
+msgstr ""
+
+#: includes/url-shortener.php:281
+msgid "API URL"
+msgstr ""
+
+#: includes/url-shortener.php:283
+msgid "Password"
+msgstr ""
+
+#: includes/url-shortener.php:284
+msgid "Signature"
+msgstr ""
+
+#: includes/url-shortener.php:318 includes/url-shortener.php:334
+msgid ""
+"Warning: The %s plugin must be installed and activated to use this URL "
+"shortener."
+msgstr ""
+
+#: leenk.me.php:304
+msgid "leenk.me Settings Updated."
+msgstr ""
+
+#: leenk.me.php:319
+msgid "leenk.me General Settings"
+msgstr ""
+
+#: leenk.me.php:325 leenk.me.php:329
+msgid "leenk.me API Key"
+msgstr ""
+
+#: leenk.me.php:330
+msgid "Verify leenk.me API"
+msgstr ""
+
+#: leenk.me.php:337
+msgid "Click here to subscribe to leenk.me and generate an API key"
+msgstr ""
+
+#: leenk.me.php:368
+msgid "Other leenk.me users on this site"
+msgstr ""
+
+#: leenk.me.php:394
+msgid "Administrator Options"
+msgstr ""
+
+#: leenk.me.php:400
+msgid "Enable Your Social Network Modules"
+msgstr ""
+
+#: leenk.me.php:406
+msgid "Choose which social network modules you want to enable for this site."
+msgstr ""
+
+#: leenk.me.php:426
+msgid "Select Your Post Types"
+msgstr ""
+
+#: leenk.me.php:427
+msgid "Post:"
+msgstr ""
+
+#: leenk.me.php:441
+msgid ""
+"Choose which post types you want leenk.me to automatically publish to your "
+"social networks."
+msgstr ""
+
+#: leenk.me.php:463
+msgid ""
+"To take advantage of publishing to Pages and Custom Post Types, please "
+"upgrade to the latest version of WordPress."
+msgstr ""
+
+#: leenk.me.php:470
+msgid "Select Your Default URL Shortner"
+msgstr ""
+
+#: leenk.me.php:525
+msgid "Open Graph Meta Tag Options"
+msgstr ""
+
+#: leenk.me.php:531
+msgid "Enable OG Meta Tags on Home/Front Page"
+msgstr ""
+
+#: leenk.me.php:536
+msgid "Select Site Type"
+msgstr ""
+
+#: leenk.me.php:546
+msgid "Site Name:"
+msgstr ""
+
+#: leenk.me.php:550
+msgid "Site Description:"
+msgstr ""
+
+#: leenk.me.php:565
+msgid "Site Image URL:"
+msgstr ""
+
+#: leenk.me.php:574
+msgid "Enable OG Meta Tags on Posts"
+msgstr ""
+
+#: leenk.me.php:578
+msgid "Post Title:"
+msgstr ""
+
+#: leenk.me.php:582
+msgid "Post Site Name:"
+msgstr ""
+
+#: leenk.me.php:586
+msgid "Post Description:"
+msgstr ""
+
+#: leenk.me.php:603
+msgid "Default Post Image URL:"
+msgstr ""
+
+#: leenk.me.php:765
+msgid ""
+"<p>Due to some changes Facebook has made to their system, you will need to "
+"update your leenk.me account settings.<br />Please log into <a href='http://"
+"leenk.me/' target='_blank'>http://leenk.me/</a> and follow the instructions "
+"for updating your settings.</p><p><a href='%s'>hide this notice</a></p>"
+msgstr ""
+
+#: leenk.me.php:814 leenk.me.php:1062
+msgid "leenk.me"
+msgstr ""
+
+#: leenk.me.php:832
+msgid "Refresh Preview"
+msgstr ""
+
+#: leenk.me.php:1062 leenk.me.php:1065
+msgid "leenk.me Settings"
+msgstr ""
+
+#: leenk.me.php:1070
+msgid "Twitter Settings"
+msgstr ""
+
+#: leenk.me.php:1070
+msgid "Twitter"
+msgstr ""
+
+#: leenk.me.php:1077
+msgid "Facebook Settings"
+msgstr ""
+
+#: leenk.me.php:1077
+msgid "Facebook"
+msgstr ""
+
+#: leenk.me.php:1084
+msgid "LinkedIn Settings"
+msgstr ""
+
+#: leenk.me.php:1084
+msgid "LinkedIn"
+msgstr ""
+
+#: leenk.me.php:1091
+msgid "FriendFeed Settings"
+msgstr ""
+
+#: leenk.me.php:1091
+msgid "FriendFeed"
+msgstr ""
+
+#: leenk.me.php:1138
+msgid "Please fill in your API key."
+msgstr ""
+
+#: leenk.me.php:1149 leenk.me.php:1196
+msgid "Unable to determine Post ID."
+msgstr ""
+
+#: leenk.me.php:1152
+msgid "Unable to determine column size."
+msgstr ""
+
+#: leenk.me.php:1156
+msgid ""
+"Choose the Social Networks that you want to ReLeenk and click the ReLeenk "
+"button."
+msgstr ""
+
+#: leenk.me.php:1183
+msgid "Cancel"
+msgstr ""
+
+#: leenk.me.php:1184
+msgid "ReLeenk"
+msgstr ""
+
+#: leenk.me.php:1199
+msgid "No Social Networks selected."
+msgstr ""
+
+#: leenk.me.php:1245
+msgid ""
+"Error received! If this continues to fail, contact <a href=\"http://leenk.me/"
+"contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: leenk.me.php:1294 leenk.me.php:1343
+msgid ""
+"Undefined error occurred, for help please contact <a href=\"http://leenk.me/"
+"\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: leenk.me.php:1304 leenk.me.php:1357
+msgid ""
+"Error: You have exceeded your rate limit for API calls, only 350 API calls "
+"are allowed every hour."
+msgstr ""
+
+#: leenk.me.php:1351
+msgid ""
+"Invalid leenk.me setup, for help please contact <a href=\"http://leenk.me/\" "
+"target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: leenk.me.php:1374
+msgid "Error: Unable to determine post ID"
+msgstr ""
+
+#: leenk.me.php:1420
+msgid ""
+"<p>Need help working with the leenk.me plugin? Try these links for more "
+"information:</p>"
+msgstr ""
+
+#: linkedin.php:132
+msgid "Share to Personal Profile?"
+msgstr ""
+
+#: linkedin.php:133
+msgid "Share to Group?"
+msgstr ""
+
+#: linkedin.php:136
+msgid "Share a Test Message"
+msgstr ""
+
+#: linkedin.php:154
+msgid "Default Comment:"
+msgstr ""
+
+#: linkedin.php:168
+msgid "Format Options:"
+msgstr ""
+
+#: linkedin.php:182
+msgid "Always use"
+msgstr ""
+
+#: linkedin.php:224
+msgid "Share Categories:"
+msgstr ""
+
+#: linkedin.php:449
+msgid "ReShare"
+msgstr ""
+
+#: linkedin.php:529
+msgid ""
+"You have excluded this post from sharing to your LinkedIn profile. If you "
+"would like to share it, edit the post and remove the appropriate exclude "
+"check box."
+msgstr ""
+
+#: linkedin.php:550
+msgid ""
+"Error received! Please check your <a href=\"admin.php?page=leenkme_linkedin"
+"\">LinkedIn settings</a> and try again. If this continues to fail, contact "
+"<a href=\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: linkedin.php:587
+msgid "Testing leenk.me's LinkedIn Plugin for WordPress"
+msgstr ""
+
+#: linkedin.php:588
+msgid "leenk.me test"
+msgstr ""
+
+#: linkedin.php:701
+msgid ""
+"You have your <a href=\"admin.php?page=leenkme_linkedin\">leenk.me LinkedIn "
+"settings</a> set to Exclude All Categories."
+msgstr ""
+
+#: linkedin.php:723
+msgid ""
+"Post in an excluded category, check your <a href=\"admin.php?"
+"page=leenkme_linkedin\">Leenk.me LinkedIn settings</a> or remove the post "
+"from the excluded category."
+msgstr ""
+
+#: linkedin.php:729
+msgid ""
+"Post not found in an included category, check your <a href=\"admin.php?"
+"page=leenkme_linkedin\">Leenk.me LinkedIn settings</a> or add the post into "
+"the included category."
+msgstr ""
+
+#: twitter.php:92
+msgid "Tweet Format:"
+msgstr ""
+
+#: twitter.php:96
+msgid "Displays Title of your post in your Twitter feed.*"
+msgstr ""
+
+#: twitter.php:97
+msgid "Displays TinyURL of your post in your Twitter feed.*"
+msgstr ""
+
+#: twitter.php:98
+msgid ""
+"Displays the categories of your post in your Twitter feed as a hashtag.*"
+msgstr ""
+
+#: twitter.php:99
+msgid "Displays ags your post in your Twitter feed as a hashtag.*"
+msgstr ""
+
+#: twitter.php:115
+msgid ""
+"*NOTE: Twitter only allows a maximum of 140 characters per tweet. If your "
+"format is too long to accommodate %TITLE% and/or %URL% then this plugin will "
+"cut off your title to fit and/or remove the URL. URL is given preference "
+"(since it's either all or nothing). So if your TITLE ends up making your "
+"Tweet go over the 140 characters, it will take a substring of your title "
+"(plus some ellipsis). If you use the %CATS% or %TAGS% variable, categories "
+"are given priority, it will display every category that will fit within the "
+"tweet length limitation. After adding the categories leenk.me moves onto "
+"tags and will add every tag that will fit within the tweet length "
+"limitation. leenk.me will also strip out any non-word character from the "
+"Twitter \"hashtag\" a single word."
+msgstr ""
+
+#: twitter.php:119
+msgid "Send a Test Tweet"
+msgstr ""
+
+#: twitter.php:134
+msgid "Tweet Categories:"
+msgstr ""
+
+#: twitter.php:255
+msgid "Exclude from Twitter:"
+msgstr ""
+
+#: twitter.php:273
+msgid "ReTweet"
+msgstr ""
+
+#: twitter.php:456
+msgid "Testing the @leenk_me Twitter Plugin for #WordPress %s - %d"
+msgstr ""
+
+#: twitter.php:499
+msgid ""
+"You have excluded this post from publishing to your Twitter account. If you "
+"would like to publish it, edit the post and remove the exclude check box in "
+"the post settings."
+msgstr ""
+
+#: twitter.php:521
+msgid ""
+"Error received! Please check your <a href=\"admin.php?page=leenkme_twitter"
+"\">Twitter settings</a> and try again. If this continues to fail, contact <a "
+"href=\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: twitter.php:537
+msgid ""
+"ERROR: Unable to determine tweet. If this continues to fail, contact <a href="
+"\"http://leenk.me/contact/\" target=\"_blank\">leenk.me support</a>."
+msgstr ""
+
+#: twitter.php:584
+msgid ""
+"You have your <a href=\"admin.php?page=leenkme_twitter\">Leenk.me Twitter "
+"settings</a> set to Exclude All Categories."
+msgstr ""
+
+#: twitter.php:606
+msgid ""
+"<p>Post in an excluded category, check your <a href=\"admin.php?"
+"page=leenkme_twitter\">Leenk.me Twitter settings</a> or remove the post from "
+"the excluded category."
+msgstr ""
+
+#: twitter.php:612
+msgid ""
+"Post not found in an included category, check your <a href=\"admin.php?"
+"page=leenkme_twitter\">Leenk.me Twitter settings</a> or add the post into "
+"the included category."
+msgstr ""
