@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.2.1
+Version: 2.2.2
 Author URI: http://leenk.me/about/
 Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, open graph, social media, social media tools
 */
 
-define( 'LEENKME_VERSION' , '2.2.1' );
+define( 'LEENKME_VERSION' , '2.2.2' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -186,7 +186,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 					if ( !empty( $_REQUEST['post_types'] ) )
 						$leenkme_settings['post_types'] = $_REQUEST['post_types'];
 					else
-						$leenkme_settings['post_types'] = '';
+						$leenkme_settings['post_types'] = array( 'post' );
 					
 					if ( !empty( $_REQUEST['url_shortener'] ) )
 						$leenkme_settings['url_shortener'] = $_REQUEST['url_shortener'];
@@ -426,8 +426,7 @@ if ( ! class_exists( 'leenkme' ) ) {
                             <th rowspan="1"><?php _e( 'Select Your Post Types', 'leenkme' ); ?></th>
                             <td class="leenkme_post_type_name"><?php _e( 'Post:', 'leenkme' ); ?></td>
                             <td class="leenkme_module_checkbox">
-                                <input type="checkbox" value="post" name="post_types[]" checked="checked" readonly="readonly" disabled="disabled" />
-                                <input type="hidden" value="post" name="post_types[]" />
+                                <input type="checkbox" value="post" name="post_types[]" <?php checked( in_array( 'post', $leenkme_settings['post_types'] ) ); ?> />
                             </td>
                         </tr>
                         <?php if ( version_compare( $this->wp_version, '2.9', '>' ) ) {
@@ -1037,18 +1036,22 @@ if ( class_exists( 'leenkme' ) ) {
 	require_once( 'includes/url-shortener.php' );
 	
 	$dl_pluginleenkme = new leenkme();
+
+	if ( is_admin() ) {
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) )
-		require_once( 'twitter.php' );
+		if ( $dl_pluginleenkme->plugin_enabled( 'twitter' ) )
+			require_once( 'twitter.php' );
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) )
-		require_once( 'facebook.php' );
+		if ( $dl_pluginleenkme->plugin_enabled( 'facebook' ) )
+			require_once( 'facebook.php' );
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) )
-		require_once( 'linkedin.php' );
+		if ( $dl_pluginleenkme->plugin_enabled( 'linkedin' ) )
+			require_once( 'linkedin.php' );
 	
-	if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) )
-		require_once( 'friendfeed.php' );
+		if ( $dl_pluginleenkme->plugin_enabled( 'friendfeed' ) )
+			require_once( 'friendfeed.php' );
+	
+	}
 }
 
 // Initialize the admin panel if the plugin has been activated
