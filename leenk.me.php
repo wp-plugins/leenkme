@@ -4,12 +4,12 @@ Plugin Name: leenk.me
 Plugin URI: http://leenk.me/
 Description: Automatically publish to your Twitter, Facebook Profile/Fan Page/Group, and LinkedIn whenever you publish a new post on your WordPress website with the leenk.me social network connector. You need a <a href="http://leenk.me/">leenk.me API key</a> to use this plugin.
 Author: Lew Ayotte @ leenk.me
-Version: 2.2.5
+Version: 2.2.6
 Author URI: http://leenk.me/about/
 Tags: publish, automatic, facebook, twitter, linkedin, friendfeed, fan page, groups, publicize, open graph, social media, social media tools
 */
 
-define( 'LEENKME_VERSION' , '2.2.5' );
+define( 'LEENKME_VERSION' , '2.2.6' );
 
 if ( ! class_exists( 'leenkme' ) ) {
 	
@@ -28,6 +28,7 @@ if ( ! class_exists( 'leenkme' ) ) {
 			$this->timeout	= '5000';		// in miliseconds
 			
 			add_image_size( 'leenkme_thumbnail', 150, 150 );
+			add_image_size( 'leenkme_facebook_image', 1200, 630 );
 		
 			add_action( 'init', array( &$this, 'upgrade' ) );
 			add_action( 'admin_enqueue_scripts', 				array( &$this, 'leenkme_admin_enqueue_scripts' ) );
